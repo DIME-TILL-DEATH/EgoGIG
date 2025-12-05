@@ -5,11 +5,9 @@
 
 enum gui_menu_type
 {
-
+	MENU_PLAYER,
 
 	MENU_ABSTRACT = 255
-
-
 };
 
 class AbstractMenu
@@ -25,9 +23,8 @@ public:
 	AbstractMenu() {};
 	virtual ~AbstractMenu() {};
 
-	virtual void show(TShowMode swhoMode = FirstShow) {};
+	virtual void show(TShowMode showMode = FirstShow) {};
 	virtual void refresh() {};
-	virtual void returnFromChildMenu();
 	virtual void task() {};
 
 	virtual void encoderPressed() {};
@@ -36,7 +33,6 @@ public:
 
 	virtual void keyStop() {};
 	virtual void keyStart() {};
-
 
 	virtual void keyLeftUp() {};
 	virtual void keyLeftDown() {};
@@ -48,6 +44,7 @@ public:
 
 	gui_menu_type menuType();
 	void showChild(AbstractMenu* child);
+	void returnFromChildMenu();
 
 protected:
 	AbstractMenu* m_parentMenu = nullptr;

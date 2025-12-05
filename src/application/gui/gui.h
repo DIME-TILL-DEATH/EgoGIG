@@ -7,8 +7,8 @@
 
 enum
 {
-	player,
-	edit_playlist,
+//	MENU_PLAYER,
+	edit_playlist = 50,
 	select_folder,
 	play_next_fil,
 	name_ind_play,
@@ -33,13 +33,7 @@ enum
 	key_esc,
 	key_encoder
 };
-enum
-{
-	auto_next_track = 0,
-	direction_counter,
-	direction_scrol_playlist,
-	loop_points
-};
+
 enum
 {
 	ctrl1_t, ctrl1, ctrl2_t, ctrl2, ctrl3_t, ctrl3, jjj, chann
@@ -47,7 +41,7 @@ enum
 
 void processGui(TTask* processingTask);
 
-uint8_t test_file(void);
+//uint8_t test_file(void);
 
 void write_sys(void);
 void read_sys(void);

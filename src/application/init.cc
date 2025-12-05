@@ -33,13 +33,19 @@ const target_t second_target =
 		+ wav_buff_size / 2), wav_buff_size / 2 * sizeof(wav_sample_t) };
 
 volatile uint8_t encoder_state, encoder_state1, encoder_key, key_ind, play_fl,
-		play_fl1;
+		play_fl1, play_fl2;
 volatile uint32_t click_size;
 volatile uint32_t count_down;
 volatile uint32_t count_up;
-extern uint32_t play_point1;
-extern uint32_t play_point2;
-extern uint8_t play_point_ind;
+
+volatile uint8_t play_point_ind;
+volatile uint32_t play_point1 = 0;
+volatile uint32_t play_point2 = 0;
+volatile uint8_t pause_fl = 0;
+
+volatile uint8_t stop_fl1 = 1;
+
+uint32_t song_size;
 
 uint16_t key_reg_in[2];
 uint16_t key_reg_out[2] =

@@ -7,6 +7,8 @@
 
 #include "gui.h"
 
+#include "menuplayer.h"
+
 #include "libopencm3/stm32/timer.h"
 #include "libopencm3/stm32/gpio.h"
 #include "libopencm3/stm32/dma.h"
@@ -46,7 +48,7 @@ void TCSTask::Code()
 	DisplayTask->Clear();
 	key_reg_out[0] |= 0x90;
 
-	test_file();
+
 
 	load_led(num_prog);
 
@@ -54,6 +56,9 @@ void TCSTask::Code()
 	read_ctrl();
 	read_map();
 	blink_en = 1;
+
+//	test_file(); // in menuPlayer constructor
+	currentMenu = new MenuPlayer;
 
 	while (1)
 	{

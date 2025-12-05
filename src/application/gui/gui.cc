@@ -2,6 +2,8 @@
 
 #include "fs_stream.h"
 
+#include "abstractmenu.h"
+
 #include "cs.h"
 #include "init.h"
 #include "display.h"
@@ -11,6 +13,7 @@
 #include "init.h"
 #include "display.h"
 #include "fs_stream.h"
+#include "enc.h"
 
 #include "libopencm3/stm32/timer.h"
 #include "libopencm3/stm32/gpio.h"
@@ -40,34 +43,14 @@ uint8_t num_prog_edit = 0;
 const uint8_t led_sym[10] =
 { 0xc0, 0xf9, 0xa4, 0xb0, 0x99, 0x92, 0x82, 0xf8, 0x80, 0x90 };
 
-volatile uint8_t play_fl2;
-volatile uint8_t stop_fl = 0;
-volatile uint8_t stop_fl1 = 1;
-volatile uint8_t pause_fl = 0;
 
 
-extern volatile uint8_t encoder_state, encoder_state1, encoder_key, key_ind,
-		play_fl, play_fl1;
-extern wav_sample_t sound_buff[];
-extern wav_sample_t click_buff[];
-extern uint16_t msec_tik;
-extern size_t sound_point;
-extern volatile uint32_t samp_point;
-uint32_t play_point1 = 0;
-uint32_t play_point2 = 0;
-uint8_t play_point1_fl = 0;
-uint8_t play_point2_fl = 0;
-uint8_t play_point_ind = 0;
 uint8_t condish = 0;
 uint8_t blink_en = 0;
 uint8_t num_tr_fl = 0;
 uint8_t enc_key_fl = 0;
-extern volatile uint8_t act_fl;
-extern uint8_t us_buf1;
-extern volatile uint32_t count_down;
-extern volatile uint32_t count_up;
-extern volatile uint32_t click_size;
-uint32_t song_size;
+
+
 uint8_t tim5_fl;
 uint8_t sys_param[64];
 uint8_t ctrl_param[32];
@@ -79,15 +62,10 @@ uint8_t midi_pc = 0;
 
 volatile uint32_t audio_pos;
 volatile uint32_t play_next_file = 0;
-volatile uint32_t no_file = 0;
-emb_string path_old = "/SONGS";
+
+
 uint8_t line_buf[5] =
 { 0, 0, 0, 0 };
-
-extern uint8_t condish;
-extern uint8_t sys_param[];
-extern uint32_t song_size;
-extern uint8_t blink_en;
 
 inline void tim7_start(uint8_t val)
 {
@@ -177,427 +155,55 @@ inline void ev_midi_print(uint8_t type, uint8_t val)
 		break;
 	}
 }
-inline void clean_fl(void)
+
+void clean_fl(void)
 {
 	encoder_state1 = encoder_key = key_ind = stp_dub_fl = ret_dub_fl =
 			fwd_dub_fl = esc_dub_fl = enc_dub_fl = 0;
 }
-void jump_rand_pos(uint32_t pos)
-{
-	FsStreamTask->pos(pos);
-	count_up = pos / 4410.0f;
-	count_down = song_size - count_up;
-	if (sys_param[direction_counter])
-		DisplayTask->Sec_Print(count_down);
-	else
-		DisplayTask->Sec_Print(count_up);
-	memset(sound_buff, 0, wav_buff_size);
-	memset(click_buff, 0, wav_buff_size);
-}
-inline void init_prog(void)
-{
-	play_fl = 0;
-	while (!play_fl1)
-		;
-	play_fl1 = 0;
-	sound_point = 0;
-	samp_point = 0;
-	FsStreamTask->pos(0);
-	msec_tik = 0;
-	for (uint32_t i = 0; i < (wav_buff_size); i++)
-		sound_buff[i].left = sound_buff[i].right = click_buff[i].left =
-				click_buff[i].right = 0;
-}
-uint8_t load_prog(void)
-{
-	while (!play_fl1)
-		;
-	if (FsStreamTask->open(num_prog))
-		return 1;
-	else
-	{
-		DisplayTask->Clear();
-		emb_string tmp;
-		FsStreamTask->sound_name(tmp);
-		oem2winstar(tmp);
-		DisplayTask->StringOut(0, 0, (uint8_t*) tmp.c_str());
-		init_prog();
-		if (FsStreamTask->next_pl())
-			DisplayTask->StringOut(15, 1, (uint8_t*) ">");
-		song_size = count_down = FsStreamTask->sound_size();
-		click_size = FsStreamTask->click_size();
-		DisplayTask->Sec_Print(count_down);
-		play_point1 = play_point2 = play_point1_fl = play_point2_fl = 0;
-		count_up = 0;
-		return 0;
-	}
-}
-uint8_t test_file(void)
-{
-	uint8_t temp = 0;
-	no_file = 0;
-	for (; num_prog < 100; num_prog++)
-		if (!load_prog())
-			break;
-	if (num_prog > 98)
-	{
-		num_prog = 0;
-		temp = 1;
-		no_file = 1;
-		DisplayTask->Clear();
-		DisplayTask->StringOut(2, 0, (uint8_t*) "No files in      Playlist");
-		dela(0xffffff);
-		condish = player;
-	}
-	return temp;
-}
-inline void init_play_menu(uint8_t type)
-{
-	condish = player;
-	emb_string tmp;
-	if (stop_fl1 && !type)
-	{
-		if (!test_file())
-			if (num_prog < 99)
-				DisplayTask->Sec_Print(FsStreamTask->sound_size());
-	}
-	else
-	{
-		DisplayTask->Clear();
-		FsStreamTask->curr_path(path_old);
-		FsStreamTask->sound_name(tmp);
-		oem2winstar(tmp);
-		DisplayTask->StringOut(0, 0, (uint8_t*) tmp.c_str());
-		if (FsStreamTask->next_pl())
-			DisplayTask->StringOut(15, 1, (uint8_t*) ">");
-		DisplayTask->Sec_Print(FsStreamTask->sound_size());
-	}
-	load_led(num_prog);
-	num_tr_fl = 0;
-	act_fl = 0;
-	clean_fl();
-	key_reg_out[0] |= 0x10;
-	key_reg_out[0] &= ~0x8;
-	if (play_point1_fl)
-		key_reg_out[1] &= ~(1 << 7);
-	if (play_point2_fl)
-		key_reg_out[1] &= ~(1 << 15);
-}
+
+
+
 
 void processGui(TTask* processingTask)
 {
+	if(currentMenu)
+	{
+		currentMenu->task();
+
+		switch(key_ind)
+		{
+		case key_stop: currentMenu->keyStop(); break;
+		case key_start: currentMenu->keyStart(); break;
+		case key_left_up: currentMenu->keyLeftUp(); break;
+		case key_left_down: currentMenu->keyLeftDown(); break;
+		case key_right_up: currentMenu->keyRightUp(); break;
+		case key_right_down: currentMenu->keyRightDown(); break;
+		case key_return: currentMenu->keyReturn(); break;
+		case key_forward: currentMenu->keyForward(); break;
+		case key_esc: currentMenu->keyEsc(); break;
+		case key_encoder: currentMenu->encoderPressed(); break;
+		}
+
+		if(encoder_state1)
+		{
+			if(encoder_state == 2)
+			{
+				currentMenu->encoderClockwise();
+			}
+			else
+			{
+				currentMenu->encoderCounterClockwise();
+			}
+		}
+
+		clean_fl();
+	}
+	return;
+
+
 	switch (condish)
 	{
-//------------------------------------Player----------------------------------------------
-	case player:
-		if (pause_fl)
-		{
-			if (tim5_fl)
-				key_reg_out[0] |= 2;
-			else
-				key_reg_out[0] &= ~2;
-		}
-		if (key_ind == key_stop && !no_file)
-		{
-			if (!stp_dub_fl)
-			{
-				play_fl = 0;
-				stop_fl1 = 1;
-				play_fl2 = 0;
-				pause_fl = 0;
-				key_reg_out[0] &= ~2;
-				key_reg_out[0] |= 0x80;
-				us_buf1 = 0xfc;
-				MIDITask->Give();
-				init_prog();
-				song_size = count_down = FsStreamTask->sound_size();
-				click_size = FsStreamTask->click_size();
-				DisplayTask->Sec_Print(count_down);
-				count_up = 0;
-			}
-			else
-			{
-				if (!play_point_ind)
-				{
-					play_point_ind = 1;
-					key_reg_out[1] |= 1 << 7;
-					key_reg_out[1] |= 1 << 15;
-				}
-				else
-				{
-					play_point_ind = 0;
-					if (play_point1_fl)
-						key_reg_out[1] &= ~(1 << 7);
-					if (play_point2_fl)
-						key_reg_out[1] &= ~(1 << 15);
-				}
-			}
-			clean_fl();
-		}
-		if (key_ind == key_start && !no_file)
-		{
-			stop_fl = stop_fl1 = 0;
-			if (!play_fl)
-			{
-				play_fl2 = 1;
-				key_reg_out[0] |= 2;
-				key_reg_out[0] &= ~0x80;
-				if (play_point1_fl && !play_point_ind && !pause_fl
-						&& sys_param[loop_points])
-					jump_rand_pos(play_point1);
-				pause_fl = 0;
-				us_buf1 = 0xfa;
-				MIDITask->Give();
-				usart_wait_send_ready (USART1);
-				play_fl = 1;
-
-			}
-			else
-			{
-				pause_fl = 1;
-				play_fl = play_fl2 = 0;
-				us_buf1 = 0xfb;
-				MIDITask->Give();
-			}
-			clean_fl();
-		}
-		if (key_ind == key_return && !no_file)
-		{
-			if (ret_dub_fl)
-			{
-				play_point1 = FsStreamTask->pos();
-				play_point1_fl = 1;
-				if (!play_point2)
-					play_point2 = song_size * 4410;
-				key_reg_out[1] &= ~(1 << 7);
-			}
-			else
-				jump_rand_pos(play_point1);
-			clean_fl();
-		}
-		if (key_ind == key_forward && !no_file)
-		{
-			if (fwd_dub_fl)
-			{
-				play_point2 = FsStreamTask->pos();
-				play_point2_fl = 1;
-				key_reg_out[1] &= ~(1 << 15);
-			}
-			else
-				jump_rand_pos(play_point2);
-			clean_fl();
-		}
-		if (key_ind == key_left_down)
-		{
-			if (stop_fl1)
-			{
-				dela(0xfffff);
-				if (num_prog > 10)
-					num_prog -= 10;
-				while (1)
-				{
-					if (load_prog())
-					{
-						if (num_prog)
-							num_prog--;
-						else
-							num_prog = 100;
-					}
-					else
-						break;
-				}
-				load_led(num_prog);
-				clean_fl();
-				key_ind = key_stop;
-			}
-			else
-				clean_fl();
-		}
-		if (key_ind == key_left_up)
-		{
-			if (stop_fl1)
-			{
-				dela(0xfffff);
-				num_prog = (num_prog + 10) % 99;
-				while (1)
-				{
-					if (load_prog())
-						num_prog = (num_prog + 1) % 99;
-					else
-						break;
-				}
-				load_led(num_prog);
-				clean_fl();
-				key_ind = key_stop;
-			}
-			else
-				clean_fl();
-		}
-		if (key_ind == key_right_up)
-		{
-			if (stop_fl1)
-			{
-				dela(0xfffff);
-				num_prog = (num_prog - 1) % 99;
-				while (1)
-				{
-					if (load_prog())
-						num_prog = (num_prog - 1) % 99;
-					else
-						break;
-				}
-				load_led(num_prog);
-				clean_fl();
-				key_ind = key_stop;
-			}
-			else
-				clean_fl();
-		}
-		if (key_ind == key_right_down)
-		{
-			if (stop_fl1)
-			{
-				dela(0xfffff);
-				num_prog = (num_prog + 1) % 99;
-				while (1)
-				{
-					if (load_prog())
-						num_prog = (num_prog + 1) % 99;
-					else
-						break;
-				}
-				load_led(num_prog);
-				clean_fl();
-				key_ind = key_stop;
-			}
-			else
-				clean_fl();
-		}
-		if (key_ind == key_esc)
-		{
-			if (stop_fl1)
-			{
-				DisplayTask->Clear();
-				DisplayTask->StringOut(0, 0, (uint8_t*) menu_list);
-				DisplayTask->StringOut(0, 1, (uint8_t*) menu_list + 16);
-				DisplayTask->SymbolOut(15, 1, 62);
-				condish = menu;
-				num_menu = 0;
-				tim7_start(1);
-				key_reg_out[0] &= ~0x10;
-				key_reg_out[0] |= 0x8;
-			}
-			clean_fl();
-		}
-		if (encoder_state1 && !no_file)
-		{
-			if (stop_fl1)
-				stop_fl1 = 0;
-			if (encoder_state == 2)
-			{
-				if (count_up < song_size)
-					count_up = enc_speed_inc(count_up, song_size);
-				count_down = song_size - count_up;
-				if (sys_param[direction_counter])
-					DisplayTask->Sec_Print(count_down);
-				else
-					DisplayTask->Sec_Print(count_up);
-				FsStreamTask->pos(count_up * 4410);
-				memset(sound_buff, 0, wav_buff_size);
-				memset(click_buff, 0, wav_buff_size);
-				sound_point = 0;
-				if (play_fl2)
-					play_fl = 1;
-			}
-			else
-			{
-				if (count_up)
-					count_up = enc_speed_dec(count_up, 0);
-				count_down = song_size - count_up;
-				if (sys_param[direction_counter])
-					DisplayTask->Sec_Print(count_down);
-				else
-					DisplayTask->Sec_Print(count_up);
-				FsStreamTask->pos(count_up * 4410);
-				memset(sound_buff, 0, wav_buff_size);
-				memset(click_buff, 0, wav_buff_size);
-				sound_point = 0;
-				if (play_fl2)
-					play_fl = 1;
-			}
-			clean_fl();
-		}
-		if (key_ind == key_encoder && !no_file)
-		{
-			if (stop_fl1)
-			{
-				DisplayTask->Clear();
-				if (!enc_dub_fl)
-				{
-					emb_string tmp;
-					FsStreamTask->play_list_folder(tmp);
-					DisplayTask->StringOut(0, 0, (uint8_t*) "PL->");
-					oem2winstar(tmp);
-					DisplayTask->StringOut(5, 0, (uint8_t*) tmp.c_str());
-					processingTask->Delay(1500);
-					DisplayTask->Clear();
-					FsStreamTask->sound_name(tmp);
-					oem2winstar(tmp);
-					DisplayTask->StringOut(0, 0, (uint8_t*) tmp.c_str());
-					if (FsStreamTask->next_pl())
-						DisplayTask->StringOut(15, 1, (uint8_t*) ">");
-					if (sys_param[direction_counter])
-						DisplayTask->Sec_Print(count_down);
-					else
-						DisplayTask->Sec_Print(count_up);
-				}
-				else
-				{
-					DisplayTask->StringOut(0, 0,
-							(uint8_t*) "    Metronome");
-					DisplayTask->StringOut(0, 1,
-							(uint8_t*) "    Tempo 120");
-					tempo = 120;
-					condish = metronome;
-				}
-			}
-			else
-			{
-				DisplayTask->Clear();
-				condish = name_ind_play;
-				uint8_t prog_temp = num_prog + 1;
-				emb_string tmp;
-				for (; prog_temp < 100; prog_temp++)
-				{
-					if (!FsStreamTask->open_song_name(prog_temp, tmp, 0, 0))
-						break;
-				}
-				if (prog_temp != 100)
-				{
-					oem2winstar(tmp);
-					DisplayTask->StringOut(0, 0, (uint8_t*) tmp.c_str());
-				}
-				else
-					DisplayTask->StringOut(2, 0, (uint8_t*) "Playlist End");
-				processingTask->Delay(1500);
-				condish = player;
-				DisplayTask->Clear();
-				FsStreamTask->sound_name(tmp);
-				oem2winstar(tmp);
-				DisplayTask->StringOut(0, 0, (uint8_t*) tmp.c_str());
-				if (FsStreamTask->next_pl())
-					DisplayTask->StringOut(15, 1, (uint8_t*) ">");
-				if (pause_fl)
-				{
-					if (sys_param[direction_counter])
-						DisplayTask->Sec_Print(count_down);
-					else
-						DisplayTask->Sec_Print(count_up);
-				}
-			}
-			clean_fl();
-		}
-		break;
 //------------------------------------Menu------------------------------------------------
 	case menu:
 		if (tim5_fl)
@@ -661,6 +267,7 @@ void processGui(TTask* processingTask)
 			{
 			case 1:
 			{
+				emb_string path_old = "/SONGS";
 				FsStreamTask->enter_dir(path_old.c_str(), "", true);
 				num_prog_edit = 0;
 				load_led(num_prog_edit);
@@ -742,7 +349,8 @@ void processGui(TTask* processingTask)
 		}
 		if (key_ind == key_esc)
 		{
-			init_play_menu(0);
+//			init_play_menu(0);
+//			parentMenu->returnFromChildMenu();
 			clean_fl();
 		}
 		break;
@@ -1266,7 +874,8 @@ void processGui(TTask* processingTask)
 		{
 			enc_key_fl = 0;
 			write_sys();
-			init_play_menu(1);
+//			init_play_menu(1);
+//			parentMenu->returnFromChildMenu();
 			clean_fl();
 		}
 
@@ -1379,7 +988,8 @@ void processGui(TTask* processingTask)
 		}
 		if (key_ind == key_esc)
 		{
-			init_play_menu(1);
+//			init_play_menu(1);
+//			parentMenu->returnFromChildMenu();
 			clean_fl();
 		}
 		if (encoder_state1)
@@ -1440,7 +1050,8 @@ void processGui(TTask* processingTask)
 								TFsStreamTask::action_param_t::ap_1_wav,
 						num_prog_edit, 0);
 				if (act_fl)
-					no_file = 0;
+//					no_file = 0; // in MenuPlayer
+
 				if (!act_fl && num_tr_fl)
 				{
 					DisplayTask->Clear();
@@ -1593,36 +1204,37 @@ void processGui(TTask* processingTask)
 		}
 		if (key_ind == key_esc)
 		{
-			init_play_menu(0);
+			//			init_play_menu(0);
+			//			parentMenu->returnFromChildMenu();
 			clean_fl();
 		}
 		break;
 //------------------------------------Play Next File------------------------------------
-	case play_next_fil:
-		while (!play_fl1)
-			;
-		memset(sound_buff, 0, wav_buff_size);
-		memset(click_buff, 0, wav_buff_size);
-		num_prog = (num_prog + 1) % 99;
-		while (1)
-		{
-			if (load_prog())
-				num_prog = (num_prog + 1) % 99;
-			else
-				break;
-		}
-		load_led(num_prog);
-		stop_fl1 = 0;
-		pause_fl = 0;
-		processingTask->Delay(100);
-		play_fl = play_fl2 = 1;
-		key_reg_out[0] |= 2;
-		key_reg_out[0] &= ~0x80;
-		clean_fl();
-		condish = player;
-		us_buf1 = 0xfa;
-		MIDITask->Give();
-		break;
+//	case play_next_fil:
+//		while (!play_fl1)
+//			;
+//		memset(sound_buff, 0, wav_buff_size);
+//		memset(click_buff, 0, wav_buff_size);
+//		num_prog = (num_prog + 1) % 99;
+//		while (1)
+//		{
+//			if (load_prog())
+//				num_prog = (num_prog + 1) % 99;
+//			else
+//				break;
+//		}
+//		load_led(num_prog);
+//		stop_fl1 = 0;
+//		pause_fl = 0;
+//		processingTask->Delay(100);
+//		play_fl = play_fl2 = 1;
+//		key_reg_out[0] |= 2;
+//		key_reg_out[0] &= ~0x80;
+//		clean_fl();
+//		condish = MENU_PLAYER;
+//		us_buf1 = 0xfa;
+//		MIDITask->Give();
+//		break;
 //---------------------------------------------------------------Metronome-----------------------
 	case metronome:
 		if (key_ind == key_start)
@@ -1674,19 +1286,20 @@ void processGui(TTask* processingTask)
 		}
 		if (key_ind == key_encoder && !metronom_start)
 		{
-			emb_string tmp;
-			DisplayTask->Clear();
-			FsStreamTask->sound_name(tmp);
-			oem2winstar(tmp);
-			DisplayTask->StringOut(0, 0, (uint8_t*) tmp.c_str());
-			if (FsStreamTask->next_pl())
-				DisplayTask->StringOut(15, 1, (uint8_t*) ">");
-			if (sys_param[direction_counter])
-				DisplayTask->Sec_Print(count_down);
-			else
-				DisplayTask->Sec_Print(count_up);
-			condish = player;
-			clean_fl();
+			// SHOW PLAYER MENU (return)
+//			emb_string tmp;
+//			DisplayTask->Clear();
+//			FsStreamTask->sound_name(tmp);
+//			oem2winstar(tmp);
+//			DisplayTask->StringOut(0, 0, (uint8_t*) tmp.c_str());
+//			if (FsStreamTask->next_pl())
+//				DisplayTask->StringOut(15, 1, (uint8_t*) ">");
+//			if (sys_param[direction_counter])
+//				DisplayTask->Sec_Print(count_down);
+//			else
+//				DisplayTask->Sec_Print(count_up);
+//			condish = MENU_PLAYER;
+//			clean_fl();
 		}
 		break;
 //------------------------------------End--------------------------------------------------
