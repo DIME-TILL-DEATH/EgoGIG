@@ -22,6 +22,9 @@ LIB_FLAGS=	-I./ \
             -I$(FATFS_SRC_DIR) \
             -I$(SRC_DIR)/libstorage \
             -I$(SRC_DIR)/libmidi \
+            -I$(SRC_DIR)/application/dsp\
+            -I$(SRC_DIR)/application/gui\
+            -I$(SRC_DIR)/application/midi\
 			$(APP_DEFS) \
 			$(HARDWARE_DEFS) \
 			$(FREERTOS_DEFS) \

@@ -1,4 +1,3 @@
-
 #ifndef __INIT_H__
 #define __INIT_H__
 
@@ -12,8 +11,8 @@ extern volatile uint8_t fwd_dub_fl;
 extern volatile uint8_t esc_dub_fl;
 extern volatile uint8_t enc_dub_fl;
 extern volatile uint8_t stp_dub_fl;
-extern uint8_t  num_prog;
-extern uint8_t  num_prog_edit;
+extern uint8_t num_prog;
+extern uint8_t num_prog_edit;
 extern const uint8_t led_sym[];
 extern uint8_t condish;
 extern volatile uint8_t stop_fl1;
@@ -46,41 +45,45 @@ void tim_start(uint16_t del);
 void clean_fl(void);
 uint8_t load_prog(void);
 
-inline uint8_t drebezg (uint32_t line)
-    {
-      uint8_t sss;
-      TIM9_CR1 &= ~TIM_CR1_CEN;
-      if((EXTI_FTSR & line) != 0)
-        {
-          if(TIM9_SR & TIM_SR_UIF)
-            {
-              sss = 1;
-              EXTI_FTSR &= ~line;
-              EXTI_RTSR |= line;
-            }
-          else sss = 0;
-        }
-      else {
-         if(TIM9_SR & TIM_SR_UIF)
-          {
-             EXTI_RTSR &= ~line;
-             EXTI_FTSR |= line;
-             sss = 2;
-          }
-         else sss = 0;
-        }
-      TIM9_CNT = 0;
-      TIM9_SR &= ~TIM_SR_UIF;
-      TIM9_CR1 |= TIM_CR1_CEN;
-      return sss;
-    }
+inline uint8_t drebezg(uint32_t line)
+{
+	uint8_t sss;
+	TIM9_CR1 &= ~TIM_CR1_CEN;
+	if ((EXTI_FTSR & line) != 0)
+	{
+		if (TIM9_SR &TIM_SR_UIF)
+		{
+			sss = 1;
+			EXTI_FTSR &= ~line;
+			EXTI_RTSR |= line;
+		}
+		else
+			sss = 0;
+	}
+	else
+	{
+		if (TIM9_SR &TIM_SR_UIF)
+		{
+			EXTI_RTSR &= ~line;
+			EXTI_FTSR |= line;
+			sss = 2;
+		}
+		else
+			sss = 0;
+	}
+	TIM9_CNT = 0;
+	TIM9_SR &= ~TIM_SR_UIF;
+	TIM9_CR1 |= TIM_CR1_CEN;
+	return sss;
+}
 inline void __attribute__ ((always_inline)) dela(uint32_t s)
 {
-  for(uint32_t i = 0 ; i < s ; i++)NOP();
+	for (uint32_t i = 0; i < s; i++)
+		NOP();
 }
 inline void load_led(uint8_t num)
 {
-  uint8_t temp = num + 1;
-  key_reg_out[1] = (led_sym[temp / 10]) |  ((led_sym[temp % 10]) << 8);
+	uint8_t temp = num + 1;
+	key_reg_out[1] = (led_sym[temp / 10]) | ((led_sym[temp % 10]) << 8);
 }
 #endif /*__INIT_H__*/

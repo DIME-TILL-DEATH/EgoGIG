@@ -4,6 +4,8 @@ SDK_DIR=$(SRC_DIR)/../../SDK_embedded
 
 PLL_CONFIG=0
 
+FIRMWARE_VER=1.04.00
+
 # set relocation offset for application code in flash aria
 # for support bootloader SunSet
 #FLASH_TEXT_SECTION_OFFSET=0x40000
@@ -46,7 +48,7 @@ FREERTOS_DEFS= -DTICK_RATE_HZ_DEFAULT=$(TICK_RATE_HZ_DEFAULT)  \
 # set tlsf max block size 17-128K 18-256K 19-512K 20-1M ....  
 TLSF_FL_INDEX_MAX=17
 TLSF_DEFS=-DTLSF_USE_LOCKS -D__USE_FREERTOS__ -DTLSF_FL_INDEX_MAX=$(TLSF_FL_INDEX_MAX)
-#APP_DEFS=  not additition params
+APP_DEFS=-DFIRMWARE_VER="\"$(FIRMWARE_VER)"\"
 
 #OPT_LTO=8
 COMPILE_EXT_FLAGS=-Wno-errors -Wno-incompatible-pointer-types -Wno-implicit-function-declaration -Wno-odr -Wno-register -Wno-volatile -Wno-sign-compare -Wno-maybe-uninitialized -Wno-shift-negative-value  -Wno-builtin-declaration-mismatch -Wno-missing-field-initializers -Wno-sequence-point -Wno-unused-variable -Wno-char-subscripts
