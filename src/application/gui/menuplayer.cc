@@ -6,6 +6,8 @@
 #include "midi.h"
 #include "enc.h"
 
+#include "menumetronome.h"
+
 MenuPlayer::MenuPlayer()
 {
 	m_menuType = MENU_PLAYER;
@@ -68,43 +70,30 @@ void MenuPlayer::task()
 	}
 }
 
-void MenuPlayer::encoderPressed()
+void MenuPlayer::encoderPress()
 {
 	if(!no_file) return;
 
 	if (stop_fl1)
 	{
 		DisplayTask->Clear();
-		if (!enc_dub_fl)
-		{
-			emb_string tmp;
-			FsStreamTask->play_list_folder(tmp);
-			DisplayTask->StringOut(0, 0, (uint8_t*) "PL->");
-			oem2winstar(tmp);
-			DisplayTask->StringOut(5, 0, (uint8_t*) tmp.c_str());
-			taskDelay(1500);
-			DisplayTask->Clear();
-			FsStreamTask->sound_name(tmp);
-			oem2winstar(tmp);
-			DisplayTask->StringOut(0, 0, (uint8_t*) tmp.c_str());
-			if (FsStreamTask->next_pl())
-				DisplayTask->StringOut(15, 1, (uint8_t*) ">");
-			if (sys_param[direction_counter])
-				DisplayTask->Sec_Print(count_down);
-			else
-				DisplayTask->Sec_Print(count_up);
-		}
-		else
-		{
-//			SHOW METRONOME
-//			DisplayTask->StringOut(0, 0,
-//					(uint8_t*) "    Metronome");
-//			DisplayTask->StringOut(0, 1,
-//					(uint8_t*) "    Tempo 120");
-//			tempo = 120;
-//			condish = metronome;
 
-		}
+		emb_string tmp;
+		FsStreamTask->play_list_folder(tmp);
+		DisplayTask->StringOut(0, 0, (uint8_t*) "PL->");
+		oem2winstar(tmp);
+		DisplayTask->StringOut(5, 0, (uint8_t*) tmp.c_str());
+		taskDelay(1500);
+		DisplayTask->Clear();
+		FsStreamTask->sound_name(tmp);
+		oem2winstar(tmp);
+		DisplayTask->StringOut(0, 0, (uint8_t*) tmp.c_str());
+		if (FsStreamTask->next_pl())
+			DisplayTask->StringOut(15, 1, (uint8_t*) ">");
+		if (sys_param[direction_counter])
+			DisplayTask->Sec_Print(count_down);
+		else
+			DisplayTask->Sec_Print(count_up);
 	}
 	else
 	{
@@ -139,6 +128,14 @@ void MenuPlayer::encoderPressed()
 			else
 				DisplayTask->Sec_Print(count_up);
 		}
+	}
+}
+
+void MenuPlayer::encoderLongPress()
+{
+	if(stop_fl1)
+	{
+		showChild(new MenuMetronome(this));
 	}
 }
 

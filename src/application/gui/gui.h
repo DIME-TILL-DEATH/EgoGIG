@@ -7,7 +7,6 @@
 
 enum
 {
-//	MENU_PLAYER,
 	edit_playlist = 50,
 	select_folder,
 	play_next_fil,
@@ -15,7 +14,6 @@ enum
 	delete_file,
 	menu,
 	sys_menu,
-	metronome,
 	midi_ctrl_menu,
 	midi_pc_menu
 };

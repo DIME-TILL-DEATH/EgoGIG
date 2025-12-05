@@ -6,7 +6,7 @@
 enum gui_menu_type
 {
 	MENU_PLAYER,
-
+	MENU_METRONOME,
 	MENU_ABSTRACT = 255
 };
 
@@ -27,7 +27,8 @@ public:
 	virtual void refresh() {};
 	virtual void task() {};
 
-	virtual void encoderPressed() {};
+	virtual void encoderPress() {};
+	virtual void encoderLongPress() {};
 	virtual void encoderClockwise() {};
 	virtual void encoderCounterClockwise() {};
 

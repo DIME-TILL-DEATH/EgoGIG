@@ -3,7 +3,6 @@
 
 #include "abstractmenu.h"
 
-
 class MenuPlayer : public AbstractMenu
 {
 public:
@@ -15,7 +14,8 @@ public:
 	void refresh() override;
 	void task() override;
 
-	void encoderPressed() override;
+	void encoderPress() override;
+	void encoderLongPress() override;
 	void encoderClockwise() override;
 	void encoderCounterClockwise() override;
 
