@@ -82,6 +82,7 @@ void lcd44780_init_pins(void)
 			GPIO1 | GPIO2 | GPIO3);
 	gpio_set_output_options(GPIOC, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ,
 			GPIO1 | GPIO2 | GPIO3);
+
 	gpio_clear(GPIOC, GPIO1);
 	gpio_clear(GPIOC, GPIO2);
 	gpio_clear(GPIOC, GPIO3);
@@ -111,12 +112,10 @@ void lcd44780_WriteByte(uint8_t data)
 //	Input : LineNum - номер строки
 void lcd44780_GoToLine(char LineNum)
 {
-	lcd44780_RS_0
-	;
+	lcd44780_RS_0;
 	lcd44780_Address = lcd44780_addLUT[LineNum - 1];
 	lcd44780_WriteByte(lcd44780_Address);
-	lcd44780_RS_1
-	;
+	lcd44780_RS_1;
 	lcd44780_Address = 0;
 	lcd44780_Line = LineNum;
 }
@@ -124,12 +123,10 @@ void lcd44780_GoToLine(char LineNum)
 //	Очистка дисплея
 void lcd44780_ClearLCD(void)
 {
-	lcd44780_RS_0
-	;
+	lcd44780_RS_0;
 	lcd44780_WriteByte(0x01);
 	lcd44780_delay(10000);
-	lcd44780_RS_1
-	;
+	lcd44780_RS_1;
 	lcd44780_GoToLine(1);
 }
 
@@ -137,12 +134,10 @@ void lcd44780_ClearLCD(void)
 //	Input : x , y - координаты курсора
 void lcd44780_SetLCDPosition(uint8_t x, uint8_t y)
 {
-	lcd44780_RS_0
-	;
+	lcd44780_RS_0;
 	lcd44780_Address = lcd44780_addLUT[y] + x;
 	lcd44780_WriteByte(lcd44780_Address);
-	lcd44780_RS_1
-	;
+	lcd44780_RS_1;
 	lcd44780_Line = y + 1;
 }
 
@@ -151,8 +146,7 @@ void lcd44780_SetLCDPosition(uint8_t x, uint8_t y)
 void lcd44780_ShowChar(uint8_t x, uint8_t y, uint8_t c)
 {
 	lcd44780_SetLCDPosition(x, y);
-	lcd44780_RS_1
-	;
+	lcd44780_RS_1;
 	lcd44780_WriteByte(c);
 	lcd44780_Address++;
 	switch (lcd44780_Address)

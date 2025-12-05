@@ -32,13 +32,13 @@ int main(void)
 	else
 	{
 		init();
+		disp_init();
+		lcd44780_ClearLCD();
 		CSTask = new TCSTask("CS", 20 * configMINIMAL_STACK_SIZE, 0);
 		ENCTask = new TENCTask("ENC", 2 * configMINIMAL_STACK_SIZE, 0);
-		DisplayTask = new TDisplayTask("DISPLAY", 20 * configMINIMAL_STACK_SIZE,
-				0);
+		DisplayTask = new TDisplayTask("DISPLAY", 20 * configMINIMAL_STACK_SIZE, 0);
 		MIDITask = new TMIDITask("MIDI", 20 * configMINIMAL_STACK_SIZE, 0);
-		FsStreamTask = new TFsStreamTask("FSS", 64 * configMINIMAL_STACK_SIZE,
-				1);
+		FsStreamTask = new TFsStreamTask("FSS", 64 * configMINIMAL_STACK_SIZE, 1);
 
 	}
 
