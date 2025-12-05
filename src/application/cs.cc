@@ -58,7 +58,7 @@ void TCSTask::Code()
 	while (1)
 	{
 		sem->Take(portMAX_DELAY);
-		processGui();
+		processGui(this);
 	}
 }
 

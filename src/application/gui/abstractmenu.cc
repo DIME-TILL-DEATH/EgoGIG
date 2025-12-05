@@ -1,4 +1,7 @@
-#include "AbstractMenu.h"
+#include "abstractmenu.h"
+#include "cs.h"
+
+extern TCSTask *CSTask; // for delayTask function!
 
 AbstractMenu* currentMenu;
 uint8_t AbstractMenu::subMenusToRoot = 1;
@@ -13,18 +16,18 @@ void AbstractMenu::returnFromChildMenu()
 	currentMenu = this;
 
 
-	if(childMenu)
+	if(m_childMenu)
 	{
-		delete childMenu;
-		childMenu = nullptr;
+		delete m_childMenu;
+		m_childMenu = nullptr;
 	}
 
-	if(parentMenu)
+	if(m_parentMenu)
 	{
 		if(subMenusToRoot > 1)
 		{
 			subMenusToRoot--;
-			parentMenu->returnFromChildMenu();
+			m_parentMenu->returnFromChildMenu();
 		}
 		else
 		{
@@ -41,7 +44,12 @@ void AbstractMenu::returnFromChildMenu()
 
 void AbstractMenu::showChild(AbstractMenu* child)
 {
-	childMenu = child;
-	currentMenu = childMenu;
+	m_childMenu = child;
+	currentMenu = m_childMenu;
 	child->show();
+}
+
+void AbstractMenu::taskDelay(uint32_t ticks)
+{
+	CSTask->Delay(ticks);
 }

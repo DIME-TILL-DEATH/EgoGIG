@@ -4,6 +4,8 @@
 #include "init.h"
 #include "libopencm3/stm32/usart.h"
 
+#include "gui.h"
+
 TMIDITask *MIDITask;
 
 uint8_t us_buf;

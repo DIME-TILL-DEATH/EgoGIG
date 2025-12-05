@@ -50,12 +50,14 @@ public:
 	void showChild(AbstractMenu* child);
 
 protected:
-	AbstractMenu* parentMenu = nullptr;
-	AbstractMenu* childMenu = nullptr;
+	AbstractMenu* m_parentMenu = nullptr;
+	AbstractMenu* m_childMenu = nullptr;
 
 	gui_menu_type m_menuType{MENU_ABSTRACT};
 
 	static uint8_t subMenusToRoot;
+
+	void taskDelay(uint32_t ticks);
 };
 
 extern AbstractMenu* currentMenu;

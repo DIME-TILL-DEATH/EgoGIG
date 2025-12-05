@@ -284,7 +284,7 @@ inline void init_play_menu(uint8_t type)
 		key_reg_out[1] &= ~(1 << 15);
 }
 
-void processGui()
+void processGui(TTask* processingTask)
 {
 	switch (condish)
 	{
@@ -539,7 +539,7 @@ void processGui()
 					DisplayTask->StringOut(0, 0, (uint8_t*) "PL->");
 					oem2winstar(tmp);
 					DisplayTask->StringOut(5, 0, (uint8_t*) tmp.c_str());
-//					Delay(1500);
+					processingTask->Delay(1500);
 					DisplayTask->Clear();
 					FsStreamTask->sound_name(tmp);
 					oem2winstar(tmp);
@@ -579,7 +579,7 @@ void processGui()
 				}
 				else
 					DisplayTask->StringOut(2, 0, (uint8_t*) "Playlist End");
-//				Delay(1500);
+				processingTask->Delay(1500);
 				condish = player;
 				DisplayTask->Clear();
 				FsStreamTask->sound_name(tmp);
@@ -669,7 +669,7 @@ void processGui()
 				DisplayTask->Clear();
 				DisplayTask->StringOut(4, 0, (uint8_t*) "Browser");
 				DisplayTask->StringOut(1, 1, (uint8_t*) "Edit Playlist");
-//				Delay(1000);
+				processingTask->Delay(1000);
 				DisplayTask->Clear();
 				DisplayTask->StringOut(0, 0, (uint8_t*) "1:");
 				emb_string tmp;
@@ -694,7 +694,7 @@ void processGui()
 					DisplayTask->StringOut(4, 0, (uint8_t*) "Select");
 					DisplayTask->StringOut(0, 1,
 							(uint8_t*) "Playlist folder");
-//					Delay(1000);
+					processingTask->Delay(1000);
 					DisplayTask->Clear();
 					emb_string tmp;
 					FsStreamTask->browser_name(tmp);
@@ -1446,7 +1446,7 @@ void processGui()
 					DisplayTask->Clear();
 					DisplayTask->StringOut(0, 0,
 							(uint8_t*) "  First assign       track1");
-//					Delay(2000);
+					processingTask->Delay(2000);
 					DisplayTask->Clear();
 					DisplayTask->StringOut(0, 0, (uint8_t*) "2:");
 				}
@@ -1491,7 +1491,7 @@ void processGui()
 				{
 					FsStreamTask->delete_track(num_prog_edit);
 					DisplayTask->StringOut(2, 0, (uint8_t*) "Song deleted");
-//					Delay(1000);
+					processingTask->Delay(1000);
 					break;
 				}
 				if (key_ind == key_stop)
@@ -1571,7 +1571,7 @@ void processGui()
 				{
 					DisplayTask->Clear();
 					DisplayTask->StringOut(3, 0, (uint8_t*) "Select Ok!");
-//					Delay(1000);
+					processingTask->Delay(1000);
 					emb_string tmp;
 					FsStreamTask->browser_name(tmp);
 					DisplayTask->Clear();
@@ -1614,7 +1614,7 @@ void processGui()
 		load_led(num_prog);
 		stop_fl1 = 0;
 		pause_fl = 0;
-//		Delay(100);
+		processingTask->Delay(100);
 		play_fl = play_fl2 = 1;
 		key_reg_out[0] |= 2;
 		key_reg_out[0] &= ~0x80;

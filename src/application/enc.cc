@@ -10,6 +10,8 @@
 #include "libopencm3/stm32/exti.h"
 #include <libopencm3/cm3/nvic.h>
 
+#include "gui.h"
+
 TENCTask *ENCTask;
 extern uint8_t key_val;
 extern uint8_t blink_en;

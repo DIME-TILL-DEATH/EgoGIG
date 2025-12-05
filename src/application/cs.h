@@ -4,7 +4,7 @@
 #include "appdefs.h"
 #include "libopencm3/stm32/timer.h"
 
-#include "gui.h"
+//#include "gui.h"
 
 
 

@@ -45,7 +45,7 @@ enum
 	ctrl1_t, ctrl1, ctrl2_t, ctrl2, ctrl3_t, ctrl3, jjj, chann
 };
 
-void processGui();
+void processGui(TTask* processingTask);
 
 uint8_t test_file(void);
 
