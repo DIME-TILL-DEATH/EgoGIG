@@ -1,4 +1,5 @@
 #ifndef __DISPLAY_H__
+#define __DISPLAY_H__
 
 #include "appdefs.h"
 #include "lcd-hd44780.h"

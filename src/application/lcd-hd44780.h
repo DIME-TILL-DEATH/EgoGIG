@@ -1,8 +1,6 @@
-//************************************************************************//
-//	LCD HD44780
-//	Alex_EXE 
-//	http://alex-exe.ru/category/radio/stm32/stm32-lcd-hd44780-spl
-//************************************************************************//
+#ifndef LCD_HD44780_H_
+#define LCD_HD44780_H_
+
 #include "appdefs.h"
 
 //************************************************************************//
@@ -63,3 +61,5 @@ inline void sec_print(uint32_t val)
 }
 
 void oem2winstar(emb_string &str);
+
+#endif

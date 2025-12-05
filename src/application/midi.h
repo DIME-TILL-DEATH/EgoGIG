@@ -1,4 +1,5 @@
 #ifndef __MIDI_H__
+#define MIDI_H
 
 #include "appdefs.h"
 

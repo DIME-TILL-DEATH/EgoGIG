@@ -13,6 +13,8 @@
 #include <libopencm3/cm3/nvic.h>
 #include <libopencm3/cm3/scb.h>
 
+#include "gui.h"
+
 #include "fs_stream.h"
 
 dac_sample_t dac_sample;

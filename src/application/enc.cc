@@ -12,6 +12,7 @@
 
 TENCTask *ENCTask;
 extern uint8_t key_val;
+extern uint8_t blink_en;
 volatile uint8_t key_push_fl = 0;
 volatile uint8_t stp_push_fl = 0;
 volatile uint8_t stp_dub_fl = 0;

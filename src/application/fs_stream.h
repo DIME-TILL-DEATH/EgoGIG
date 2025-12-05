@@ -1,4 +1,5 @@
 #ifndef __FS_STREAM_H__
+#define __FS_STREAM_H__
 
 #include "appdefs.h"
 #include "ff.h"

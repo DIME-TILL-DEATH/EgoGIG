@@ -1,4 +1,5 @@
 #ifndef __ENC_H__
+#define __ENC_H__
 
 #include "appdefs.h"
 #include "libopencm3/stm32/timer.h"
