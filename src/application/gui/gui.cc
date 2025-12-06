@@ -1215,32 +1215,6 @@ void processGui(TTask* processingTask)
 			clean_fl();
 		}
 		break;
-//------------------------------------Play Next File------------------------------------
-//	case play_next_fil:
-//		while (!play_fl1)
-//			;
-//		memset(sound_buff, 0, wav_buff_size);
-//		memset(click_buff, 0, wav_buff_size);
-//		num_prog = (num_prog + 1) % 99;
-//		while (1)
-//		{
-//			if (load_prog())
-//				num_prog = (num_prog + 1) % 99;
-//			else
-//				break;
-//		}
-//		load_led(num_prog);
-//		stop_fl1 = 0;
-//		pause_fl = 0;
-//		processingTask->Delay(100);
-//		play_fl = play_fl2 = 1;
-//		key_reg_out[0] |= 2;
-//		key_reg_out[0] &= ~0x80;
-//		clean_fl();
-//		condish = MENU_PLAYER;
-//		us_buf1 = 0xfa;
-//		MIDITask->Give();
-//		break;
 
 //------------------------------------End--------------------------------------------------
 	}

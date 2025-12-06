@@ -31,6 +31,8 @@ public:
 	void keyForward() override;
 	void keyEsc() override;
 
+	void requestPlayNext() { m_requestPlayNext = true; }
+
 private:
 
 	uint8_t stop_fl = 0;
@@ -38,13 +40,13 @@ private:
 	uint8_t play_point2_fl = 0;
 	uint32_t no_file = 0;
 
-
-
 	bool load_prog();
 	bool test_file();
 
 	void jump_rand_pos(uint32_t pos);
 	void init_prog(void);
+
+	bool m_requestPlayNext{false};
 };
 
 

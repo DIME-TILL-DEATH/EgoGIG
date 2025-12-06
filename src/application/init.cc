@@ -17,6 +17,9 @@
 
 #include "fs_stream.h"
 
+#include "abstractmenu.h"
+#include "menuplayer.h"
+
 dac_sample_t dac_sample;
 dac_sample_t dac_sample1;
 
@@ -394,7 +397,16 @@ extern "C" void DMA1_Stream4_IRQHandler()
 			play_fl = 0;
 			stop_fl1 = 1;
 			if (FsStreamTask->next_pl())
-				condish = play_next_fil;
+			{
+				if(currentMenu)
+				{
+					if(currentMenu->menuType() == MENU_PLAYER)
+					{
+						MenuPlayer* menuPlayer = static_cast<MenuPlayer*>(currentMenu);
+						menuPlayer->requestPlayNext(); // condish = play_next_fil;
+					}
+				}
+			}
 			else
 			{
 				if (!sys_param[0])
