@@ -51,7 +51,7 @@ public:
 	void showChild(AbstractMenu* child);
 	void returnFromChildMenu();
 
-	static void printRunningName(emb_string name, uint8_t yPos = 0);
+	static void printRunningName(emb_string name, uint8_t xPos = 0, uint8_t yPos = 0);
 
 protected:
 	AbstractMenu* m_parentMenu = nullptr;
@@ -62,7 +62,7 @@ protected:
 	static uint8_t subMenusToRoot;
 
 	static uint8_t runningNameLength;
-	static uint8_t runningNamePos;
+	static int8_t runningNamePos;
 
 	void taskDelay(uint32_t ticks);
 	void tim7_start(uint8_t val);

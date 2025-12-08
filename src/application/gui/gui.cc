@@ -206,61 +206,7 @@ void processGui(TTask* processingTask)
 	{
 //------------------------------------Menu------------------------------------------------
 	case menu:
-//		if (tim5_fl)
-//			DisplayTask->Clear_str(0, num_menu & 1, 15);
-//		else
-//			DisplayTask->StringOut(0, num_menu & 1,
-//					(uint8_t*) menu_list + num_menu * 16);
-//		if (encoder_state1)
-//		{
-//			if (encoder_state == 1)
-//			{
-//				if (num_menu)
-//				{
-//					if (num_menu == 2)
-//					{
-//						DisplayTask->Clear();
-//						DisplayTask->StringOut(0, 0, (uint8_t*) menu_list);
-//						num_menu--;
-//						DisplayTask->SymbolOut(15, 1, 62);
-//						tim7_start(1);
-//					}
-//					else
-//					{
-//						DisplayTask->StringOut(0, num_menu & 1,
-//								(uint8_t*) menu_list + num_menu-- * 16);
-//						tim7_start(0);
-//					}
-//					DisplayTask->StringOut(0, num_menu & 1,
-//							(uint8_t*) menu_list + num_menu * 16);
-//					clean_fl();
-//				}
-//			}
-//			else
-//			{
-//				if ((num_menu < 3) && stop_fl1)
-//				{
-//					if (num_menu == 1)
-//					{
-//						DisplayTask->Clear();
-//						DisplayTask->SymbolOut(15, 0, 60);
-//						num_menu++;
-//						DisplayTask->StringOut(0, 1,
-//								(uint8_t*) menu_list + 3 * 16);
-//						tim7_start(1);
-//					}
-//					else
-//					{
-//						DisplayTask->StringOut(0, num_menu & 1,
-//								(uint8_t*) menu_list + num_menu++ * 16);
-//						tim7_start(0);
-//					}
-//					DisplayTask->StringOut(0, num_menu & 1,
-//							(uint8_t*) menu_list + num_menu * 16);
-//					clean_fl();
-//				}
-//			}
-//		}
+
 		if (key_ind == key_encoder)
 		{
 			switch (num_menu)
@@ -290,28 +236,7 @@ void processGui(TTask* processingTask)
 							(uint8_t*) "  No wav file");
 			}
 				break;
-			case 0:
-			{
-				if (stop_fl1)
-				{
-					FsStreamTask->enter_dir("/PLAYLIST", "", true);
-					FsStreamTask->next_notify();
-					condish = select_folder;
-					DisplayTask->Clear();
-					DisplayTask->StringOut(4, 0, (uint8_t*) "Select");
-					DisplayTask->StringOut(0, 1,
-							(uint8_t*) "Playlist folder");
-					processingTask->Delay(1000);
-					DisplayTask->Clear();
-					emb_string tmp;
-					FsStreamTask->browser_name(tmp);
-					DisplayTask->Clear();
-					oem2winstar(tmp);
-					DisplayTask->StringOut(0, 0, (uint8_t*) tmp.c_str());
-					num_prog = 0;
-				}
-			}
-				break;
+
 			case 2:
 			{
 				if (stop_fl1)
@@ -1136,77 +1061,6 @@ void processGui(TTask* processingTask)
 				DisplayTask->StringOut(2, 0, (uint8_t*) "  No wav file");
 			num_tr_fl = 0;
 			condish = edit_playlist;
-		}
-		break;
-//------------------------------------Select Playlist Folder------------------------------
-	case select_folder:
-		if (encoder_state1)
-		{
-			if (encoder_state == 2)
-			{
-				FsStreamTask->next_notify();
-				emb_string tmp;
-				FsStreamTask->browser_name(tmp);
-				DisplayTask->Clear();
-				oem2winstar(tmp);
-				DisplayTask->StringOut(0, 0, (uint8_t*) tmp.c_str());
-			}
-			else
-			{
-				FsStreamTask->prev_notify();
-				emb_string tmp;
-				emb_string tmp1;
-				FsStreamTask->browser_name(tmp1);
-				FsStreamTask->curr_path(tmp);
-				if (!tmp.compare("/PLAYLIST") && !tmp1.compare(".."))
-					FsStreamTask->next_notify();
-				else
-				{
-					DisplayTask->Clear();
-					oem2winstar(tmp1);
-					DisplayTask->StringOut(0, 0, (uint8_t*) tmp1.c_str());
-				}
-			}
-			clean_fl();
-		}
-		if (key_ind == key_encoder)
-		{
-			if (enc_dub_fl)
-			{
-				if (!FsStreamTask->play_list_folder())
-				{
-					DisplayTask->Clear();
-					DisplayTask->StringOut(2, 0, (uint8_t*) "Not Folder!");
-				}
-				else
-				{
-					DisplayTask->Clear();
-					DisplayTask->StringOut(3, 0, (uint8_t*) "Select Ok!");
-					processingTask->Delay(1000);
-					emb_string tmp;
-					FsStreamTask->browser_name(tmp);
-					DisplayTask->Clear();
-					oem2winstar(tmp);
-					DisplayTask->StringOut(0, 0, (uint8_t*) tmp.c_str());
-				}
-			}
-			else
-			{
-				FsStreamTask->action_notify(
-						TFsStreamTask::action_param_t::ap_1_wav, 0, 0);
-				emb_string tmp;
-				FsStreamTask->browser_name(tmp);
-				DisplayTask->Clear();
-				oem2winstar(tmp);
-				DisplayTask->StringOut(0, 0, (uint8_t*) tmp.c_str());
-			}
-			clean_fl();
-		}
-		if (key_ind == key_esc)
-		{
-			//			init_play_menu(0);
-			//			parentMenu->returnFromChildMenu();
-			clean_fl();
 		}
 		break;
 

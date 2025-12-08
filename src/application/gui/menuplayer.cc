@@ -125,12 +125,8 @@ void MenuPlayer::encoderPress()
 		taskDelay(1500);
 		DisplayTask->Clear();
 
-//		FsStreamTask->sound_name(tmp);
-//		oem2winstar(tmp);
-
 		runningNamePos = 0;
 		printRunningName(m_currentSongName);
-//		DisplayTask->StringOut(0, 0, (uint8_t*) tmp.c_str());
 
 
 		if (FsStreamTask->next_pl())
@@ -143,7 +139,7 @@ void MenuPlayer::encoderPress()
 	else
 	{
 		DisplayTask->Clear();
-//		condish = name_ind_play; //??????
+
 		uint8_t prog_temp = num_prog + 1;
 		emb_string tmp;
 		for (; prog_temp < 100; prog_temp++)
@@ -154,16 +150,17 @@ void MenuPlayer::encoderPress()
 		if (prog_temp != 100)
 		{
 			oem2winstar(tmp);
-			DisplayTask->StringOut(0, 0, (uint8_t*) tmp.c_str());
+			runningNamePos = 0;
+			printRunningName(tmp);
 		}
 		else
 			DisplayTask->StringOut(2, 0, (uint8_t*) "Playlist End");
 		taskDelay(1500);
 
 		DisplayTask->Clear();
-		FsStreamTask->sound_name(tmp);
-		oem2winstar(tmp);
-		DisplayTask->StringOut(0, 0, (uint8_t*) tmp.c_str());
+		runningNamePos = 0;
+		printRunningName(m_currentSongName);
+
 		if (FsStreamTask->next_pl())
 			DisplayTask->StringOut(15, 1, (uint8_t*) ">");
 		if (pause_fl)

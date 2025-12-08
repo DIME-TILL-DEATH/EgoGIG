@@ -1,11 +1,11 @@
 #include "menumain.h"
 
 #include "display.h"
+
 #include "parambase.h"
 #include "paramsubmenu.h"
 
-//uint8_t menu_list[][16] =
-//{ "Select Playlist", "Edit Playlist", "System", "Set MIDI Ctrl" };
+#include "menuselectplaylist.h"
 
 MenuMain::MenuMain(AbstractMenu* parent)
 	: MenuParamList(parent, MENU_MAIN)
@@ -23,8 +23,7 @@ MenuMain::MenuMain(AbstractMenu* parent)
 
 AbstractMenu* MenuMain::createSelectPlaylistMenu(AbstractMenu* parent)
 {
-	return nullptr;
-//	return new FswTypeMenu(parent);
+	return new MenuSelectPlaylist(parent);
 }
 
 AbstractMenu* MenuMain::createEditPlaylistMenu(AbstractMenu* parent)
