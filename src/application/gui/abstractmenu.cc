@@ -67,16 +67,19 @@ void AbstractMenu::tim7_start(uint8_t val)
 	//CSTask->Give();
 }
 
-void AbstractMenu::printRunningName(emb_string name, uint8_t xPos, uint8_t yPos)
+void AbstractMenu::printRunningName(emb_string name, uint8_t xPos, StingSize strSize)
 {
 	runningNameLength = name.size();
 
-	uint8_t printString[16+1];
-	memset(printString, 0, 16+1);
-	memcpy(printString, name.c_str() + runningNamePos, 16 - xPos);
+	uint8_t stringSize = 16;
+	if(strSize == STRING_DOUBLE) stringSize = 32;
 
-	DisplayTask->StringOut(xPos, yPos, printString);
+	uint8_t printString[stringSize+1];
+	memset(printString, 0, stringSize+1);
+	memcpy(printString, name.c_str() + runningNamePos, stringSize - xPos);
 
-	if((runningNameLength - 16 - runningNamePos) <= 0) runningNamePos = 0;
+	DisplayTask->StringOut(xPos, 0, printString);
+
+	if((runningNameLength - (stringSize - xPos) - runningNamePos) <= 0) runningNamePos = 0;
 	else runningNamePos++;
 }

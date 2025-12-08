@@ -278,8 +278,7 @@ void TFsStreamTask::enter_dir(const char *name, const char *high_level_node,
 
 volatile uint8_t act_fl = 0;
 emb_string str1;
-void TFsStreamTask::action(action_param_t val, uint8_t play_index,
-		uint8_t play_next)
+void TFsStreamTask::action(action_param_t val, uint8_t play_index, uint8_t play_next)
 {
 	if (browser.fno.fattrib & AM_DIR)
 	{
@@ -330,8 +329,8 @@ void TFsStreamTask::action(action_param_t val, uint8_t play_index,
 				fr = f_open(&f, str.c_str(), FA_OPEN_ALWAYS | FA_WRITE);
 				f_lseek(&f, 0);
 				f_truncate(&f);
-				extern volatile uint32_t play_next_file;
-				if (play_next_file)
+
+				if (play_next)
 					f_write(&f, &temp, 1, fw);
 				else
 					f_lseek(&f, 0);
@@ -360,8 +359,8 @@ void TFsStreamTask::action(action_param_t val, uint8_t play_index,
 					fr = f_open(&f, str.c_str(), FA_OPEN_ALWAYS | FA_WRITE);
 					f_lseek(&f, 0);
 					f_truncate(&f);
-					extern volatile uint32_t play_next_file;
-					if (play_next_file)
+
+					if (play_next)
 						f_write(&f, &temp, 1, fw);
 					else
 						f_lseek(&f, 0);

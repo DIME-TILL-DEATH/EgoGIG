@@ -11,6 +11,7 @@ enum gui_menu_type
 	MENU_MAIN,
 	MENU_METRONOME,
 	MENU_SELECT_PLAYLIST,
+	MENU_EDIT_PLAYLIST,
 	MENU_ABSTRACT = 255
 };
 
@@ -23,6 +24,11 @@ public:
 		ReturnShow
 	};
 
+	enum StingSize
+	{
+		STRING_SINGLE = 0,
+		STRING_DOUBLE
+	};
 
 	AbstractMenu() {};
 	virtual ~AbstractMenu() {};
@@ -51,7 +57,7 @@ public:
 	void showChild(AbstractMenu* child);
 	void returnFromChildMenu();
 
-	static void printRunningName(emb_string name, uint8_t xPos = 0, uint8_t yPos = 0);
+	static void printRunningName(emb_string name, uint8_t xPos = 0, StingSize  strSize = STRING_SINGLE);
 
 protected:
 	AbstractMenu* m_parentMenu = nullptr;
