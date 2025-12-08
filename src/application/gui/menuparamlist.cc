@@ -1,6 +1,9 @@
 #include "menuparamlist.h"
 
+#include "paramsubmenu.h"
+
 #include "display.h"
+#include "gui.h"
 
 MenuParamList::MenuParamList(AbstractMenu* parent, gui_menu_type menuType)
 {
@@ -86,14 +89,21 @@ void MenuParamList::refresh()
 	printPage();
 }
 
+void MenuParamList::keyEsc()
+{
+	m_parentMenu->returnFromChildMenu();
+}
+
 void MenuParamList::task()
 {
 	if(m_paramsCount == 1) m_encoderKnobSelected = true;
 
 	if(!m_encoderKnobSelected)
 	{
-//		DisplayTask->StringOut(leftPad, m_currentParamNum % paramsOnPage, Font::fntSystem,
-//								blinkFlag_fl * 2, (uint8_t*)(m_paramsList[m_currentParamNum]->name()));
+		if (tim5_fl)
+			DisplayTask->Clear_str(0, m_currentParamNum % paramsOnPage, 15);
+		else
+			DisplayTask->StringOut(0, m_currentParamNum % paramsOnPage, (uint8_t*)(m_paramsList[m_currentParamNum]->name()));
 	}
 }
 
@@ -101,11 +111,10 @@ void MenuParamList::encoderPress()
 {
 	if(m_paramsList[m_currentParamNum]->disabled()) return;
 
-	// CustomParam
 	if(m_paramsList[m_currentParamNum]->type() == ParamBase::GUI_PARAMETER_SUBMENU)
 	{
-//		SubmenuParam* submenuParam = static_cast<SubmenuParam*>(m_paramsList[m_currentParamNum]);
-//		submenuParam->showSubmenu(this);
+		ParamSubmenu* submenuParam = static_cast<ParamSubmenu*>(m_paramsList[m_currentParamNum]);
+		submenuParam->showSubmenu(this);
 	}
 	else
 	{
@@ -123,7 +132,7 @@ void MenuParamList::encoderPress()
 		}
 	}
 
-//	tim5_start(1);
+	tim7_start(1);
 }
 
 void MenuParamList::encoderClockwise()
@@ -138,7 +147,7 @@ void MenuParamList::encoderClockwise()
 					|| m_paramsList[m_currentParamNum]->type() == ParamBase::GUI_PARAMETER_STRING_OUT)
 					&& m_currentParamNum < m_lastSelectableParam);
 			printPage();
-//			tim5_start(0);
+			tim7_start(0);
 		}
 	}
 	else
@@ -166,7 +175,7 @@ void MenuParamList::encoderCounterClockwise()
 					|| m_paramsList[m_currentParamNum]->type() == ParamBase::GUI_PARAMETER_STRING_OUT)
 					&& m_currentParamNum > m_firstSelectableParam);
 			printPage();
-//			tim5_start(0);
+//			tim7_start(0);
 		}
 	}
 	else
@@ -189,20 +198,13 @@ void MenuParamList::printPage()
 
 	if((newPageNumber != m_currentPageNumber))
 	{
-//		strelka_t drawStrelka;
-//
-//		if(newPageNumber < m_pagesCount - 1) drawStrelka = STRELKA_DOWN;
-//		if(newPageNumber > 0 && newPageNumber < m_pagesCount) drawStrelka = STRELKA_UPDOWN;
-//		if(newPageNumber == m_pagesCount - 1) drawStrelka = STRELKA_UP;
-//		if(m_pagesCount == 1) drawStrelka = STRELKA_NONE;
-
 		DisplayTask->Clear();
 	}
 	m_currentPageNumber = newPageNumber;
 
 	uint8_t stringCount = m_paramsCount - m_currentPageNumber * paramsOnPage;
 
-	for(uint8_t i = 0; i < min(stringCount, (uint8_t)4); i++)
+	for(uint8_t i = 0; i < min(stringCount, (uint8_t)paramsOnPage); i++)
 	{
 		uint8_t displayParamNum = i + m_currentPageNumber * paramsOnPage;
 
@@ -211,7 +213,30 @@ void MenuParamList::printPage()
 		if(m_paramsList[displayParamNum]->type() == ParamBase::GUI_PARAMETER_DUMMY) continue;
 
 		m_paramsList[displayParamNum]->printParam(i);
-//		DisplayTask->StringOut(leftPad, i, Font::fntSystem , 2 * highlight, (uint8_t*)(m_paramsList[displayParamNum]->name()));
+		DisplayTask->StringOut(0, i, (uint8_t*)(m_paramsList[displayParamNum]->name()));
 	}
+
+	uint8_t strelkaUp=' ';
+	uint8_t strelkaDown= ' ';
+
+	if(newPageNumber < m_pagesCount - 1)
+	{
+		strelkaUp = ' ';
+		strelkaDown = SYMBOL_ARROW_DOWN;
+	}
+	if(newPageNumber > 0 && newPageNumber < m_pagesCount)
+	{
+		strelkaUp = SYMBOL_ARROW_UP;
+		strelkaDown = SYMBOL_ARROW_DOWN;
+	}
+	if(newPageNumber == m_pagesCount - 1)
+	{
+		strelkaUp = SYMBOL_ARROW_UP;
+		strelkaDown = ' ';
+	}
+	if(m_pagesCount == 1) strelkaUp = strelkaDown = ' ';
+
+	DisplayTask->SymbolOut(15, 0, strelkaUp);
+	DisplayTask->SymbolOut(15, 1, strelkaDown);
 }
 

@@ -3,9 +3,12 @@
 
 #include "appdefs.h"
 
+extern uint8_t tim5_fl; // tim7 actually
+
 enum gui_menu_type
 {
 	MENU_PLAYER,
+	MENU_MAIN,
 	MENU_METRONOME,
 	MENU_ABSTRACT = 255
 };
@@ -56,6 +59,7 @@ protected:
 	static uint8_t subMenusToRoot;
 
 	void taskDelay(uint32_t ticks);
+	void tim7_start(uint8_t val);
 };
 
 extern AbstractMenu* currentMenu;

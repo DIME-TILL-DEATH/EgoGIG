@@ -7,6 +7,7 @@
 #include "enc.h"
 
 #include "menumetronome.h"
+#include "menumain.h"
 
 MenuPlayer::MenuPlayer()
 {
@@ -71,6 +72,7 @@ void MenuPlayer::task()
 
 	if(m_requestPlayNext)
 	{
+		m_requestPlayNext = false;
 		while (!play_fl1);
 
 		memset(sound_buff, 0, wav_buff_size);
@@ -409,17 +411,10 @@ void MenuPlayer::keyEsc()
 {
 	if(stop_fl1)
 	{
-		//SHOW MENU MENU)))
-//		DisplayTask->Clear();
-//		DisplayTask->StringOut(0, 0, (uint8_t*) menu_list);
-//		DisplayTask->StringOut(0, 1, (uint8_t*) menu_list + 16);
-//		DisplayTask->SymbolOut(15, 1, 62);
-//
-//		condish = menu;
-//		num_menu = 0;
-//		tim7_start(1);
-//		key_reg_out[0] &= ~0x10;
-//		key_reg_out[0] |= 0x8;
+		tim7_start(1);
+		key_reg_out[0] &= ~0x10;
+		key_reg_out[0] |= 0x8;
+		showChild(new MenuMain(this));
 	}
 }
 

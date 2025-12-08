@@ -17,25 +17,24 @@ public:
 	void task() override;
 
 	void encoderPress() override;
-	void encoderLongPress() override;
+//	void encoderLongPress() override;
 	void encoderClockwise() override;
 	void encoderCounterClockwise() override;
 
-	void keyStop() override;
-	void keyStart() override;
+//	void keyStop() override;
+//	void keyStart() override;
 
 
-	void keyLeftUp() override;
-	void keyLeftDown() override;
-	void keyRightUp() override;
-	void keyRightDown() override;
-	void keyReturn() override;
-	void keyForward() override;
+//	void keyLeftUp() override;
+//	void keyLeftDown() override;
+//	void keyRightUp() override;
+//	void keyRightDown() override;
+//	void keyReturn() override;
+//	void keyForward() override;
 	void keyEsc() override;
 
 	static constexpr uint8_t maxParamCount = 16;
 	static constexpr uint8_t paramsOnPage = 2;
-	static constexpr uint8_t leftPad = 3;
 
 protected:
 	uint8_t m_currentParamNum = 0;

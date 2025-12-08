@@ -49,6 +49,31 @@ const char oem2wh1602d_cyr[256] =
 
 };
 
+
+uint8_t arrowUp[8] =
+{
+    0b00100,
+    0b01110,
+    0b10101,
+    0b00100,
+    0b00100,
+    0b00100,
+    0b00100,
+    0b00000
+};
+
+uint8_t arrowDown[8] =
+{
+    0b00100,
+    0b00100,
+    0b00100,
+    0b00100,
+    0b10101,
+    0b01110,
+    0b00100,
+	0b00000
+};
+
 void oem2winstar(emb_string &str)
 {
 	size_t size = str.length();
@@ -58,6 +83,7 @@ void oem2winstar(emb_string &str)
 		str[i] = oem2wh1602d_cyr[str[i]];
 	}
 }
+
 //************************************************************************//
 
 //	задержка
@@ -126,6 +152,7 @@ void lcd44780_ClearLCD(void)
 	lcd44780_RS_0;
 	lcd44780_WriteByte(0x01);
 	lcd44780_delay(10000);
+
 	lcd44780_RS_1;
 	lcd44780_GoToLine(1);
 }
@@ -139,6 +166,24 @@ void lcd44780_SetLCDPosition(uint8_t x, uint8_t y)
 	lcd44780_WriteByte(lcd44780_Address);
 	lcd44780_RS_1;
 	lcd44780_Line = y + 1;
+}
+
+void lcd44780_LoadCustomChar(uint8_t location, uint8_t charmap[])
+{
+	lcd44780_RS_0;
+
+    // Set address CGRAM (command 0x40 + location * 8)
+	lcd44780_WriteByte(0x40 + (location * 8));
+	lcd44780_delay(1000);
+
+	lcd44780_RS_1;
+    for(int i = 0; i < 8; i++)
+    {
+    	lcd44780_WriteByte(charmap[i]);
+    }
+
+//    lcd44780_RS_0;
+//    lcd44780_WriteByte(0x80);
 }
 
 //	Отправка символа
@@ -161,8 +206,7 @@ void lcd44780_ShowChar(uint8_t x, uint8_t y, uint8_t c)
 }
 void lcd44780_ShowChar1(uint8_t c)
 {
-	lcd44780_RS_1
-	;
+	lcd44780_RS_1;
 	lcd44780_WriteByte(c);
 	lcd44780_Address++;
 	switch (lcd44780_Address)
@@ -219,13 +263,19 @@ void lcd44780_init(void)
 	GPIOC_BSRR = GPIO2 << 16;
 	lcd44780_delay(10000);
 
-	lcd44780_WriteByte(0xc);
+
+
+	lcd44780_WriteByte(0xc); // Display ON
 	lcd44780_delay(10000);
-	lcd44780_WriteByte(0x6);
+	lcd44780_WriteByte(0x6); //Cursor autoincrement
 	lcd44780_delay(10000);
-	lcd44780_WriteByte(0x1);
+	lcd44780_WriteByte(0x1); // Clear display
 	lcd44780_delay(10000);
+
+	lcd44780_LoadCustomChar(SYMBOL_ARROW_UP, arrowUp);
+	lcd44780_LoadCustomChar(SYMBOL_ARROW_DOWN, arrowDown);
 }
+
 void disp_init(void)
 {
 	lcd44780_delay(100000);

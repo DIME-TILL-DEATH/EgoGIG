@@ -17,6 +17,11 @@
 #define lcd44780_E_0  gpio_clear(lcd44780_port, lcd44780_pin_E);
 //************************************************************************//
 
+
+// Symbols:
+#define SYMBOL_ARROW_UP 0
+#define SYMBOL_ARROW_DOWN 1
+
 //	задержка
 //	Input : p - величина задержки
 void lcd44780_delay(uint32_t p);

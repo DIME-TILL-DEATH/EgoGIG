@@ -22,8 +22,7 @@
 #include "libopencm3/stm32/spi.h"
 #include "libopencm3/stm32/usart.h"
 
-uint8_t menu_list[][16] =
-{ "Select Playlist", "Edit Playlist", "System", "Set MIDI Ctrl" };
+
 uint8_t system_list[][11] =
 { "Auto next ", "Count dir ", "Scroll dir", "LB points " };
 uint8_t off_on[][5] =
@@ -46,12 +45,13 @@ const uint8_t led_sym[10] =
 
 
 uint8_t condish = 0;
+uint8_t tim5_fl = 0;
 uint8_t blink_en = 0;
 uint8_t num_tr_fl = 0;
 uint8_t enc_key_fl = 0;
 
 
-uint8_t tim5_fl;
+
 uint8_t sys_param[64];
 uint8_t ctrl_param[32];
 uint8_t pc_param[256];
@@ -66,13 +66,7 @@ volatile uint32_t play_next_file = 0;
 uint8_t line_buf[5] =
 { 0, 0, 0, 0 };
 
-inline void tim7_start(uint8_t val)
-{
-	extern uint32_t led_blink_count3;
-	led_blink_count3 = 300000;
-	tim5_fl = 1 - val;
-	//CSTask->Give();
-}
+
 inline void check_busy(uint8_t type, uint8_t val, uint8_t num, uint8_t id_comm)
 {
 	DisplayTask->StringOut(11, 1, (uint8_t*) "    ");
@@ -212,61 +206,61 @@ void processGui(TTask* processingTask)
 	{
 //------------------------------------Menu------------------------------------------------
 	case menu:
-		if (tim5_fl)
-			DisplayTask->Clear_str(0, num_menu & 1, 15);
-		else
-			DisplayTask->StringOut(0, num_menu & 1,
-					(uint8_t*) menu_list + num_menu * 16);
-		if (encoder_state1)
-		{
-			if (encoder_state == 1)
-			{
-				if (num_menu)
-				{
-					if (num_menu == 2)
-					{
-						DisplayTask->Clear();
-						DisplayTask->StringOut(0, 0, (uint8_t*) menu_list);
-						num_menu--;
-						DisplayTask->SymbolOut(15, 1, 62);
-						tim7_start(1);
-					}
-					else
-					{
-						DisplayTask->StringOut(0, num_menu & 1,
-								(uint8_t*) menu_list + num_menu-- * 16);
-						tim7_start(0);
-					}
-					DisplayTask->StringOut(0, num_menu & 1,
-							(uint8_t*) menu_list + num_menu * 16);
-					clean_fl();
-				}
-			}
-			else
-			{
-				if ((num_menu < 3) && stop_fl1)
-				{
-					if (num_menu == 1)
-					{
-						DisplayTask->Clear();
-						DisplayTask->SymbolOut(15, 0, 60);
-						num_menu++;
-						DisplayTask->StringOut(0, 1,
-								(uint8_t*) menu_list + 3 * 16);
-						tim7_start(1);
-					}
-					else
-					{
-						DisplayTask->StringOut(0, num_menu & 1,
-								(uint8_t*) menu_list + num_menu++ * 16);
-						tim7_start(0);
-					}
-					DisplayTask->StringOut(0, num_menu & 1,
-							(uint8_t*) menu_list + num_menu * 16);
-					clean_fl();
-				}
-			}
-		}
+//		if (tim5_fl)
+//			DisplayTask->Clear_str(0, num_menu & 1, 15);
+//		else
+//			DisplayTask->StringOut(0, num_menu & 1,
+//					(uint8_t*) menu_list + num_menu * 16);
+//		if (encoder_state1)
+//		{
+//			if (encoder_state == 1)
+//			{
+//				if (num_menu)
+//				{
+//					if (num_menu == 2)
+//					{
+//						DisplayTask->Clear();
+//						DisplayTask->StringOut(0, 0, (uint8_t*) menu_list);
+//						num_menu--;
+//						DisplayTask->SymbolOut(15, 1, 62);
+//						tim7_start(1);
+//					}
+//					else
+//					{
+//						DisplayTask->StringOut(0, num_menu & 1,
+//								(uint8_t*) menu_list + num_menu-- * 16);
+//						tim7_start(0);
+//					}
+//					DisplayTask->StringOut(0, num_menu & 1,
+//							(uint8_t*) menu_list + num_menu * 16);
+//					clean_fl();
+//				}
+//			}
+//			else
+//			{
+//				if ((num_menu < 3) && stop_fl1)
+//				{
+//					if (num_menu == 1)
+//					{
+//						DisplayTask->Clear();
+//						DisplayTask->SymbolOut(15, 0, 60);
+//						num_menu++;
+//						DisplayTask->StringOut(0, 1,
+//								(uint8_t*) menu_list + 3 * 16);
+//						tim7_start(1);
+//					}
+//					else
+//					{
+//						DisplayTask->StringOut(0, num_menu & 1,
+//								(uint8_t*) menu_list + num_menu++ * 16);
+//						tim7_start(0);
+//					}
+//					DisplayTask->StringOut(0, num_menu & 1,
+//							(uint8_t*) menu_list + num_menu * 16);
+//					clean_fl();
+//				}
+//			}
+//		}
 		if (key_ind == key_encoder)
 		{
 			switch (num_menu)
@@ -335,7 +329,7 @@ void processGui(TTask* processingTask)
 							(uint8_t*) up_down
 									+ sys_param[direction_counter] * 5);
 					DisplayTask->SymbolOut(15, 1, 62);
-					tim7_start(1);
+//					tim7_start(1);
 				}
 			}
 				break;
@@ -528,7 +522,7 @@ void processGui(TTask* processingTask)
 					}
 				}
 			}
-			tim7_start(1);
+//			tim7_start(1);
 		}
 		if (key_ind == key_encoder)
 		{
@@ -558,7 +552,7 @@ void processGui(TTask* processingTask)
 			}
 			if (!edit_fl)
 				DisplayTask->StringOut(11, 1, (uint8_t*) "    ");
-			tim7_start(0);
+//			tim7_start(0);
 		}
 		if (key_ind == key_esc)
 		{
@@ -568,8 +562,8 @@ void processGui(TTask* processingTask)
 			DisplayTask->SymbolOut(15, 0, 60);
 			num_menu = 3;
 			edit_fl = 0;
-			DisplayTask->StringOut(0, 0, (uint8_t*) menu_list + 2 * 16);
-			tim7_start(1);
+//			DisplayTask->StringOut(0, 0, (uint8_t*) menu_list + 2 * 16);
+//			tim7_start(1);
 		}
 		clean_fl();
 		break;
@@ -672,7 +666,7 @@ void processGui(TTask* processingTask)
 					}
 				}
 			}
-			tim7_start(1);
+//			tim7_start(1);
 		}
 		if (key_ind == key_encoder)
 		{
@@ -692,7 +686,7 @@ void processGui(TTask* processingTask)
 			edit_fl = 0;
 			condish = midi_ctrl_menu;
 			DisplayTask->StringOut(0, 0, (uint8_t*) contrl_list + 4 * 16);
-			tim7_start(0);
+//			tim7_start(0);
 		}
 		clean_fl();
 		break;
@@ -750,11 +744,11 @@ void processGui(TTask* processingTask)
 											+ sys_param[direction_counter]
 													* 5);
 							DisplayTask->SymbolOut(15, 1, 62);
-							tim7_start(1);
+//							tim7_start(1);
 						}
 						DisplayTask->StringOut(0, num_menu & 1,
 								(uint8_t*) system_list + num_menu * 11);
-						tim7_start(0);
+//						tim7_start(0);
 					}
 				}
 				else
@@ -787,7 +781,7 @@ void processGui(TTask* processingTask)
 											+ --sys_param[loop_points] * 5);
 							break;
 						}
-						tim7_start(1);
+//						tim7_start(1);
 					}
 				}
 			}
@@ -816,7 +810,7 @@ void processGui(TTask* processingTask)
 						}
 						DisplayTask->StringOut(0, num_menu & 1,
 								(uint8_t*) system_list + num_menu * 11);
-						tim7_start(0);
+//						tim7_start(0);
 					}
 				}
 				else
@@ -849,7 +843,7 @@ void processGui(TTask* processingTask)
 											+ ++sys_param[loop_points] * 5);
 							break;
 						}
-						tim7_start(1);
+//						tim7_start(1);
 					}
 				}
 			}
@@ -874,7 +868,7 @@ void processGui(TTask* processingTask)
 							(uint8_t*) up_down + sys_param[num_menu] * 5);
 			}
 			clean_fl();
-			tim7_start(0);
+//			tim7_start(0);
 		}
 		if (key_ind == key_esc)
 		{
