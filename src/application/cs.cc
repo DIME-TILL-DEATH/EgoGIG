@@ -267,7 +267,7 @@ void TCSTask::Code()
   DisplayTask->StringOut( 1 , 1 , (uint8_t*)"SD Multiplayer");
   Delay(1500);
   DisplayTask->Clear();
-  DisplayTask->StringOut( 3 , 0 , (uint8_t*)__APP_VERSION__ );
+  DisplayTask->StringOut( 3 , 0 , (uint8_t*)"LEGACY");
   Delay(500);
   if ( GPIOB_IDR & GPIO8 )
     {
