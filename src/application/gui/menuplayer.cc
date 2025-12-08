@@ -144,7 +144,7 @@ void MenuPlayer::encoderPress()
 		else
 			DisplayTask->StringOut(2, 0, (uint8_t*) "Playlist End");
 		taskDelay(1500);
-		condish = MENU_PLAYER;
+
 		DisplayTask->Clear();
 		FsStreamTask->sound_name(tmp);
 		oem2winstar(tmp);

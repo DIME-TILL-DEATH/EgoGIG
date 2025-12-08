@@ -9,7 +9,6 @@ enum
 {
 	edit_playlist = 50,
 	select_folder,
-	play_next_fil,
 	name_ind_play,
 	delete_file,
 	menu,
@@ -38,8 +37,6 @@ enum
 };
 
 void processGui(TTask* processingTask);
-
-//uint8_t test_file(void);
 
 void write_sys(void);
 void read_sys(void);
