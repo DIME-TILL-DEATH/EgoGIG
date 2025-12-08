@@ -40,13 +40,15 @@ private:
 	uint8_t play_point2_fl = 0;
 	uint32_t no_file = 0;
 
+	emb_string m_currentSongName;
+
+	bool m_requestPlayNext{false};
+
 	bool load_prog();
 	bool test_file();
 
 	void jump_rand_pos(uint32_t pos);
 	void init_prog(void);
-
-	bool m_requestPlayNext{false};
 };
 
 

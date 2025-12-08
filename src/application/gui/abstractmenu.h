@@ -10,6 +10,7 @@ enum gui_menu_type
 	MENU_PLAYER,
 	MENU_MAIN,
 	MENU_METRONOME,
+	MENU_SELECT_PLAYLIST,
 	MENU_ABSTRACT = 255
 };
 
@@ -50,6 +51,8 @@ public:
 	void showChild(AbstractMenu* child);
 	void returnFromChildMenu();
 
+	static void printRunningName(emb_string name, uint8_t yPos = 0);
+
 protected:
 	AbstractMenu* m_parentMenu = nullptr;
 	AbstractMenu* m_childMenu = nullptr;
@@ -57,6 +60,9 @@ protected:
 	gui_menu_type m_menuType{MENU_ABSTRACT};
 
 	static uint8_t subMenusToRoot;
+
+	static uint8_t runningNameLength;
+	static uint8_t runningNamePos;
 
 	void taskDelay(uint32_t ticks);
 	void tim7_start(uint8_t val);

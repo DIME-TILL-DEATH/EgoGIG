@@ -1,10 +1,14 @@
 #include "abstractmenu.h"
 #include "cs.h"
 
+#include "display.h"
+
 extern TCSTask *CSTask; // for delayTask function!
 
 AbstractMenu* currentMenu;
 uint8_t AbstractMenu::subMenusToRoot = 1;
+uint8_t AbstractMenu::runningNameLength = 15;
+uint8_t AbstractMenu::runningNamePos = 0;
 
 gui_menu_type AbstractMenu::menuType()
 {
@@ -61,4 +65,20 @@ void AbstractMenu::tim7_start(uint8_t val)
 	led_blink_count3 = 300000;
 	tim5_fl = 1 - val;
 	//CSTask->Give();
+}
+
+void AbstractMenu::printRunningName(emb_string name, uint8_t yPos)
+{
+	runningNameLength = name.size();
+
+	if(runningNameLength <= 16) return;
+
+	if((runningNameLength - 16 - runningNamePos) <= 0) runningNamePos = 0;
+	else runningNamePos++;
+
+	uint8_t printString[16+1];
+	memset(printString, 0, 16+1);
+	memcpy(printString, name.c_str() + runningNamePos, 16);
+
+	DisplayTask->StringOut(0, yPos, printString);
 }
