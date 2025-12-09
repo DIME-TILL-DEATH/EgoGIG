@@ -18,23 +18,24 @@ public:
 		MIDI_IN_NOTE
 	};
 
-	void show(TShowMode showMode = FirstShow);
-	void task();
+	void show(TShowMode showMode = FirstShow) override;
+	void task() override;
+	void refresh() override;
 
-	void encoderPress();
-	void encoderClockwise();
-	void encoderCounterClockwise();
+	void encoderPress() override;
+	void encoderClockwise() override;
+	void encoderCounterClockwise() override;
 
-	void keyEsc();
+	void keyEsc() override;
 
 	static void write_ctrl(void);
 	static void read_ctrl(void);
 
-private:
+protected:
 	uint8_t m_currentParamNum{0};
 
 	static constexpr uint8_t paramsCount = 5;
-	static constexpr uint8_t subParamsCount = 9;
+	static constexpr uint8_t subParamsCount = 10;
 
 	ParamBase* m_params[paramsCount];
 	ParamBase* m_subParams[subParamsCount];

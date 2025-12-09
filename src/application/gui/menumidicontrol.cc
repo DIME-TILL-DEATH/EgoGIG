@@ -14,21 +14,30 @@ MenuMidiControl::MenuMidiControl(AbstractMenu* parent)
 
 	m_params[0] = new ParamStringList("Play ", &ctrl_param[ctrl1_t], { "PC  ", "CC  ", "Note" }, 5);
 	m_subParams[0] = new ParamBase(ParamBase::GUI_PARAMETER_NUM, "PC  ", &ctrl_param[ctrl1]);
+	m_subParams[0]->setScaling(1, 1);
 	m_subParams[1] = new ParamBase(ParamBase::GUI_PARAMETER_NUM, "CC  ", &ctrl_param[ctrl1]);
-	m_subParams[2] = new ParamBase(ParamBase::GUI_PARAMETER_NUM, "Note", &ctrl_param[ctrl1]);
+	m_subParams[2] = new ParamBase(ParamBase::GUI_PARAMETER_NOTE, "Note", &ctrl_param[ctrl1]);
 
 	m_params[1] = new ParamStringList("Pause ", &ctrl_param[ctrl2_t], { "PC  ", "CC  ", "Note" }, 5);
 	m_subParams[3] = new ParamBase(ParamBase::GUI_PARAMETER_NUM, "PC  ", &ctrl_param[ctrl2]);
+	m_subParams[3]->setScaling(1, 1);
 	m_subParams[4] = new ParamBase(ParamBase::GUI_PARAMETER_NUM, "CC  ", &ctrl_param[ctrl2]);
-	m_subParams[5] = new ParamBase(ParamBase::GUI_PARAMETER_NUM, "Note", &ctrl_param[ctrl2]);
+	m_subParams[5] = new ParamBase(ParamBase::GUI_PARAMETER_NOTE, "Note", &ctrl_param[ctrl2]);
 
 	m_params[2] = new ParamStringList("Stop  ", &ctrl_param[ctrl3_t], { "PC  ", "CC  ", "Note" }, 5);
 	m_subParams[6] = new ParamBase(ParamBase::GUI_PARAMETER_NUM, "PC  ", &ctrl_param[ctrl3]);
+	m_subParams[6]->setScaling(1, 1);
 	m_subParams[7] = new ParamBase(ParamBase::GUI_PARAMETER_NUM, "CC  ", &ctrl_param[ctrl3]);
-	m_subParams[8] = new ParamBase(ParamBase::GUI_PARAMETER_NUM, "Note", &ctrl_param[ctrl3]);
+	m_subParams[8] = new ParamBase(ParamBase::GUI_PARAMETER_NOTE, "Note", &ctrl_param[ctrl3]);
 
-	m_params[3] = new ParamBase(ParamBase::GUI_PARAMETER_NUM, "Channel", &ctrl_param[chann]);
+	m_params[3] = new ParamBase(ParamBase::GUI_PARAMETER_NUM, "Channel", nullptr);
+	m_subParams[9] = new ParamBase(ParamBase::GUI_PARAMETER_NUM, "Num", &ctrl_param[chann]);
+	m_subParams[9]->setScaling(1, 1);
+
 	m_params[4] = new ParamSubmenu("MIDI PC Set", &MenuMidiControl::createMidiPcMenu, nullptr);
+
+	for(int i=0; i<subParamsCount; i++)
+		m_subParams[i]->setDisplayPosition(5);
 }
 
 MenuMidiControl::~MenuMidiControl()
@@ -46,7 +55,17 @@ MenuMidiControl::~MenuMidiControl()
 
 void MenuMidiControl::show(TShowMode showMode)
 {
+	refresh();
+}
+
+void MenuMidiControl::refresh()
+{
 	printMenu();
+	if(m_currentParamNum < 3)
+	{
+		if(check_busy(ctrl_param[m_currentParamNum * 2], ctrl_param[m_currentParamNum * 2 + 1], m_currentParamNum))
+			DisplayTask->StringOut(12, 1, (uint8_t*)"BUSY");
+	}
 }
 
 void MenuMidiControl::task()
@@ -64,15 +83,11 @@ void MenuMidiControl::task()
 	case PARAM_SELECTED:
 	{
 		if(tim5_fl)
-			DisplayTask->Clear_str(0, 1, 5);
+			DisplayTask->Clear_str(0, 1, m_subParams[m_params[m_currentParamNum]->value() + 3 * m_currentParamNum]->xDisplayPosition() - 1);
 		else
 		{
-			if(m_currentParamNum < 3)
+			if(m_params[m_currentParamNum]->type() != ParamBase::GUI_PARAMETER_SUBMENU)
 				DisplayTask->StringOut(0, 1, (uint8_t*)(m_subParams[m_params[m_currentParamNum]->value() + 3 * m_currentParamNum]->name()));
-
-			if(m_currentParamNum == 3)
-				DisplayTask->StringOut(0, 1, (uint8_t*)"Num ");
-
 		}
 		break;
 		break;
@@ -80,25 +95,12 @@ void MenuMidiControl::task()
 	case SUBPARAM_SELECTED:
 	{
 		if(tim5_fl)
-			DisplayTask->Clear_str(5, 1, 6);
+			DisplayTask->Clear_str(m_subParams[m_params[m_currentParamNum]->value() + 3 * m_currentParamNum]->xDisplayPosition(), 1, 6);
 		else
 		{
-			if(m_currentParamNum < 3)
+			if(m_params[m_currentParamNum]->type() != ParamBase::GUI_PARAMETER_SUBMENU)
 			{
-				uint8_t valueToShow = m_subParams[m_params[m_currentParamNum]->value() + 3 * m_currentParamNum]->value();
-
-				switch(m_params[m_currentParamNum]->value())
-				{
-				case MIDI_IN_PC: DisplayTask->NumOut(5, 1, valueToShow + 1); break;
-				case MIDI_IN_CC: DisplayTask->NumOut(5, 1, valueToShow); break;
-				case MIDI_IN_NOTE: DisplayTask->NoteOut(5, 1, valueToShow); break;
-				default: break;
-				}
-			}
-
-			if(m_currentParamNum == 3)
-			{
-				DisplayTask->NumOut(5, 1, m_params[m_currentParamNum]->value() +1 );
+				m_subParams[m_params[m_currentParamNum]->value() + 3 * m_currentParamNum]->printParam(1);
 			}
 		}
 		break;
@@ -125,33 +127,17 @@ void MenuMidiControl::encoderPress()
 	}
 	case PARAM_SELECTED:
 	{
-		if(m_currentParamNum < 3)
-			DisplayTask->StringOut(0, 1, (uint8_t*)(m_subParams[m_params[m_currentParamNum]->value() + 3 * m_currentParamNum]->name()));
-
-		if(m_currentParamNum == 3)
-			DisplayTask->StringOut(0, 1, (uint8_t*)"Num ");
+		if(m_params[m_currentParamNum]->type() != ParamBase::GUI_PARAMETER_SUBMENU)
+						DisplayTask->StringOut(0, 1, (uint8_t*)(m_subParams[m_params[m_currentParamNum]->value() + 3 * m_currentParamNum]->name()));
 
 		m_selectionState = SUBPARAM_SELECTED;
 		break;
 	}
 	case SUBPARAM_SELECTED:
 	{
-		if(m_currentParamNum < 3)
+		if(m_params[m_currentParamNum]->type() != ParamBase::GUI_PARAMETER_SUBMENU)
 		{
-			uint8_t valueToShow = m_subParams[m_params[m_currentParamNum]->value() + 3 * m_currentParamNum]->value();
-
-			switch(m_params[m_currentParamNum]->value())
-			{
-			case MIDI_IN_PC: DisplayTask->NumOut(5, 1, valueToShow + 1); break;
-			case MIDI_IN_CC: DisplayTask->NumOut(5, 1, valueToShow); break;
-			case MIDI_IN_NOTE: DisplayTask->NoteOut(5, 1, valueToShow); break;
-			default: break;
-			}
-		}
-
-		if(m_currentParamNum == 3)
-		{
-			DisplayTask->NumOut(5, 1, m_params[m_currentParamNum]->value() + 1);
+			m_subParams[m_params[m_currentParamNum]->value() + 3 * m_currentParamNum]->printParam(1);
 		}
 
 		m_selectionState = PARAM_NOT_SELECTED;
@@ -177,13 +163,11 @@ void MenuMidiControl::encoderClockwise()
 	}
 	case SUBPARAM_SELECTED:
 	{
-		if(m_currentParamNum == 3) m_params[m_currentParamNum]->increaseParam();
-		else m_subParams[m_params[m_currentParamNum]->value() + 3 * m_currentParamNum]->increaseParam();
-		break;
+		m_subParams[m_params[m_currentParamNum]->value() + 3 * m_currentParamNum]->increaseParam();
 	}
 	}
 
-	printMenu();
+	refresh();
 }
 
 void MenuMidiControl::encoderCounterClockwise()
@@ -202,12 +186,11 @@ void MenuMidiControl::encoderCounterClockwise()
 	}
 	case SUBPARAM_SELECTED:
 	{
-		if(m_currentParamNum == 3) m_params[m_currentParamNum]->decreaseParam();
-		else m_subParams[m_params[m_currentParamNum]->value() + 3 * m_currentParamNum]->decreaseParam();
+		m_subParams[m_params[m_currentParamNum]->value() + 3 * m_currentParamNum]->decreaseParam();
 		break;
 	}
 	}
-	printMenu();
+	refresh();
 }
 
 void MenuMidiControl::keyEsc()
@@ -228,28 +211,10 @@ void MenuMidiControl::printMenu()
 
 	DisplayTask->StringOut(0, 0, (uint8_t*)m_params[m_currentParamNum]->name());
 
-	if(m_currentParamNum < 3)
+	if(m_params[m_currentParamNum]->type() != ParamBase::GUI_PARAMETER_SUBMENU)
 	{
 		DisplayTask->StringOut(0, 1, (uint8_t*)(m_subParams[m_params[m_currentParamNum]->value() + 3 * m_currentParamNum]->name()));
-
-		uint8_t valueToShow = m_subParams[m_params[m_currentParamNum]->value() + 3 * m_currentParamNum]->value();
-
-		switch(m_params[m_currentParamNum]->value())
-		{
-		case MIDI_IN_PC: DisplayTask->NumOut(5, 1, valueToShow + 1); break;
-		case MIDI_IN_CC: DisplayTask->NumOut(5, 1, valueToShow); break;
-		case MIDI_IN_NOTE: DisplayTask->NoteOut(5, 1, valueToShow); break;
-		default: break;
-		}
-
-		if(check_busy(ctrl_param[m_currentParamNum * 2], ctrl_param[m_currentParamNum * 2 + 1], m_currentParamNum))
-			DisplayTask->StringOut(12, 1, (uint8_t*)"BUSY");
-	}
-
-	if(m_currentParamNum == 3)
-	{
-		DisplayTask->StringOut(0, 1, (uint8_t*)"Num ");
-		DisplayTask->NumOut(5, 1, m_params[m_currentParamNum]->value() + 1);
+		m_subParams[m_params[m_currentParamNum]->value() + 3 * m_currentParamNum]->printParam(1);
 	}
 }
 

@@ -91,6 +91,8 @@ void ParamBase::decreaseParam()
 
 void ParamBase::printParam(uint8_t yDisplayPosition)
 {
+	if(!m_valuePtr) return;
+
 	if(m_disabled)
 	{
 		DisplayTask->Clear_str(m_xDisplayPosition, yDisplayPosition, 3);
@@ -101,6 +103,9 @@ void ParamBase::printParam(uint8_t yDisplayPosition)
 	{
 		case ParamBase::GUI_PARAMETER_NUM:
 			DisplayTask->NumOut(m_xDisplayPosition, yDisplayPosition, *m_valuePtr + m_offset);
+			break;
+		case ParamBase::GUI_PARAMETER_NOTE:
+			DisplayTask->NoteOut(m_xDisplayPosition, yDisplayPosition, *m_valuePtr + m_offset);
 			break;
 		default: break;
 	}
