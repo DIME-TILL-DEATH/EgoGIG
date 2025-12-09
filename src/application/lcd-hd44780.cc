@@ -88,7 +88,7 @@ void oem2winstar(emb_string &str)
 
 //	задержка
 //	Input : p - величина задержки
-void lcd44780_delay(uint32_t p)
+inline void __attribute__ ((always_inline)) lcd44780_delay(uint32_t p)
 {
 	for (uint32_t i = 0; i < (p * 10); i++)
 		NOP();
@@ -243,6 +243,25 @@ void lcd44780_Clear_str(uint8_t x, uint8_t y, uint8_t cont)
 //	Инициализация дисплея
 void lcd44780_init(void)
 {
+	// set display 0x03, hardware reset
+	GPIOA_BSRR = 0xf << 16;
+	lcd44780_delay(10000);
+	GPIOA_BSRR = 3;
+	lcd44780_delay(10000);
+	GPIOC_BSRR = GPIO2;
+	lcd44780_delay(10000);
+	GPIOC_BSRR = GPIO2 << 16;
+	lcd44780_delay(10000);
+	GPIOC_BSRR = GPIO2;
+	lcd44780_delay(10000);
+	GPIOC_BSRR = GPIO2 << 16;
+	lcd44780_delay(10000);
+	GPIOC_BSRR = GPIO2;
+	lcd44780_delay(10000);
+	GPIOC_BSRR = GPIO2 << 16;
+
+
+	// set mode 0x02
 	GPIOA_BSRR = 0xf << 16;
 	lcd44780_delay(10000);
 	GPIOA_BSRR = 2;
@@ -250,6 +269,8 @@ void lcd44780_init(void)
 	GPIOC_BSRR = GPIO2;
 	lcd44780_delay(10000);
 	GPIOC_BSRR = GPIO2 << 16;
+
+	// display 0x28
 	lcd44780_delay(10000);
 	GPIOC_BSRR = GPIO2;
 	lcd44780_delay(10000);
@@ -262,7 +283,6 @@ void lcd44780_init(void)
 	lcd44780_delay(10000);
 	GPIOC_BSRR = GPIO2 << 16;
 	lcd44780_delay(10000);
-
 
 
 	lcd44780_WriteByte(0xc); // Display ON

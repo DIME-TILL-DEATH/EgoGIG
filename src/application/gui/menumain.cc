@@ -8,6 +8,7 @@
 #include "menuselectplaylist.h"
 #include "menueditplaylist.h"
 #include "menusystem.h"
+#include "menumidicontrol.h"
 
 MenuMain::MenuMain(AbstractMenu* parent)
 	: MenuParamList(parent, MENU_MAIN)
@@ -18,7 +19,7 @@ MenuMain::MenuMain(AbstractMenu* parent)
 	params[0] = new ParamSubmenu(ParamBase::GUI_PARAMETER_SUBMENU, "Select Playlist", &MenuMain::createSelectPlaylistMenu, nullptr);
 	params[1] = new ParamSubmenu(ParamBase::GUI_PARAMETER_SUBMENU, "Edit Playlist", &MenuMain::createEditPlaylistMenu, nullptr);
 	params[2] = new ParamSubmenu(ParamBase::GUI_PARAMETER_SUBMENU, "System", &MenuMain::createSystemMenu, nullptr);
-	params[3] = new ParamSubmenu(ParamBase::GUI_PARAMETER_SUBMENU, "Set MIDI Ctrl", &MenuMain::createMidiMenu, nullptr);
+	params[3] = new ParamSubmenu(ParamBase::GUI_PARAMETER_SUBMENU, "MIDI Ctrl", &MenuMain::createMidiMenu, nullptr);
 
 	setParams(params, paramNum);
 }
@@ -40,6 +41,5 @@ AbstractMenu* MenuMain::createSystemMenu(AbstractMenu* parent)
 
 AbstractMenu* MenuMain::createMidiMenu(AbstractMenu* parent)
 {
-	return nullptr;
-//	return new FswTypeMenu(parent);
+	return new MenuMidiControl(parent);
 }

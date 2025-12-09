@@ -24,7 +24,7 @@
 
 //	задержка
 //	Input : p - величина задержки
-void lcd44780_delay(uint32_t p);
+//void lcd44780_delay(uint32_t p);
 
 //	Очистка дисплея
 void lcd44780_ClearLCD(void);
