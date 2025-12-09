@@ -100,10 +100,17 @@ void MenuParamList::task()
 
 	if(!m_encoderKnobSelected)
 	{
-		if (tim5_fl)
-			DisplayTask->Clear_str(0, m_currentParamNum % paramsOnPage, 15);
+		if(tim5_fl)
+			DisplayTask->Clear_str(0, m_currentParamNum % paramsOnPage, m_paramsList[m_currentParamNum]->nameLength());
 		else
 			DisplayTask->StringOut(0, m_currentParamNum % paramsOnPage, (uint8_t*)(m_paramsList[m_currentParamNum]->name()));
+	}
+	else
+	{
+		if(tim5_fl)
+			DisplayTask->Clear_str(m_paramsList[m_currentParamNum]->nameLength(), m_currentParamNum % paramsOnPage, 16 - m_paramsList[m_currentParamNum]->nameLength() - 1);
+		else
+			m_paramsList[m_currentParamNum]->printParam(m_currentParamNum % paramsOnPage);
 	}
 }
 
@@ -121,14 +128,12 @@ void MenuParamList::encoderPress()
 		if(!m_encoderKnobSelected)
 		{
 			m_encoderKnobSelected = true;
-//			DisplayTask->StringOut(leftPad, m_currentParamNum % paramsOnPage, Font::fntSystem,
-//									2, (uint8_t*)(m_paramsList[m_currentParamNum]->name()));
+			DisplayTask->StringOut(0, m_currentParamNum % paramsOnPage, (uint8_t*)(m_paramsList[m_currentParamNum]->name()));
 		}
 		else
 		{
 			m_encoderKnobSelected = false;
-//			DisplayTask->StringOut(leftPad, m_currentParamNum % paramsOnPage, Font::fntSystem,
-//									0, (uint8_t*)(m_paramsList[m_currentParamNum]->name()));
+			m_paramsList[m_currentParamNum]->printParam(m_currentParamNum % paramsOnPage);
 		}
 	}
 

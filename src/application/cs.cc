@@ -8,6 +8,7 @@
 #include "gui.h"
 
 #include "menuplayer.h"
+#include "menusystem.h"
 
 #include "libopencm3/stm32/timer.h"
 #include "libopencm3/stm32/gpio.h"
@@ -52,7 +53,7 @@ void TCSTask::Code()
 
 	load_led(num_prog);
 
-	//read_sys();
+	MenuSystem::read_sys();
 	read_ctrl();
 	read_map();
 	blink_en = 1;

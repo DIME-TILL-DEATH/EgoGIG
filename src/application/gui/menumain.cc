@@ -7,6 +7,7 @@
 
 #include "menuselectplaylist.h"
 #include "menueditplaylist.h"
+#include "menusystem.h"
 
 MenuMain::MenuMain(AbstractMenu* parent)
 	: MenuParamList(parent, MENU_MAIN)
@@ -34,8 +35,7 @@ AbstractMenu* MenuMain::createEditPlaylistMenu(AbstractMenu* parent)
 
 AbstractMenu* MenuMain::createSystemMenu(AbstractMenu* parent)
 {
-	return nullptr;
-//	return new FswTypeMenu(parent);
+	return new MenuSystem(parent);
 }
 
 AbstractMenu* MenuMain::createMidiMenu(AbstractMenu* parent)

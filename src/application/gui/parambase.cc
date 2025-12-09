@@ -33,6 +33,12 @@ const char* ParamBase::name()
 	else return m_name;
 }
 
+uint8_t ParamBase::nameLength()
+{
+	if(m_disabled) return strlen(" -- ");
+	else return strlen(m_name);
+}
+
 uint32_t ParamBase::value() const
 {
 	if(!m_valuePtr) return 0;
@@ -91,7 +97,6 @@ void ParamBase::printParam(uint8_t yDisplayPosition)
 		return;
 	}
 
-	// переделать на IndicatorType
 	switch(m_type)
 	{
 		case ParamBase::GUI_PARAMETER_NUM:

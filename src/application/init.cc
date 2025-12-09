@@ -23,6 +23,8 @@
 dac_sample_t dac_sample;
 dac_sample_t dac_sample1;
 
+uint8_t sys_param[64];
+
 const size_t wav_buff_size = 4 * 1024;
 
 wav_sample_t sound_buff[wav_buff_size];

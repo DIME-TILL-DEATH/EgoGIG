@@ -31,6 +31,7 @@ public:
 
 	gui_param_type type() const {return m_type;};
 	virtual const char* name();
+	virtual uint8_t nameLength();
 
 	void setValuePtr(uint8_t* valuePtr) {m_valuePtr = valuePtr;};
 	uint8_t* valuePtr() const {return m_valuePtr;};

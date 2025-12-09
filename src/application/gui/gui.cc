@@ -23,12 +23,6 @@
 #include "libopencm3/stm32/usart.h"
 
 
-uint8_t system_list[][11] =
-{ "Auto next ", "Count dir ", "Scroll dir", "LB points " };
-uint8_t off_on[][5] =
-{ "Off ", "On  " };
-uint8_t up_down[][5] =
-{ "Up  ", "Down" };
 uint8_t contrl_list[][12] =
 { "Play ", "Pause", "Stop ", "Channel", "MIDI PC Set" };
 uint8_t note_list[][3] =
@@ -42,17 +36,12 @@ uint8_t num_prog_edit = 0;
 const uint8_t led_sym[10] =
 { 0xc0, 0xf9, 0xa4, 0xb0, 0x99, 0x92, 0x82, 0xf8, 0x80, 0x90 };
 
-
-
 uint8_t condish = 0;
 uint8_t tim5_fl = 0;
 uint8_t blink_en = 0;
 uint8_t num_tr_fl = 0;
 uint8_t enc_key_fl = 0;
 
-
-
-uint8_t sys_param[64];
 uint8_t ctrl_param[32];
 uint8_t pc_param[256];
 
@@ -209,27 +198,7 @@ void processGui(TTask* processingTask)
 		{
 			switch (num_menu)
 			{
-			case 2:
-			{
-				if (stop_fl1)
-				{
-					condish = sys_menu;
-					num_menu = 0;
-					DisplayTask->Clear();
-					DisplayTask->StringOut(0, 0, (uint8_t*) system_list);
-					DisplayTask->StringOut(0, 1,
-							(uint8_t*) system_list + 11);
-					DisplayTask->StringOut(11, 0,
-							(uint8_t*) off_on
-									+ sys_param[auto_next_track] * 5);
-					DisplayTask->StringOut(11, 1,
-							(uint8_t*) up_down
-									+ sys_param[direction_counter] * 5);
-					DisplayTask->SymbolOut(15, 1, 62);
-//					tim7_start(1);
-				}
-			}
-				break;
+
 			case 3:
 				if (stop_fl1)
 				{
@@ -242,13 +211,6 @@ void processGui(TTask* processingTask)
 				}
 				break;
 			}
-			clean_fl();
-		}
-		if (key_ind == key_esc)
-		{
-//			init_play_menu(0);
-//			parentMenu->returnFromChildMenu();
-			clean_fl();
 		}
 		break;
 //-----------------------------------Set Control MIDI-------------------------------------
@@ -587,196 +549,6 @@ void processGui(TTask* processingTask)
 		}
 		clean_fl();
 		break;
-//------------------------------------System----------------------------------------------
-	case sys_menu:
-		if (tim5_fl)
-		{
-			if (!enc_key_fl)
-				DisplayTask->Clear_str(0, num_menu & 1, 10);
-			else
-				DisplayTask->Clear_str(11, num_menu & 1, 4);
-		}
-		else
-		{
-			if (!enc_key_fl)
-				DisplayTask->StringOut(0, num_menu & 1,
-						(uint8_t*) system_list + num_menu * 11);
-			else
-			{
-				if (!num_menu || num_menu == 3)
-					DisplayTask->StringOut(11, num_menu & 1,
-							(uint8_t*) off_on
-									+ sys_param[num_menu + auto_next_track]
-											* 5);
-				else
-					DisplayTask->StringOut(11, num_menu & 1,
-							(uint8_t*) up_down
-									+ sys_param[num_menu + auto_next_track]
-											* 5);
-			}
-		}
-		if (encoder_state1)
-		{
-			if (encoder_state == 1)
-			{
-				if (!enc_key_fl)
-				{
-					if (num_menu)
-					{
-						DisplayTask->StringOut(0, num_menu & 1,
-								(uint8_t*) system_list + num_menu-- * 11);
-						if (num_menu == 1)
-						{
-							DisplayTask->Clear();
-							DisplayTask->StringOut(0, 0,
-									(uint8_t*) system_list);
-							DisplayTask->StringOut(0, 1,
-									(uint8_t*) system_list + 11);
-							DisplayTask->StringOut(11, 0,
-									(uint8_t*) off_on
-											+ sys_param[auto_next_track]
-													* 5);
-							DisplayTask->StringOut(11, 1,
-									(uint8_t*) up_down
-											+ sys_param[direction_counter]
-													* 5);
-							DisplayTask->SymbolOut(15, 1, 62);
-//							tim7_start(1);
-						}
-						DisplayTask->StringOut(0, num_menu & 1,
-								(uint8_t*) system_list + num_menu * 11);
-//						tim7_start(0);
-					}
-				}
-				else
-				{
-					if (sys_param[num_menu + auto_next_track])
-					{
-						switch (num_menu)
-						{
-						case 0:
-							DisplayTask->StringOut(11, 0,
-									(uint8_t*) off_on
-											+ --sys_param[auto_next_track]
-													* 5);
-							break;
-						case 1:
-							DisplayTask->StringOut(11, 1,
-									(uint8_t*) up_down
-											+ --sys_param[direction_counter]
-													* 5);
-							break;
-						case 2:
-							DisplayTask->StringOut(11, 0,
-									(uint8_t*) up_down
-											+ --sys_param[direction_scrol_playlist]
-													* 5);
-							break;
-						case 3:
-							DisplayTask->StringOut(11, 1,
-									(uint8_t*) off_on
-											+ --sys_param[loop_points] * 5);
-							break;
-						}
-//						tim7_start(1);
-					}
-				}
-			}
-			else
-			{       //-----------------------encoder up---------------
-				if (!enc_key_fl)
-				{
-					if (num_menu < 3)
-					{
-						DisplayTask->StringOut(0, 0,
-								(uint8_t*) system_list + num_menu++ * 11);
-						if (num_menu == 2)
-						{
-							DisplayTask->Clear();
-							DisplayTask->SymbolOut(15, 0, 60);
-							DisplayTask->StringOut(0, 1,
-									(uint8_t*) system_list
-											+ (num_menu + 1) * 11);
-							DisplayTask->StringOut(11, 0,
-									(uint8_t*) up_down
-											+ sys_param[direction_scrol_playlist]
-													* 5);
-							DisplayTask->StringOut(11, 1,
-									(uint8_t*) off_on
-											+ sys_param[loop_points] * 5);
-						}
-						DisplayTask->StringOut(0, num_menu & 1,
-								(uint8_t*) system_list + num_menu * 11);
-//						tim7_start(0);
-					}
-				}
-				else
-				{
-					if (!sys_param[num_menu + auto_next_track])
-					{
-						switch (num_menu)
-						{
-						case 0:
-							DisplayTask->StringOut(11, 0,
-									(uint8_t*) off_on
-											+ ++sys_param[auto_next_track]
-													* 5);
-							break;
-						case 1:
-							DisplayTask->StringOut(11, 1,
-									(uint8_t*) up_down
-											+ ++sys_param[direction_counter]
-													* 5);
-							break;
-						case 2:
-							DisplayTask->StringOut(11, 0,
-									(uint8_t*) up_down
-											+ ++sys_param[direction_scrol_playlist]
-													* 5);
-							break;
-						case 3:
-							DisplayTask->StringOut(11, 1,
-									(uint8_t*) off_on
-											+ ++sys_param[loop_points] * 5);
-							break;
-						}
-//						tim7_start(1);
-					}
-				}
-			}
-			clean_fl();
-		}
-		if (key_ind == key_encoder)
-		{
-			if (!enc_key_fl)
-			{
-				enc_key_fl = 1;
-				DisplayTask->StringOut(0, num_menu & 1,
-						(uint8_t*) system_list + num_menu * 11);
-			}
-			else
-			{
-				enc_key_fl = 0;
-				if (!num_menu || num_menu == 3)
-					DisplayTask->StringOut(11, num_menu & 1,
-							(uint8_t*) off_on + sys_param[num_menu] * 5);
-				else
-					DisplayTask->StringOut(11, num_menu & 1,
-							(uint8_t*) up_down + sys_param[num_menu] * 5);
-			}
-			clean_fl();
-//			tim7_start(0);
-		}
-		if (key_ind == key_esc)
-		{
-			enc_key_fl = 0;
-			write_sys();
-//			init_play_menu(1);
-//			parentMenu->returnFromChildMenu();
-			clean_fl();
-		}
-
-		break;
 //----------------------------------------------Delete file-----------------------------------
 	case delete_file:
 		if (key_ind == key_start)
@@ -831,23 +603,6 @@ void processGui(TTask* processingTask)
 	}
 }
 
-void write_sys(void)
-{
-	FIL fsys;
-	UINT br;
-	f_open(&fsys, "/system.ego", FA_WRITE);
-	f_write(&fsys, sys_param, 64, &br);
-	f_close(&fsys);
-}
-
-void read_sys(void)
-{
-	FIL fsys;
-	UINT br;
-	f_open(&fsys, "/system.ego", FA_OPEN_ALWAYS | FA_READ);
-	f_read(&fsys, sys_param, 64, &br);
-	f_close(&fsys);
-}
 void write_ctrl(void)
 {
 	FIL fsys;
