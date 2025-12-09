@@ -31,11 +31,6 @@ enum
 	key_encoder
 };
 
-enum
-{
-	ctrl1_t, ctrl1, ctrl2_t, ctrl2, ctrl3_t, ctrl3, jjj, chann
-};
-
 void processGui(TTask* processingTask);
 
 void write_sys(void);

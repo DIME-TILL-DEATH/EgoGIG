@@ -25,6 +25,10 @@ dac_sample_t dac_sample1;
 
 uint8_t sys_param[64];
 
+uint8_t ctrl_param[32];
+uint8_t pc_param[256];
+uint8_t midi_pc = 0;
+
 const size_t wav_buff_size = 4 * 1024;
 
 wav_sample_t sound_buff[wav_buff_size];

@@ -93,14 +93,14 @@ void ParamBase::printParam(uint8_t yDisplayPosition)
 {
 	if(m_disabled)
 	{
-//		DisplayTask->Clear_str(m_xDisplayPosition, yDisplayPosition, Font::fntSystem, 8);
+		DisplayTask->Clear_str(m_xDisplayPosition, yDisplayPosition, 3);
 		return;
 	}
 
 	switch(m_type)
 	{
 		case ParamBase::GUI_PARAMETER_NUM:
-//			DisplayTask->ParamIndicNum(m_xDisplayPosition, yDisplayPosition, *m_valuePtr + m_offset);
+			DisplayTask->NumOut(m_xDisplayPosition, yDisplayPosition, *m_valuePtr + m_offset);
 			break;
 		default: break;
 	}

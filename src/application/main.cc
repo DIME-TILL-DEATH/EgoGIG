@@ -33,7 +33,6 @@ int main(void)
 	{
 		init();
 		disp_init();
-//		lcd44780_ClearLCD();
 		CSTask = new TCSTask("CS", 20 * configMINIMAL_STACK_SIZE, 0);
 		ENCTask = new TENCTask("ENC", 2 * configMINIMAL_STACK_SIZE, 0);
 		DisplayTask = new TDisplayTask("DISPLAY", 20 * configMINIMAL_STACK_SIZE, 0);

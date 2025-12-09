@@ -43,6 +43,8 @@ public:
 		dcClear_str,
 		dcSymbolOut,
 		dcStringOut,
+		dcNumOut,
+		dcNoteOut,
 		dcCurPos,
 		dcLed_Write,
 		dcSec_Print,
@@ -74,15 +76,15 @@ public:
 	{
 		uint8_t x;
 		uint8_t y;
-		uint8_t symbol;
-	} TSymbolOutParams;
+		uint8_t value;
+	} TValueOutParams;
 	typedef struct
 	{
 		TCommand cmd;
 		union
 		{
 			TClear_strParams Clear_strParams;
-			TSymbolOutParams SymbolOutParams;
+			TValueOutParams ValueOutParams;
 			TStringOutParams StringOutParams;
 			TCurPos CurPos;
 			TSec_PrintParam Sec_PrintParam;
@@ -112,6 +114,8 @@ public:
 	void Clear_str(uint8_t x, uint8_t y, uint8_t count);
 	void SymbolOut(uint8_t x, uint8_t y, uint8_t symbol);
 	void StringOut(uint8_t x, uint8_t y, uint8_t *string);
+	void NumOut(uint8_t x, uint8_t y, uint8_t num);
+	void NoteOut(uint8_t x, uint8_t y, uint8_t note);
 	void CurPos(uint8_t x, uint8_t y);
 	void Sec_Print(uint32_t val);
 private:

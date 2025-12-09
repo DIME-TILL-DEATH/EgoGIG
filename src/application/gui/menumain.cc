@@ -16,10 +16,10 @@ MenuMain::MenuMain(AbstractMenu* parent)
 	const uint8_t paramNum = 4;
 	ParamBase* params[paramNum];
 
-	params[0] = new ParamSubmenu(ParamBase::GUI_PARAMETER_SUBMENU, "Select Playlist", &MenuMain::createSelectPlaylistMenu, nullptr);
-	params[1] = new ParamSubmenu(ParamBase::GUI_PARAMETER_SUBMENU, "Edit Playlist", &MenuMain::createEditPlaylistMenu, nullptr);
-	params[2] = new ParamSubmenu(ParamBase::GUI_PARAMETER_SUBMENU, "System", &MenuMain::createSystemMenu, nullptr);
-	params[3] = new ParamSubmenu(ParamBase::GUI_PARAMETER_SUBMENU, "MIDI Ctrl", &MenuMain::createMidiMenu, nullptr);
+	params[0] = new ParamSubmenu("Select Playlist", &MenuMain::createSelectPlaylistMenu, nullptr);
+	params[1] = new ParamSubmenu("Edit Playlist", &MenuMain::createEditPlaylistMenu, nullptr);
+	params[2] = new ParamSubmenu("System", &MenuMain::createSystemMenu, nullptr);
+	params[3] = new ParamSubmenu("MIDI Ctrl", &MenuMain::createMidiMenu, nullptr);
 
 	setParams(params, paramNum);
 }

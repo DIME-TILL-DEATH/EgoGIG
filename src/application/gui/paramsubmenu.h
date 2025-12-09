@@ -7,9 +7,8 @@
 class ParamSubmenu : public ParamBase
 {
 public:
-	ParamSubmenu(gui_param_type paramType, const char* name, AbstractMenu* menu, void* param = nullptr);
-	ParamSubmenu(gui_param_type paramType, const char* name,
-			AbstractMenu* (*submenuCreationFunction)(AbstractMenu* parent), void* param = nullptr);
+	ParamSubmenu(const char* name, AbstractMenu* menu, void* param = nullptr);
+	ParamSubmenu(const char* name, AbstractMenu* (*submenuCreationFunction)(AbstractMenu* parent), void* param = nullptr);
 
 	void printParam(uint8_t yDisplayPosition) override;
 	uint32_t value() const override {return 0;};

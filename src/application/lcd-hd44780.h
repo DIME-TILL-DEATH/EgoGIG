@@ -17,37 +17,23 @@
 #define lcd44780_E_0  gpio_clear(lcd44780_port, lcd44780_pin_E);
 //************************************************************************//
 
-
-// Symbols:
+// Custom symbols:
 #define SYMBOL_ARROW_UP 0
 #define SYMBOL_ARROW_DOWN 1
 
-//	задержка
-//	Input : p - величина задержки
-//void lcd44780_delay(uint32_t p);
 
-//	Очистка дисплея
 void lcd44780_ClearLCD(void);
-
-//	Установка курсора дисплея
-//	Input : x , y - координаты курсора
 void lcd44780_SetLCDPosition(uint8_t x, uint8_t y);
-
-//	Отправка символа
-//	Input : c - символ
 void lcd44780_ShowChar(uint8_t x, uint8_t y, uint8_t c);
-
-//	Отправка строки
-//	Input : *s - ссылка на строку (массив символов)
 void lcd44780_ShowStr(uint8_t x, uint8_t y, uint8_t *s);
+void lcd44780_Clear_str(uint8_t x, uint8_t y, uint8_t cont);
+void lcd44780_ShowNum(uint8_t x, uint8_t y, uint8_t num);
+void lcd44780_ShowNote(uint8_t x, uint8_t y, uint8_t note);
 
-//	инициализация выводов дисплея
 void lcd44780_init_pins(void);
-
-//	Инициализация дисплея
 void lcd44780_init(void);
 
-void lcd44780_Clear_str(uint8_t x, uint8_t y, uint8_t cont);
+
 
 void disp_init(void);
 

@@ -4,15 +4,14 @@
 #include "display.h"
 #include "system.h"
 
-ParamSubmenu::ParamSubmenu(gui_param_type paramType, const char* name, AbstractMenu* menu, void* param)
-				:ParamBase(paramType, name, param)
+ParamSubmenu::ParamSubmenu(const char* name, AbstractMenu* menu, void* param)
+				:ParamBase(ParamBase::GUI_PARAMETER_SUBMENU, name, param)
 {
 	m_menu = menu;
 }
 
-ParamSubmenu::ParamSubmenu(gui_param_type paramType, const char* name,
-		AbstractMenu* (*submenuCreationFunction)(AbstractMenu* parent), void* param)
-				:ParamBase(paramType, name, param)
+ParamSubmenu::ParamSubmenu(const char* name, AbstractMenu* (*submenuCreationFunction)(AbstractMenu* parent), void* param)
+				:ParamBase(ParamBase::GUI_PARAMETER_SUBMENU, name, param)
 {
 	m_submenuCreationFunction = submenuCreationFunction;
 }

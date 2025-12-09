@@ -70,7 +70,7 @@ protected:
 	bool m_disabled{false};
 	bool m_inverse{false};
 
-	uint8_t m_xDisplayPosition{58};
+	uint8_t m_xDisplayPosition{0};
 
 	uint8_t m_byteSize{1};
 	int32_t m_offset{0};

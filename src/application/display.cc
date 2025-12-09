@@ -29,8 +29,16 @@ void TDisplayTask::Code()
 			lcd44780_ClearLCD();
 			break;
 		case dcSymbolOut:
-			lcd44780_ShowChar(cmd.SymbolOutParams.x, cmd.SymbolOutParams.y,
-					cmd.SymbolOutParams.symbol);
+			lcd44780_ShowChar(cmd.ValueOutParams.x, cmd.ValueOutParams.y,
+					cmd.ValueOutParams.value);
+			break;
+		case dcNumOut:
+					lcd44780_ShowNum(cmd.ValueOutParams.x, cmd.ValueOutParams.y,
+							cmd.ValueOutParams.value);
+			break;
+		case dcNoteOut:
+					lcd44780_ShowNote(cmd.ValueOutParams.x, cmd.ValueOutParams.y,
+							cmd.ValueOutParams.value);
 			break;
 		case dcStringOut:
 			lcd44780_ShowStr(cmd.StringOutParams.x, cmd.StringOutParams.y,
@@ -59,15 +67,17 @@ void TDisplayTask::Clear()
 	cmd.cmd = dcClear;
 	Command(&cmd);
 }
+
 void TDisplayTask::SymbolOut(uint8_t x, uint8_t y, uint8_t symbol)
 {
 	TDisplayCmd cmd;
 	cmd.cmd = dcSymbolOut;
-	cmd.SymbolOutParams.x = x;
-	cmd.SymbolOutParams.y = y;
-	cmd.SymbolOutParams.symbol = symbol;
+	cmd.ValueOutParams.x = x;
+	cmd.ValueOutParams.y = y;
+	cmd.ValueOutParams.value = symbol;
 	Command(&cmd);
 }
+
 void TDisplayTask::StringOut(uint8_t x, uint8_t y, uint8_t *string)
 {
 	TDisplayCmd cmd;
@@ -78,6 +88,27 @@ void TDisplayTask::StringOut(uint8_t x, uint8_t y, uint8_t *string)
 			FILE_NAME_LENGTH);
 	Command(&cmd);
 }
+
+void TDisplayTask::NumOut(uint8_t x, uint8_t y, uint8_t num)
+{
+	TDisplayCmd cmd;
+	cmd.cmd = dcNumOut;
+	cmd.ValueOutParams.x = x;
+	cmd.ValueOutParams.y = y;
+	cmd.ValueOutParams.value = num;
+	Command(&cmd);
+}
+
+void TDisplayTask::NoteOut(uint8_t x, uint8_t y, uint8_t note)
+{
+	TDisplayCmd cmd;
+	cmd.cmd = dcNoteOut;
+	cmd.ValueOutParams.x = x;
+	cmd.ValueOutParams.y = y;
+	cmd.ValueOutParams.value = note;
+	Command(&cmd);
+}
+
 void TDisplayTask::Clear_str(uint8_t x, uint8_t y, uint8_t count)
 {
 	TDisplayCmd cmd;
@@ -87,6 +118,7 @@ void TDisplayTask::Clear_str(uint8_t x, uint8_t y, uint8_t count)
 	cmd.Clear_strParams.count = count;
 	Command(&cmd);
 }
+
 void TDisplayTask::CurPos(uint8_t x, uint8_t y)
 {
 	TDisplayCmd cmd;
@@ -95,6 +127,7 @@ void TDisplayTask::CurPos(uint8_t x, uint8_t y)
 	cmd.CurPos.y = y;
 	Command(&cmd);
 }
+
 void TDisplayTask::Sec_Print(uint32_t val)
 {
 	TDisplayCmd cmd;

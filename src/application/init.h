@@ -12,6 +12,14 @@ enum
 	loop_points
 };
 
+enum
+{
+	ctrl1_t = 0, ctrl1,
+	ctrl2_t, ctrl2,
+	ctrl3_t, ctrl3,
+	jjj, chann
+};
+
 extern const size_t wav_buff_size;
 extern uint16_t key_reg_out[];
 extern volatile uint8_t ret_dub_fl;

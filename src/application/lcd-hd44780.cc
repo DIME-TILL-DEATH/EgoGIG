@@ -204,7 +204,8 @@ void lcd44780_ShowChar(uint8_t x, uint8_t y, uint8_t c)
 		break;
 	}
 }
-void lcd44780_ShowChar1(uint8_t c)
+
+void lcd44780_ShowCharAtCursor(uint8_t c)
 {
 	lcd44780_RS_1;
 	lcd44780_WriteByte(c);
@@ -229,7 +230,7 @@ void lcd44780_ShowStr(uint8_t x, uint8_t y, uint8_t *s)
 	{
 		if (count == 16)
 			lcd44780_SetLCDPosition(0, 1);
-		lcd44780_ShowChar1(*s++);
+		lcd44780_ShowCharAtCursor(*s++);
 		count++;
 	}
 }
@@ -237,7 +238,55 @@ void lcd44780_Clear_str(uint8_t x, uint8_t y, uint8_t cont)
 {
 	lcd44780_SetLCDPosition(x, y);
 	for (uint8_t i = 0; i < cont; i++)
-		lcd44780_ShowChar1(32);
+		lcd44780_ShowCharAtCursor(32);
+}
+
+void lcd44780_ShowNum(uint8_t x, uint8_t y, uint8_t num)
+{
+	char str[4];
+	memset(str, 0, 4);
+
+	str[0] = num / 100 + '0';
+	str[1] = num % 100 / 10 + '0';
+	str[2] = num % 100 % 10 + '0';
+
+
+	if(str[0] == '0')
+	{
+		str[0] = str[1];
+		str[1] = str[2];
+		str[2] = ' ';
+	}
+
+	if(str[0] == '0')
+	{
+		str[0] = str[1];
+		str[1] = str[2];
+	}
+
+	lcd44780_ShowStr(x, y, (uint8_t*)str);
+}
+
+void lcd44780_ShowNote(uint8_t x, uint8_t y, uint8_t note)
+{
+	char str[32];
+	memset(str, 0, 32);
+
+	const char* note_list[12] =
+	{ "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" };
+
+	const char* noteChar = note_list[note % 12];
+	int8_t noteNum = note / 12 - 1;
+
+	lcd44780_ShowStr(x, y, (uint8_t*)noteChar);
+
+	if(note < 12)
+		lcd44780_ShowStr(x+strlen(noteChar), y, (uint8_t*) "-1");
+	else
+	{
+		lcd44780_Clear_str(x+strlen(noteChar), y, 3);
+		lcd44780_ShowNum(x+strlen(noteChar), y, noteNum);
+	}
 }
 
 //	Инициализация дисплея

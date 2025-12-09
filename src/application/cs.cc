@@ -9,6 +9,7 @@
 
 #include "menuplayer.h"
 #include "menusystem.h"
+#include "menumidicontrol.h"
 
 #include "libopencm3/stm32/timer.h"
 #include "libopencm3/stm32/gpio.h"
@@ -54,8 +55,9 @@ void TCSTask::Code()
 	load_led(num_prog);
 
 	MenuSystem::read_sys();
-	read_ctrl();
+	MenuMidiControl::read_ctrl();
 	read_map();
+
 	blink_en = 1;
 
 	currentMenu = new MenuPlayer;

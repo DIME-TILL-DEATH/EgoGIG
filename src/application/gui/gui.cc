@@ -23,13 +23,6 @@
 #include "libopencm3/stm32/usart.h"
 
 
-uint8_t contrl_list[][12] =
-{ "Play ", "Pause", "Stop ", "Channel", "MIDI PC Set" };
-uint8_t note_list[][3] =
-{ "C ", "C#", "D ", "D#", "E ", "F ", "F#", "G ", "G#", "A ", "A#", "B " };
-uint8_t pc_list[][5] =
-{ "PC  ", "CC  ", "Note" };
-
 uint8_t num_menu = 0;
 uint8_t num_prog = 0;
 uint8_t num_prog_edit = 0;
@@ -42,107 +35,13 @@ uint8_t blink_en = 0;
 uint8_t num_tr_fl = 0;
 uint8_t enc_key_fl = 0;
 
-uint8_t ctrl_param[32];
-uint8_t pc_param[256];
 
 uint8_t edit_fl;
-uint8_t midi_pc = 0;
 
 volatile uint32_t audio_pos;
 
 uint8_t line_buf[5] =
 { 0, 0, 0, 0 };
-
-
-inline void check_busy(uint8_t type, uint8_t val, uint8_t num, uint8_t id_comm)
-{
-	DisplayTask->StringOut(11, 1, (uint8_t*) "    ");
-	if (!id_comm)
-	{
-		for (uint8_t i = 0; i < 3; i++)
-		{
-			if (val == ctrl_param[i * 2 + 1] && num != i)
-			{
-				for (uint8_t j = 0; j < 3; j++)
-				{
-					if (type == ctrl_param[j * 2])
-						DisplayTask->StringOut(11, 1, (uint8_t*) "Busy");
-				}
-			}
-		}
-		for (uint8_t j = 0; j < 99; j++)
-		{
-			if (val == pc_param[j * 2 + 1] && num != j)
-			{
-				if (type == pc_param[j * 2])
-					DisplayTask->StringOut(11, 1, (uint8_t*) "Busy");
-			}
-		}
-	}
-}
-inline void string_lin(uint8_t col, uint8_t page, uint8_t val)
-{
-	DisplayTask->StringOut(5, 1, (uint8_t*) "    ");
-	line_buf[0] = val / 100 + 48;
-	if (line_buf[0] == 48)
-		line_buf[0] = 32;
-	line_buf[1] = val % 100 / 10 + 48;
-	if (line_buf[1] == 48 && line_buf[0] == 32)
-		line_buf[1] = 32;
-	line_buf[2] = val % 100 % 10 + 48;
-	line_buf[3] = 0;
-	DisplayTask->StringOut(col, page, (uint8_t*) line_buf);
-}
-inline void midi_note_print(uint8_t val)
-{
-	DisplayTask->StringOut(5, 1, (uint8_t*) "    ");
-	DisplayTask->StringOut(5, 1, (uint8_t*) note_list + (val % 12) * 3);
-	if (val < 12)
-		DisplayTask->StringOut(7, 1, (uint8_t*) "-1");
-	else
-	{
-		line_buf[0] = val / 12 - 1 + 48;
-		line_buf[1] = 32;
-		line_buf[2] = 0;
-		DisplayTask->StringOut(7, 1, (uint8_t*) line_buf);
-	}
-}
-inline void midi_type_print(uint8_t type)
-{
-	switch (type)
-	{
-	case 0:
-		DisplayTask->StringOut(0, 1, (uint8_t*) "CC  ");
-		break;
-	case 1:
-		DisplayTask->StringOut(0, 1, (uint8_t*) "Note");
-		break;
-
-	}
-}
-inline void ev_midi_print(uint8_t type, uint8_t val)
-{
-	switch (type)
-	{
-	case 0:
-		midi_type_print(type);
-		string_lin(5, 1, val + 1);
-		DisplayTask->StringOut(5, 1, (uint8_t*) line_buf);
-		break;
-	case 1:
-		midi_type_print(type);
-		midi_note_print(val);
-		break;
-	}
-}
-
-void clean_fl(void)
-{
-	encoder_state1 = encoder_key = key_ind = stp_dub_fl = ret_dub_fl =
-			fwd_dub_fl = esc_dub_fl = enc_dub_fl = 0;
-}
-
-
 
 
 void processGui(TTask* processingTask)
@@ -184,371 +83,136 @@ void processGui(TTask* processingTask)
 			}
 		}
 
-		clean_fl();
+		encoder_state1 = encoder_key = key_ind = stp_dub_fl = ret_dub_fl = fwd_dub_fl = esc_dub_fl = enc_dub_fl = 0;
 	}
 	return;
 
 
 	switch (condish)
 	{
-//------------------------------------Menu------------------------------------------------
-	case menu:
-
-		if (key_ind == key_encoder)
-		{
-			switch (num_menu)
-			{
-
-			case 3:
-				if (stop_fl1)
-				{
-					condish = midi_ctrl_menu;
-					DisplayTask->Clear();
-					num_menu = 0;
-					edit_fl = 0;
-					DisplayTask->StringOut(0, 0, (uint8_t*) contrl_list);
-					ev_midi_print(ctrl_param[ctrl1_t], ctrl_param[ctrl1]);
-				}
-				break;
-			}
-		}
-		break;
-//-----------------------------------Set Control MIDI-------------------------------------
-	case midi_ctrl_menu:
-		if (tim5_fl)
-		{
-			if (!edit_fl)
-				DisplayTask->Clear_str(0, 0, 15);
-			else
-			{
-				DisplayTask->StringOut(0, 0,
-						(uint8_t*) contrl_list + num_menu * 12);
-				if (edit_fl == 1)
-					DisplayTask->StringOut(0, 1, (uint8_t*) "    ");
-				else
-				{
-					if (edit_fl == 2)
-						DisplayTask->StringOut(5, 1, (uint8_t*) "    ");
-				}
-			}
-			if (num_menu == 3)
-				DisplayTask->StringOut(0, 1, (uint8_t*) "Num ");
-		}
-		else
-		{
-			if (!edit_fl)
-				DisplayTask->StringOut(0, 0,
-						(uint8_t*) contrl_list + num_menu * 12);
-			else
-			{
-				if (edit_fl == 1)
-					midi_type_print(ctrl_param[num_menu * 2]);
-				else
-				{
-					if (edit_fl == 2)
-					{
-						if (ctrl_param[num_menu * 2])
-							midi_note_print(ctrl_param[num_menu * 2 + 1]);
-						else
-							string_lin(5, 1,
-									ctrl_param[num_menu * 2 + 1] + 1);
-					}
-				}
-			}
-			if (num_menu == 3)
-			{
-				DisplayTask->StringOut(0, 1, (uint8_t*) "Num ");
-				string_lin(5, 1, ctrl_param[num_menu * 2 + 1] + 1);
-			}
-		}
-		if (encoder_state1)
-		{
-			if (encoder_state == 1)
-			{
-				if (!edit_fl)
-				{
-					if (num_menu)
-					{
-						DisplayTask->StringOut(0, 0,
-								(uint8_t*) contrl_list + --num_menu * 12);
-						if (num_menu < 3)
-							(ctrl_param[num_menu * 2], ctrl_param[num_menu
-									* 2 + 1]);
-						else
-						{
-							DisplayTask->StringOut(0, 1, (uint8_t*) "Num ");
-							string_lin(5, 1,
-									ctrl_param[num_menu * 2 + 1] + 1);
-						}
-						DisplayTask->StringOut(11, 1, (uint8_t*) "    ");
-					}
-				}
-				if (edit_fl == 1)
-				{
-					uint8_t temp = ctrl_param[num_menu * 2];
-					if (temp)
-					{
-						temp--;
-						ev_midi_print(temp, ctrl_param[num_menu * 2 + 1]);
-						check_busy(temp, ctrl_param[num_menu * 2 + 1],
-								num_menu + 1, 0);
-						ctrl_param[num_menu * 2] = temp;
-					}
-				}
-				if (edit_fl == 2)
-				{
-					uint8_t temp = ctrl_param[num_menu * 2 + 1];
-					if (temp)
-					{
-						if (num_menu != 3)
-						{
-							temp = enc_speed_dec(temp, 0);
-							ev_midi_print(ctrl_param[num_menu * 2], temp);
-							ctrl_param[num_menu * 2 + 1] = temp;
-							check_busy(ctrl_param[num_menu * 2], temp,
-									num_menu + 1, 0);
-						}
-						else
-						{
-							ctrl_param[num_menu * 2 + 1]--;
-							DisplayTask->StringOut(0, 1, (uint8_t*) "Num ");
-							string_lin(5, 1,
-									ctrl_param[num_menu * 2 + 1] + 1);
-						}
-					}
-				}
-			}
-			else
-			{
-				if (!edit_fl)
-				{
-					if (num_menu < 4)
-					{
-						DisplayTask->StringOut(0, 0,
-								(uint8_t*) contrl_list + ++num_menu * 12);
-						if (num_menu < 3)
-							ev_midi_print(ctrl_param[num_menu * 2],
-									ctrl_param[num_menu * 2 + 1]);
-						else
-						{
-							if (num_menu < 4)
-							{
-								DisplayTask->StringOut(0, 1,
-										(uint8_t*) "Num ");
-								string_lin(5, 1,
-										ctrl_param[num_menu * 2 + 1] + 1);
-							}
-							else
-								DisplayTask->StringOut(8, 1,
-										(uint8_t*) "       ");
-						}
-						DisplayTask->StringOut(11, 1, (uint8_t*) "    ");
-					}
-				}
-				if (edit_fl == 1)
-				{
-					uint8_t temp = ctrl_param[num_menu * 2];
-					if (!temp)
-					{
-						temp++;
-						ev_midi_print(temp, ctrl_param[num_menu * 2 + 1]);
-						check_busy(temp, ctrl_param[num_menu * 2 + 1],
-								num_menu + 1, 0);
-						ctrl_param[num_menu * 2] = temp;
-					}
-				}
-				if (edit_fl == 2)
-				{
-					uint8_t temp = ctrl_param[num_menu * 2 + 1];
-					if (temp < 127)
-					{
-						if (num_menu < 3)
-						{
-							temp = enc_speed_inc(temp, 127);
-							ev_midi_print(ctrl_param[num_menu * 2], temp);
-							ctrl_param[num_menu * 2 + 1] = temp;
-							check_busy(ctrl_param[num_menu * 2], temp,
-									num_menu + 1, 0);
-						}
-						else
-						{
-							if (ctrl_param[num_menu * 2 + 1] < 15)
-								ctrl_param[num_menu * 2 + 1]++;
-							DisplayTask->StringOut(0, 1, (uint8_t*) "Num ");
-							string_lin(5, 1,
-									ctrl_param[num_menu * 2 + 1] + 1);
-						}
-					}
-				}
-			}
-//			tim7_start(1);
-		}
-		if (key_ind == key_encoder)
-		{
-			edit_fl++;
-			edit_fl %= 3;
-			if (edit_fl == 1)
-				if (num_menu == 3)
-					edit_fl++;
-			ev_midi_print(ctrl_param[num_menu * 2],
-					ctrl_param[num_menu * 2 + 1]);
-			if (num_menu == 3)
-			{
-				DisplayTask->StringOut(0, 1, (uint8_t*) "Num ");
-				string_lin(5, 1, ctrl_param[num_menu * 2 + 1] + 1);
-			}
-			if (num_menu == 4)
-			{
-				DisplayTask->Clear();
-				DisplayTask->StringOut(8, 1, (uint8_t*) "       ");
-				edit_fl = num_menu = midi_pc = 0;
-				string_lin(7, 0, midi_pc + 1);
-				DisplayTask->StringOut(0, 0, (uint8_t*) "Song #");
-				DisplayTask->StringOut(0, 1,
-						(uint8_t*) pc_list + pc_param[midi_pc * 2] * 5);
-				string_lin(5, 1, pc_param[midi_pc * 2 + 1] + 1);
-				condish = midi_pc_menu;
-			}
-			if (!edit_fl)
-				DisplayTask->StringOut(11, 1, (uint8_t*) "    ");
-//			tim7_start(0);
-		}
-		if (key_ind == key_esc)
-		{
-			write_ctrl();
-			condish = menu;
-			DisplayTask->Clear();
-			DisplayTask->SymbolOut(15, 0, 60);
-			num_menu = 3;
-			edit_fl = 0;
-//			DisplayTask->StringOut(0, 0, (uint8_t*) menu_list + 2 * 16);
-//			tim7_start(1);
-		}
-		clean_fl();
-		break;
 //------------------------------------midi prog ch set------------------------------------
-	case midi_pc_menu:
-		if (tim5_fl)
-		{
-			if (!edit_fl)
-				DisplayTask->StringOut(7, 0, (uint8_t*) "   ");
-			else
-			{
-				if (edit_fl == 1)
-					DisplayTask->StringOut(0, 1, (uint8_t*) "    ");
-				else
-				{
-					if (edit_fl == 2)
-						DisplayTask->StringOut(5, 1, (uint8_t*) "      ");
-					else
-					{
-						if (pc_param[midi_pc * 2] != 2)
-							string_lin(5, 1, pc_param[midi_pc * 2 + 1] + 1);
-						else
-							midi_note_print(pc_param[midi_pc * 2 + 1]);
-					}
-				}
-			}
-		}
-		else
-		{
-			if (!edit_fl)
-				string_lin(7, 0, midi_pc + 1);
-			else
-			{
-				if (edit_fl == 1)
-					DisplayTask->StringOut(0, 1,
-							(uint8_t*) pc_list + pc_param[midi_pc * 2] * 5);
-			}
-			if (pc_param[midi_pc * 2] != 2)
-				string_lin(5, 1, pc_param[midi_pc * 2 + 1] + 1);
-			else
-				midi_note_print(pc_param[midi_pc * 2 + 1]);
-		}
-		if (encoder_state1)
-		{
-			if (encoder_state == 1)
-			{
-				if (!edit_fl)
-				{
-					if (midi_pc)
-						midi_pc = enc_speed_dec(midi_pc, 0);
-					DisplayTask->StringOut(0, 1,
-							(uint8_t*) pc_list + pc_param[midi_pc * 2] * 5);
-					if (pc_param[midi_pc * 2] != 2)
-						string_lin(5, 1, pc_param[midi_pc * 2 + 1] + 1);
-					else
-						midi_note_print(pc_param[midi_pc * 2 + 1]);
-				}
-				if (edit_fl == 1)
-				{
-					if (pc_param[midi_pc * 2])
-						pc_param[midi_pc * 2]--;
-				}
-				if (edit_fl == 2)
-				{
-					uint8_t temp = pc_param[midi_pc * 2 + 1];
-					if (temp)
-					{
-						temp = enc_speed_dec(temp, 0);
-						check_busy(pc_param[midi_pc * 2], temp, midi_pc, 1);
-						pc_param[midi_pc * 2 + 1] = temp;
-					}
-				}
-			}
-			else
-			{
-				if (!edit_fl)
-				{
-					if (midi_pc < 98)
-						midi_pc = enc_speed_inc(midi_pc, 98);
-					DisplayTask->StringOut(0, 1,
-							(uint8_t*) pc_list + pc_param[midi_pc * 2] * 5);
-					if (pc_param[midi_pc * 2] != 2)
-						string_lin(5, 1, pc_param[midi_pc * 2 + 1] + 1);
-					else
-						midi_note_print(pc_param[midi_pc * 2 + 1]);
-				}
-				if (edit_fl == 1)
-				{
-					if (pc_param[midi_pc * 2] < 2)
-						pc_param[midi_pc * 2]++;
-				}
-				if (edit_fl == 2)
-				{
-					uint8_t temp = pc_param[midi_pc * 2 + 1];
-					if (temp < 127)
-					{
-						temp = enc_speed_inc(temp, 127);
-						check_busy(pc_param[midi_pc * 2], temp, midi_pc, 1);
-						pc_param[midi_pc * 2 + 1] = temp;
-					}
-				}
-			}
-//			tim7_start(1);
-		}
-		if (key_ind == key_encoder)
-		{
-			edit_fl++;
-			edit_fl %= 3;
-			if (edit_fl == 1)
-				string_lin(7, 0, midi_pc + 1);
-			if (edit_fl == 2)
-				DisplayTask->StringOut(0, 1,
-						(uint8_t*) pc_list + pc_param[midi_pc * 2] * 5);
-		}
-		if (key_ind == key_esc)
-		{
-			DisplayTask->Clear();
-			write_map();
-			num_menu = 4;
-			edit_fl = 0;
-			condish = midi_ctrl_menu;
-			DisplayTask->StringOut(0, 0, (uint8_t*) contrl_list + 4 * 16);
-//			tim7_start(0);
-		}
-		clean_fl();
-		break;
+//	case midi_pc_menu:
+//		if (tim5_fl)
+//		{
+//			if (!edit_fl)
+//				DisplayTask->StringOut(7, 0, (uint8_t*) "   ");
+//			else
+//			{
+//				if (edit_fl == 1)
+//					DisplayTask->StringOut(0, 1, (uint8_t*) "    ");
+//				else
+//				{
+//					if (edit_fl == 2)
+//						DisplayTask->StringOut(5, 1, (uint8_t*) "      ");
+//					else
+//					{
+//						if (pc_param[midi_pc * 2] != 2)
+//							string_lin(5, 1, pc_param[midi_pc * 2 + 1] + 1);
+//						else
+//							midi_note_print(pc_param[midi_pc * 2 + 1]);
+//					}
+//				}
+//			}
+//		}
+//		else
+//		{
+//			if (!edit_fl)
+//				string_lin(7, 0, midi_pc + 1);
+//			else
+//			{
+//				if (edit_fl == 1)
+//					DisplayTask->StringOut(0, 1,
+//							(uint8_t*) pc_list + pc_param[midi_pc * 2] * 5);
+//			}
+//			if (pc_param[midi_pc * 2] != 2)
+//				string_lin(5, 1, pc_param[midi_pc * 2 + 1] + 1);
+//			else
+//				midi_note_print(pc_param[midi_pc * 2 + 1]);
+//		}
+//		if (encoder_state1)
+//		{
+//			if (encoder_state == 1)
+//			{
+//				if (!edit_fl)
+//				{
+//					if (midi_pc)
+//						midi_pc = enc_speed_dec(midi_pc, 0);
+//					DisplayTask->StringOut(0, 1,
+//							(uint8_t*) pc_list + pc_param[midi_pc * 2] * 5);
+//					if (pc_param[midi_pc * 2] != 2)
+//						string_lin(5, 1, pc_param[midi_pc * 2 + 1] + 1);
+//					else
+//						midi_note_print(pc_param[midi_pc * 2 + 1]);
+//				}
+//				if (edit_fl == 1)
+//				{
+//					if (pc_param[midi_pc * 2])
+//						pc_param[midi_pc * 2]--;
+//				}
+//				if (edit_fl == 2)
+//				{
+//					uint8_t temp = pc_param[midi_pc * 2 + 1];
+//					if (temp)
+//					{
+//						temp = enc_speed_dec(temp, 0);
+//						check_busy(pc_param[midi_pc * 2], temp, midi_pc, 1);
+//						pc_param[midi_pc * 2 + 1] = temp;
+//					}
+//				}
+//			}
+//			else
+//			{
+//				if (!edit_fl)
+//				{
+//					if (midi_pc < 98)
+//						midi_pc = enc_speed_inc(midi_pc, 98);
+//					DisplayTask->StringOut(0, 1,
+//							(uint8_t*) pc_list + pc_param[midi_pc * 2] * 5);
+//					if (pc_param[midi_pc * 2] != 2)
+//						string_lin(5, 1, pc_param[midi_pc * 2 + 1] + 1);
+//					else
+//						midi_note_print(pc_param[midi_pc * 2 + 1]);
+//				}
+//				if (edit_fl == 1)
+//				{
+//					if (pc_param[midi_pc * 2] < 2)
+//						pc_param[midi_pc * 2]++;
+//				}
+//				if (edit_fl == 2)
+//				{
+//					uint8_t temp = pc_param[midi_pc * 2 + 1];
+//					if (temp < 127)
+//					{
+//						temp = enc_speed_inc(temp, 127);
+//						check_busy(pc_param[midi_pc * 2], temp, midi_pc, 1);
+//						pc_param[midi_pc * 2 + 1] = temp;
+//					}
+//				}
+//			}
+////			tim7_start(1);
+//		}
+//		if (key_ind == key_encoder)
+//		{
+//			edit_fl++;
+//			edit_fl %= 3;
+//			if (edit_fl == 1)
+//				string_lin(7, 0, midi_pc + 1);
+//			if (edit_fl == 2)
+//				DisplayTask->StringOut(0, 1,
+//						(uint8_t*) pc_list + pc_param[midi_pc * 2] * 5);
+//		}
+//		if (key_ind == key_esc)
+//		{
+//			DisplayTask->Clear();
+//			write_map();
+//			num_menu = 4;
+//			edit_fl = 0;
+//			condish = midi_ctrl_menu;
+//			DisplayTask->StringOut(0, 0, (uint8_t*) contrl_list + 4 * 16);
+////			tim7_start(0);
+//		}
+//		clean_fl();
+//		break;
 //----------------------------------------------Delete file-----------------------------------
 	case delete_file:
 		if (key_ind == key_start)
@@ -603,23 +267,6 @@ void processGui(TTask* processingTask)
 	}
 }
 
-void write_ctrl(void)
-{
-	FIL fsys;
-	UINT br;
-	f_open(&fsys, "/ctrl.ego", FA_WRITE);
-	f_write(&fsys, ctrl_param, 32, &br);
-	f_close(&fsys);
-}
-
-void read_ctrl(void)
-{
-	FIL fsys;
-	UINT br;
-	f_open(&fsys, "/ctrl.ego", FA_OPEN_ALWAYS | FA_READ);
-	f_read(&fsys, ctrl_param, 32, &br);
-	f_close(&fsys);
-}
 void write_map(void)
 {
 	FIL fsys;

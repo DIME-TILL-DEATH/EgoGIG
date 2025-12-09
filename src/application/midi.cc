@@ -6,6 +6,8 @@
 
 #include "gui.h"
 
+#include "menumidicontrol.h"
+
 TMIDITask *MIDITask;
 
 uint8_t us_buf;
@@ -64,8 +66,8 @@ extern "C" void USART1_IRQHandler()
 		if (us_buf == (0xc0 | ctrl_param[chann]))
 			midi_buf = 0xc0;
 		break;
-	case 0xb0:
-		if (!ctrl_param[ctrl1_t] && ctrl_param[ctrl1] == us_buf)
+	case 0xb0: //CC
+		if (ctrl_param[ctrl1_t] == MenuMidiControl::MIDI_IN_CC  && ctrl_param[ctrl1] == us_buf)
 		{
 			play_fl = 1;
 			pause_fl = 0;
@@ -73,16 +75,17 @@ extern "C" void USART1_IRQHandler()
 			key_reg_out[0] |= 2;
 			key_reg_out[0] &= ~0x80;
 		}
-		if (!ctrl_param[ctrl2_t] && ctrl_param[ctrl2] == us_buf)
+		if (ctrl_param[ctrl2_t] == MenuMidiControl::MIDI_IN_CC && ctrl_param[ctrl2] == us_buf)
 		{
 			pause_fl = 1;
 			play_fl = 0;
 		}
-		if (!ctrl_param[ctrl3_t] && ctrl_param[ctrl3] == us_buf)
+		if (ctrl_param[ctrl3_t] == MenuMidiControl::MIDI_IN_CC && ctrl_param[ctrl3] == us_buf)
 		{
 			key_ind = key_stop;
 			CSTask->Give();
 		}
+
 		if (stop_fl1)
 		{
 			for (uint8_t i = 0; i < 99; i++)
@@ -98,8 +101,8 @@ extern "C" void USART1_IRQHandler()
 		}
 		midi_buf = 4;
 		break;
-	case 0x90:
-		if (ctrl_param[ctrl1_t] && ctrl_param[ctrl1] == us_buf)
+	case 0x90: // Note
+		if (ctrl_param[ctrl1_t] == MenuMidiControl::MIDI_IN_NOTE && ctrl_param[ctrl1] == us_buf)
 		{
 			play_fl = 1;
 			pause_fl = 0;
@@ -107,12 +110,12 @@ extern "C" void USART1_IRQHandler()
 			key_reg_out[0] |= 2;
 			key_reg_out[0] &= ~0x80;
 		}
-		if (ctrl_param[ctrl2_t] && ctrl_param[ctrl2] == us_buf)
+		if (ctrl_param[ctrl2_t] == MenuMidiControl::MIDI_IN_NOTE && ctrl_param[ctrl2] == us_buf)
 		{
 			pause_fl = 1;
 			play_fl = 0;
 		}
-		if (ctrl_param[ctrl3_t] && ctrl_param[ctrl3] == us_buf)
+		if (ctrl_param[ctrl3_t] == MenuMidiControl::MIDI_IN_NOTE && ctrl_param[ctrl3] == us_buf)
 		{
 			key_ind = key_stop;
 			CSTask->Give();
@@ -132,7 +135,26 @@ extern "C" void USART1_IRQHandler()
 		}
 		midi_buf = 4;
 		break;
-	case 0xc0:
+	case 0xc0: // PC
+		if (ctrl_param[ctrl1_t] == MenuMidiControl::MIDI_IN_PC  && ctrl_param[ctrl1] == us_buf)
+		{
+			play_fl = 1;
+			pause_fl = 0;
+			play_fl2 = 1;
+			key_reg_out[0] |= 2;
+			key_reg_out[0] &= ~0x80;
+		}
+		if (ctrl_param[ctrl2_t] == MenuMidiControl::MIDI_IN_PC && ctrl_param[ctrl2] == us_buf)
+		{
+			pause_fl = 1;
+			play_fl = 0;
+		}
+		if (ctrl_param[ctrl3_t] == MenuMidiControl::MIDI_IN_PC && ctrl_param[ctrl3] == us_buf)
+		{
+			key_ind = key_stop;
+			CSTask->Give();
+		}
+
 		if (stop_fl1)
 		{
 			for (uint8_t i = 0; i < 99; i++)
