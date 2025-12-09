@@ -403,13 +403,13 @@ extern "C" void DMA1_Stream4_IRQHandler()
 					if(currentMenu->menuType() == MENU_PLAYER)
 					{
 						MenuPlayer* menuPlayer = static_cast<MenuPlayer*>(currentMenu);
-						menuPlayer->requestPlayNext(); // condish = play_next_fil;
+						menuPlayer->requestPlayNext();
 					}
 				}
 			}
 			else
 			{
-				if (!sys_param[0])
+				if (!sys_param[auto_next_track])
 					key_ind = key_stop;
 				else
 					key_ind = key_right_down;
@@ -432,7 +432,7 @@ extern "C" void DMA1_Stream4_IRQHandler()
 
 			if (!condish)
 			{
-				if (sys_param[1])
+				if (sys_param[direction_counter])
 					DisplayTask->Sec_Print(count_down);
 				else
 					DisplayTask->Sec_Print(count_up);
@@ -536,6 +536,7 @@ extern "C" void DMA2_Stream0_IRQHandler()
 	gpio_clear(GPIOC, GPIO15);
 	TIM4_CR1 |= TIM_CR1_CEN;
 }
+
 extern "C" void TIM4_IRQHandler()
 {
 	timer_clear_flag(TIM4, TIM_SR_UIF);

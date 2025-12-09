@@ -27,9 +27,11 @@ void TCSTask::Code()
 	DisplayTask->Clear();
 	DisplayTask->StringOut(2, 0, (uint8_t*) "AMT EGO_GIG");
 	DisplayTask->StringOut(1, 1, (uint8_t*) "SD Multiplayer");
+
 	Delay(1500);
 	DisplayTask->Clear();
 	DisplayTask->StringOut(3, 0, (uint8_t*) FIRMWARE_VER);
+
 	Delay(500);
 	if (GPIOB_IDR &GPIO8)
 	{
@@ -39,16 +41,14 @@ void TCSTask::Code()
 
 		Suspend();
 	}
+
 	extern volatile uint8_t FsStream_enable_fl;
 	FsStream_enable_fl = 1;
 	FsStreamTask->Resume();
-	while (FsStream_enable_fl)
-		;
+	while (FsStream_enable_fl);
 
 	DisplayTask->Clear();
 	key_reg_out[0] |= 0x90;
-
-
 
 	load_led(num_prog);
 
@@ -57,7 +57,6 @@ void TCSTask::Code()
 	read_map();
 	blink_en = 1;
 
-//	test_file(); // in menuPlayer constructor
 	currentMenu = new MenuPlayer;
 
 	while (1)

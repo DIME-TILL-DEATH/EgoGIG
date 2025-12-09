@@ -68,6 +68,7 @@ protected:
 	static uint8_t subMenusToRoot;
 
 	static uint8_t runningNameLength;
+	static uint8_t runningPauseCounter;
 	static int8_t runningNamePos;
 
 	void taskDelay(uint32_t ticks);

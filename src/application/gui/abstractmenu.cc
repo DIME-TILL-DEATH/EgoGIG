@@ -9,6 +9,7 @@ AbstractMenu* currentMenu;
 uint8_t AbstractMenu::subMenusToRoot = 1;
 uint8_t AbstractMenu::runningNameLength = 15;
 int8_t AbstractMenu::runningNamePos = 0;
+uint8_t AbstractMenu::runningPauseCounter = 0;
 
 gui_menu_type AbstractMenu::menuType()
 {
@@ -80,6 +81,32 @@ void AbstractMenu::printRunningName(emb_string name, uint8_t xPos, StingSize str
 
 	DisplayTask->StringOut(xPos, 0, printString);
 
-	if((runningNameLength - (stringSize - xPos) - runningNamePos) <= 0) runningNamePos = 0;
-	else runningNamePos++;
+	if((runningNameLength - (stringSize - xPos) - runningNamePos) <= 0)
+	{
+		if(runningPauseCounter < 4)
+		{
+			runningPauseCounter++;
+		}
+		else
+		{
+			runningPauseCounter = 0;
+			runningNamePos = 0;
+		}
+	}
+	else if(runningNamePos == 0)
+	{
+		if(runningPauseCounter < 4)
+		{
+			runningPauseCounter++;
+		}
+		else
+		{
+			runningPauseCounter = 0;
+			runningNamePos++;
+		}
+	}
+	else
+	{
+		runningNamePos++;
+	}
 }
