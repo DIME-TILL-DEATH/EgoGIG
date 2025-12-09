@@ -436,7 +436,7 @@ extern "C" void DMA1_Stream4_IRQHandler()
 			count_up++;
 			count_down--;
 
-			if (!condish)
+			if (currentMenu->menuType() == MENU_PLAYER)
 			{
 				if (sys_param[direction_counter])
 					DisplayTask->Sec_Print(count_down);

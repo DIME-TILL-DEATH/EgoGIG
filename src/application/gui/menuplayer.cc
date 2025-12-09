@@ -51,7 +51,7 @@ void MenuPlayer::show(TShowMode showMode)
 	load_led(num_prog);
 	num_tr_fl = 0;
 	act_fl = 0;
-	clean_fl();
+
 	key_reg_out[0] |= 0x10;
 	key_reg_out[0] &= ~0x8;
 	if (play_point1_fl)

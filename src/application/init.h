@@ -91,8 +91,6 @@ void init(void);
 void i2s_dma_interrupt_enable();
 void i2s_dma_interrupt_disable();
 void tim_start(uint16_t del);
-void clean_fl(void);
-//uint8_t load_prog(void);
 
 inline uint8_t drebezg(uint32_t line)
 {

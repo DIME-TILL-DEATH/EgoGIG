@@ -214,54 +214,54 @@ void processGui(TTask* processingTask)
 //		clean_fl();
 //		break;
 //----------------------------------------------Delete file-----------------------------------
-	case delete_file:
-		if (key_ind == key_start)
-		{
-			clean_fl();
-			DisplayTask->Clear();
-			DisplayTask->StringOut(5, 0, (uint8_t*) "SURE?");
-			while (1)
-			{
-				if (key_ind == key_start)
-				{
-					FsStreamTask->delete_track(num_prog_edit);
-					DisplayTask->StringOut(2, 0, (uint8_t*) "Song deleted");
-					processingTask->Delay(1000);
-					break;
-				}
-				if (key_ind == key_stop)
-					break;
-			}
-			DisplayTask->Clear();
-			DisplayTask->StringOut(0, 0, (uint8_t*) "1:");
-			emb_string tmp;
-			if (!FsStreamTask->open_song_name(num_prog_edit, tmp, 0, 0))
-			{
-				oem2winstar(tmp);
-				DisplayTask->StringOut(2, 0, (uint8_t*) tmp.c_str());
-			}
-			else
-				DisplayTask->StringOut(2, 0, (uint8_t*) "  No wav file");
-			num_tr_fl = 0;
-			condish = edit_playlist;
-		}
-		if (key_ind == key_stop)
-		{
-			DisplayTask->Clear();
-			DisplayTask->StringOut(0, 0, (uint8_t*) "1:");
-			clean_fl();
-			emb_string tmp;
-			if (!FsStreamTask->open_song_name(num_prog_edit, tmp, 0, 0))
-			{
-				oem2winstar(tmp);
-				DisplayTask->StringOut(2, 0, (uint8_t*) tmp.c_str());
-			}
-			else
-				DisplayTask->StringOut(2, 0, (uint8_t*) "  No wav file");
-			num_tr_fl = 0;
-			condish = edit_playlist;
-		}
-		break;
+//	case delete_file:
+//		if (key_ind == key_start)
+//		{
+//			clean_fl();
+//			DisplayTask->Clear();
+//			DisplayTask->StringOut(5, 0, (uint8_t*) "SURE?");
+//			while (1)
+//			{
+//				if (key_ind == key_start)
+//				{
+//					FsStreamTask->delete_track(num_prog_edit);
+//					DisplayTask->StringOut(2, 0, (uint8_t*) "Song deleted");
+//					processingTask->Delay(1000);
+//					break;
+//				}
+//				if (key_ind == key_stop)
+//					break;
+//			}
+//			DisplayTask->Clear();
+//			DisplayTask->StringOut(0, 0, (uint8_t*) "1:");
+//			emb_string tmp;
+//			if (!FsStreamTask->open_song_name(num_prog_edit, tmp, 0, 0))
+//			{
+//				oem2winstar(tmp);
+//				DisplayTask->StringOut(2, 0, (uint8_t*) tmp.c_str());
+//			}
+//			else
+//				DisplayTask->StringOut(2, 0, (uint8_t*) "  No wav file");
+//			num_tr_fl = 0;
+//			condish = edit_playlist;
+//		}
+//		if (key_ind == key_stop)
+//		{
+//			DisplayTask->Clear();
+//			DisplayTask->StringOut(0, 0, (uint8_t*) "1:");
+//			clean_fl();
+//			emb_string tmp;
+//			if (!FsStreamTask->open_song_name(num_prog_edit, tmp, 0, 0))
+//			{
+//				oem2winstar(tmp);
+//				DisplayTask->StringOut(2, 0, (uint8_t*) tmp.c_str());
+//			}
+//			else
+//				DisplayTask->StringOut(2, 0, (uint8_t*) "  No wav file");
+//			num_tr_fl = 0;
+//			condish = edit_playlist;
+//		}
+//		break;
 
 //------------------------------------End--------------------------------------------------
 	}

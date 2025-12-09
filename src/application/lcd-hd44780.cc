@@ -276,11 +276,13 @@ void lcd44780_ShowNote(uint8_t x, uint8_t y, uint8_t note)
 	{ "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" };
 
 	const char* noteChar = note_list[note % 12];
-	int8_t noteNum = note / 12 - 1;
+	int8_t noteNum = note / 12 - 2;
 
 	lcd44780_ShowStr(x, y, (uint8_t*)noteChar);
 
 	if(note < 12)
+		lcd44780_ShowStr(x+strlen(noteChar), y, (uint8_t*) "-2");
+	else if(note >= 12 && note < 24)
 		lcd44780_ShowStr(x+strlen(noteChar), y, (uint8_t*) "-1");
 	else
 	{
