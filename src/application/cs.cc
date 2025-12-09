@@ -290,7 +290,7 @@ void TCSTask::Code()
 
   load_led(num_prog);
 
-  //read_sys();
+  read_sys();
   read_ctrl();
   read_map();
   blink_en = 1;
