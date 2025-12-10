@@ -7,7 +7,7 @@
 class MenuParamList : public AbstractMenu
 {
 public:
-	MenuParamList(AbstractMenu* parent, gui_menu_type menuType);
+	MenuParamList(AbstractMenu* parent, GuiMenuType menuType);
 	~MenuParamList() override;
 
 	void setParams(ParamBase** settlingParamList, uint8_t setlingParamCount);

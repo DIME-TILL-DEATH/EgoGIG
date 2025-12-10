@@ -5,7 +5,7 @@
 
 extern uint8_t tim5_fl; // tim7 actually
 
-enum gui_menu_type
+enum GuiMenuType
 {
 	MENU_PLAYER,
 	MENU_MAIN,
@@ -55,7 +55,7 @@ public:
 	virtual void keyForward() {};
 	virtual void keyEsc() {};
 
-	gui_menu_type menuType();
+	GuiMenuType menuType();
 	void showChild(AbstractMenu* child);
 	void returnFromChildMenu();
 
@@ -65,7 +65,7 @@ protected:
 	AbstractMenu* m_parentMenu = nullptr;
 	AbstractMenu* m_childMenu = nullptr;
 
-	gui_menu_type m_menuType{MENU_ABSTRACT};
+	GuiMenuType m_menuType{MENU_ABSTRACT};
 
 	static uint8_t subMenusToRoot;
 

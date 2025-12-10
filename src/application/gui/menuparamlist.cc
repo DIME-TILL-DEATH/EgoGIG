@@ -5,7 +5,7 @@
 #include "display.h"
 #include "gui.h"
 
-MenuParamList::MenuParamList(AbstractMenu* parent, gui_menu_type menuType)
+MenuParamList::MenuParamList(AbstractMenu* parent, GuiMenuType menuType)
 {
 	m_parentMenu = parent;
 	m_menuType = menuType;

@@ -11,7 +11,7 @@ uint8_t AbstractMenu::runningNameLength = 15;
 int8_t AbstractMenu::runningNamePos = 0;
 uint8_t AbstractMenu::runningPauseCounter = 0;
 
-gui_menu_type AbstractMenu::menuType()
+GuiMenuType AbstractMenu::menuType()
 {
 	return m_menuType;
 }
