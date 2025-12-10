@@ -6,6 +6,7 @@
 #include "fs_stream.h"
 
 #include "gui.h"
+#include "init.h"
 
 #include "menuplayer.h"
 #include "menusystem.h"
@@ -60,12 +61,15 @@ void TCSTask::Code()
 
 	blink_en = 1;
 
-	currentMenu = new MenuPlayer;
+	menuPlayer = new MenuPlayer();
+	currentMenu = menuPlayer;
+	currentMenu->show();
 
 	while (1)
 	{
 		sem->Take(portMAX_DELAY);
 		processGui(this);
+		menuPlayer->processPlayNext();
 	}
 }
 

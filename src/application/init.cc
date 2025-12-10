@@ -20,6 +20,9 @@
 #include "abstractmenu.h"
 #include "menuplayer.h"
 
+// Main top-level unit
+MenuPlayer* menuPlayer;
+
 dac_sample_t dac_sample;
 dac_sample_t dac_sample1;
 
@@ -406,19 +409,15 @@ extern "C" void DMA1_Stream4_IRQHandler()
 			{
 				if(currentMenu)
 				{
-					if(currentMenu->menuType() == MENU_PLAYER)
-					{
-						MenuPlayer* menuPlayer = static_cast<MenuPlayer*>(currentMenu);
-						menuPlayer->requestPlayNext();
-					}
+					menuPlayer->requestPlayNext();
 				}
 			}
 			else
 			{
 				if (!sys_param[auto_next_track])
-					key_ind = key_stop;
+					menuPlayer->keyStop();
 				else
-					key_ind = key_right_down;
+					menuPlayer->keyRightDown();
 			}
 			CSTask->Give();
 		}

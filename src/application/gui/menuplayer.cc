@@ -75,6 +75,11 @@ void MenuPlayer::task()
 			key_reg_out[0] &= ~2;
 	}
 
+	if(tim5_fl) printRunningName(m_currentSongName);
+}
+
+void MenuPlayer::processPlayNext()
+{
 	if(m_requestPlayNext)
 	{
 		m_requestPlayNext = false;
@@ -105,8 +110,6 @@ void MenuPlayer::task()
 		us_buf1 = 0xfa;
 		MIDITask->Give();
 	}
-
-	if(tim5_fl) printRunningName(m_currentSongName);
 }
 
 void MenuPlayer::encoderPress()

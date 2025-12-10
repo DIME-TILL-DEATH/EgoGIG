@@ -4,6 +4,8 @@
 #include "libopencm3/stm32/exti.h"
 #include "libopencm3/stm32/timer.h"
 
+#include "menuplayer.h"
+
 enum
 {
 	auto_next_track = 0,
@@ -19,6 +21,8 @@ enum
 	ctrl3_t, ctrl3,
 	jjj, chann
 };
+
+extern MenuPlayer* menuPlayer;
 
 extern const size_t wav_buff_size;
 extern uint16_t key_reg_out[];

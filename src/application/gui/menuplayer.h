@@ -32,6 +32,7 @@ public:
 	void keyEsc() override;
 
 	void requestPlayNext() { m_requestPlayNext = true; }
+	void processPlayNext();
 
 private:
 
