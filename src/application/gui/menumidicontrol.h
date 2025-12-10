@@ -32,20 +32,25 @@ public:
 	static void read_ctrl(void);
 
 protected:
-	uint8_t m_currentParamNum{0};
-
-	static constexpr uint8_t paramsCount = 5;
-	static constexpr uint8_t subParamsCount = 10;
-
-	ParamBase* m_params[paramsCount];
-	ParamBase* m_subParams[subParamsCount];
-
 	enum SelectionState
 	{
 		PARAM_NOT_SELECTED = 0,
 		PARAM_SELECTED,
 		SUBPARAM_SELECTED
 	};
+
+	typedef struct
+	{
+		uint8_t count;
+		ParamBase** link;
+	}SubParamLinks;
+
+	uint8_t m_currentParamNum{0};
+	uint8_t m_paramsCount{0};
+
+	ParamBase** m_params;
+	SubParamLinks* m_subParamLinks;
+
 	SelectionState m_selectionState{PARAM_NOT_SELECTED};
 
 	static AbstractMenu* createMidiPcMenu(AbstractMenu* parent);

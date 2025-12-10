@@ -12,45 +12,65 @@ MenuMidiControl::MenuMidiControl(AbstractMenu* parent)
 	m_parentMenu = parent;
 	m_menuType = MENU_MIDI_CONTROL;
 
+	m_paramsCount = 5;
+
+	m_params = new ParamBase*[m_paramsCount];
+	m_subParamLinks = new SubParamLinks[m_paramsCount];
+
 	m_params[0] = new ParamStringList("Play ", &ctrl_param[ctrl1_t], { "PC  ", "CC  ", "Note" }, 5);
-	m_subParams[0] = new ParamBase(ParamBase::GUI_PARAMETER_NUM, "PC  ", &ctrl_param[ctrl1]);
-	m_subParams[0]->setScaling(1, 1);
-	m_subParams[1] = new ParamBase(ParamBase::GUI_PARAMETER_NUM, "CC  ", &ctrl_param[ctrl1]);
-	m_subParams[2] = new ParamBase(ParamBase::GUI_PARAMETER_NOTE, "Note", &ctrl_param[ctrl1]);
+	m_subParamLinks[0].count = m_params[0]->maxValue() + 1;
+	m_subParamLinks[0].link = new ParamBase*[m_subParamLinks[0].count];
+	m_subParamLinks[0].link[0] = new ParamBase(ParamBase::GUI_PARAMETER_NUM, "PC  ", &ctrl_param[ctrl1]);
+	m_subParamLinks[0].link[0]->setScaling(1, 1);
+	m_subParamLinks[0].link[1] = new ParamBase(ParamBase::GUI_PARAMETER_NUM, "CC  ", &ctrl_param[ctrl1]);
+	m_subParamLinks[0].link[2] = new ParamBase(ParamBase::GUI_PARAMETER_NOTE, "Note", &ctrl_param[ctrl1]);
 
 	m_params[1] = new ParamStringList("Pause ", &ctrl_param[ctrl2_t], { "PC  ", "CC  ", "Note" }, 5);
-	m_subParams[3] = new ParamBase(ParamBase::GUI_PARAMETER_NUM, "PC  ", &ctrl_param[ctrl2]);
-	m_subParams[3]->setScaling(1, 1);
-	m_subParams[4] = new ParamBase(ParamBase::GUI_PARAMETER_NUM, "CC  ", &ctrl_param[ctrl2]);
-	m_subParams[5] = new ParamBase(ParamBase::GUI_PARAMETER_NOTE, "Note", &ctrl_param[ctrl2]);
+	m_subParamLinks[1].count = m_params[1]->maxValue() + 1;
+	m_subParamLinks[1].link = new ParamBase*[m_subParamLinks[1].count];
+	m_subParamLinks[1].link[0] = new ParamBase(ParamBase::GUI_PARAMETER_NUM, "PC  ", &ctrl_param[ctrl2]);
+	m_subParamLinks[1].link[0]->setScaling(1, 1);
+	m_subParamLinks[1].link[1] = new ParamBase(ParamBase::GUI_PARAMETER_NUM, "CC  ", &ctrl_param[ctrl2]);
+	m_subParamLinks[1].link[2] = new ParamBase(ParamBase::GUI_PARAMETER_NOTE, "Note", &ctrl_param[ctrl2]);
 
 	m_params[2] = new ParamStringList("Stop  ", &ctrl_param[ctrl3_t], { "PC  ", "CC  ", "Note" }, 5);
-	m_subParams[6] = new ParamBase(ParamBase::GUI_PARAMETER_NUM, "PC  ", &ctrl_param[ctrl3]);
-	m_subParams[6]->setScaling(1, 1);
-	m_subParams[7] = new ParamBase(ParamBase::GUI_PARAMETER_NUM, "CC  ", &ctrl_param[ctrl3]);
-	m_subParams[8] = new ParamBase(ParamBase::GUI_PARAMETER_NOTE, "Note", &ctrl_param[ctrl3]);
+	m_subParamLinks[2].count = m_params[2]->maxValue() + 1;
+	m_subParamLinks[2].link = new ParamBase*[m_subParamLinks[2].count];
+	m_subParamLinks[2].link[0] = new ParamBase(ParamBase::GUI_PARAMETER_NUM, "PC  ", &ctrl_param[ctrl3]);
+	m_subParamLinks[2].link[0]->setScaling(1, 1);
+	m_subParamLinks[2].link[1] = new ParamBase(ParamBase::GUI_PARAMETER_NUM, "CC  ", &ctrl_param[ctrl3]);
+	m_subParamLinks[2].link[2] = new ParamBase(ParamBase::GUI_PARAMETER_NOTE, "Note", &ctrl_param[ctrl3]);
 
 	m_params[3] = new ParamBase(ParamBase::GUI_PARAMETER_NUM, "Channel", nullptr);
-	m_subParams[9] = new ParamBase(ParamBase::GUI_PARAMETER_NUM, "Num", &ctrl_param[chann]);
-	m_subParams[9]->setScaling(1, 1);
+	m_subParamLinks[3].count = 1;
+	m_subParamLinks[3].link = new ParamBase*[m_subParamLinks[3].count];
+	m_subParamLinks[3].link[0] = new ParamBase(ParamBase::GUI_PARAMETER_NUM, "Num", &ctrl_param[chann]);
+	m_subParamLinks[3].link[0]->setScaling(1, 1);
 
 	m_params[4] = new ParamSubmenu("MIDI PC Set", &MenuMidiControl::createMidiPcMenu, nullptr);
 
-	for(int i=0; i<subParamsCount; i++)
-		m_subParams[i]->setDisplayPosition(5);
+	for(int i = 0; i < m_paramsCount; i++)
+	{
+		for(uint8_t j = 0; j < m_subParamLinks[i].count; j++)
+		{
+			m_subParamLinks[i].link[j]->setDisplayPosition(5);
+		}
+	}
 }
 
 MenuMidiControl::~MenuMidiControl()
 {
-	for(int i = 0; i < paramsCount; i++)
+	for(int i = 0; i < m_paramsCount; i++)
 	{
 		delete m_params[i];
+		for(uint8_t j = 0; i < m_subParamLinks[j].count; j++)
+		{
+			delete m_subParamLinks[i].link[j];
+		}
+		delete[] m_subParamLinks[i].link;
 	}
-
-	for(int i = 0; i < subParamsCount; i++)
-	{
-		delete m_subParams[i];
-	}
+	delete[] m_params;
+	delete[] m_subParamLinks;
 }
 
 void MenuMidiControl::show(TShowMode showMode)
@@ -70,6 +90,7 @@ void MenuMidiControl::refresh()
 
 void MenuMidiControl::task()
 {
+	uint8_t submenuNum = m_params[m_currentParamNum]->value();
 	switch(m_selectionState)
 	{
 	case PARAM_NOT_SELECTED:
@@ -83,24 +104,29 @@ void MenuMidiControl::task()
 	case PARAM_SELECTED:
 	{
 		if(tim5_fl)
-			DisplayTask->Clear_str(0, 1, m_subParams[m_params[m_currentParamNum]->value() + 3 * m_currentParamNum]->xDisplayPosition() - 1);
+		{
+			DisplayTask->Clear_str(0, 1, m_subParamLinks[m_currentParamNum].link[submenuNum]->xDisplayPosition() - 1);
+		}
 		else
 		{
 			if(m_params[m_currentParamNum]->type() != ParamBase::GUI_PARAMETER_SUBMENU)
-				DisplayTask->StringOut(0, 1, (uint8_t*)(m_subParams[m_params[m_currentParamNum]->value() + 3 * m_currentParamNum]->name()));
+			{
+				DisplayTask->StringOut(0, 1, (uint8_t*)(m_subParamLinks[m_currentParamNum].link[submenuNum]->name()));
+			}
 		}
-		break;
 		break;
 	}
 	case SUBPARAM_SELECTED:
 	{
 		if(tim5_fl)
-			DisplayTask->Clear_str(m_subParams[m_params[m_currentParamNum]->value() + 3 * m_currentParamNum]->xDisplayPosition(), 1, 6);
+		{
+			DisplayTask->Clear_str(m_subParamLinks[m_currentParamNum].link[submenuNum]->xDisplayPosition(), 1, 6);
+		}
 		else
 		{
 			if(m_params[m_currentParamNum]->type() != ParamBase::GUI_PARAMETER_SUBMENU)
 			{
-				m_subParams[m_params[m_currentParamNum]->value() + 3 * m_currentParamNum]->printParam(1);
+				m_subParamLinks[m_currentParamNum].link[submenuNum]->printParam(1);
 			}
 		}
 		break;
@@ -110,6 +136,7 @@ void MenuMidiControl::task()
 
 void MenuMidiControl::encoderPress()
 {
+	uint8_t submenuNum = m_params[m_currentParamNum]->value();
 	switch(m_selectionState)
 	{
 	case PARAM_NOT_SELECTED:
@@ -128,7 +155,9 @@ void MenuMidiControl::encoderPress()
 	case PARAM_SELECTED:
 	{
 		if(m_params[m_currentParamNum]->type() != ParamBase::GUI_PARAMETER_SUBMENU)
-						DisplayTask->StringOut(0, 1, (uint8_t*)(m_subParams[m_params[m_currentParamNum]->value() + 3 * m_currentParamNum]->name()));
+		{
+			DisplayTask->StringOut(0, 1, (uint8_t*)(m_subParamLinks[m_currentParamNum].link[submenuNum]->name()));
+		}
 
 		m_selectionState = SUBPARAM_SELECTED;
 		break;
@@ -137,7 +166,12 @@ void MenuMidiControl::encoderPress()
 	{
 		if(m_params[m_currentParamNum]->type() != ParamBase::GUI_PARAMETER_SUBMENU)
 		{
-			m_subParams[m_params[m_currentParamNum]->value() + 3 * m_currentParamNum]->printParam(1);
+			m_subParamLinks[m_currentParamNum].link[submenuNum]->printParam(1);
+		}
+		else
+		{
+			ParamSubmenu* submenu = static_cast<ParamSubmenu*>(m_params[m_currentParamNum]);
+			submenu->showSubmenu(this);
 		}
 
 		m_selectionState = PARAM_NOT_SELECTED;
@@ -153,7 +187,7 @@ void MenuMidiControl::encoderClockwise()
 	{
 	case PARAM_NOT_SELECTED:
 	{
-		if(m_currentParamNum < paramsCount-1) m_currentParamNum++;
+		if(m_currentParamNum < m_paramsCount-1) m_currentParamNum++;
 		break;
 	}
 	case PARAM_SELECTED:
@@ -163,7 +197,8 @@ void MenuMidiControl::encoderClockwise()
 	}
 	case SUBPARAM_SELECTED:
 	{
-		m_subParams[m_params[m_currentParamNum]->value() + 3 * m_currentParamNum]->increaseParam();
+		uint8_t submenuNum = m_params[m_currentParamNum]->value();
+		m_subParamLinks[m_currentParamNum].link[submenuNum]->increaseParam();
 	}
 	}
 
@@ -186,7 +221,8 @@ void MenuMidiControl::encoderCounterClockwise()
 	}
 	case SUBPARAM_SELECTED:
 	{
-		m_subParams[m_params[m_currentParamNum]->value() + 3 * m_currentParamNum]->decreaseParam();
+		uint8_t submenuNum = m_params[m_currentParamNum]->value();
+		m_subParamLinks[m_currentParamNum].link[submenuNum]->decreaseParam();
 		break;
 	}
 	}
@@ -213,8 +249,9 @@ void MenuMidiControl::printMenu()
 
 	if(m_params[m_currentParamNum]->type() != ParamBase::GUI_PARAMETER_SUBMENU)
 	{
-		DisplayTask->StringOut(0, 1, (uint8_t*)(m_subParams[m_params[m_currentParamNum]->value() + 3 * m_currentParamNum]->name()));
-		m_subParams[m_params[m_currentParamNum]->value() + 3 * m_currentParamNum]->printParam(1);
+		uint8_t submenuNum = m_params[m_currentParamNum]->value();
+		DisplayTask->StringOut(0, 1, (uint8_t*)(m_subParamLinks[m_currentParamNum].link[submenuNum]->name()));
+		m_subParamLinks[m_currentParamNum].link[submenuNum]->printParam(1);
 	}
 }
 

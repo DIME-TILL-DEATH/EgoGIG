@@ -31,13 +31,17 @@ ParamStringList::~ParamStringList()
 	if(m_strings)
 	{
 		for(int i = 0; i<m_stringCount; i++)
-				delete[] m_strings[i];
+			delete m_strings[i];
+
+		delete[] m_strings;
 	}
 
 	if(m_disableMask)
 	{
 		for(int i = 0; i<m_stringCount; i++)
-				delete[] m_disableMask[i];
+			delete m_disableMask[i];
+
+		delete[] m_disableMask;
 	}
 }
 
