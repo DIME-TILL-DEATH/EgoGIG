@@ -38,7 +38,14 @@ void MenuEditPlaylist::show(TShowMode showMode)
 
 void MenuEditPlaylist::refresh()
 {
+	DisplayTask->Clear();
 
+	if (!num_tr_fl)
+			DisplayTask->StringOut(0, 0, (uint8_t*) "1:");
+	else
+		DisplayTask->StringOut(0, 0, (uint8_t*) "2:");
+
+	printRunningName(m_trackName, 2, AbstractMenu::STRING_DOUBLE);
 }
 
 void MenuEditPlaylist::task()
@@ -88,10 +95,9 @@ void MenuEditPlaylist::encoderPress()
 void MenuEditPlaylist::encoderLongPress()
 {
 	emb_string tmp;
-	emb_string tmp1;
-	FsStreamTask->browser_name(tmp1);
+	FsStreamTask->browser_name(m_trackName);
 	FsStreamTask->curr_path(tmp);
-	if (!(!tmp.compare("/SONGS") && !tmp1.compare("..")))
+	if (!(!m_trackName.compare("/SONGS") && !tmp.compare("..")))
 	{
 		if (!num_tr_fl)
 		{
@@ -193,14 +199,18 @@ void MenuEditPlaylist::keyReturn()
 	DisplayTask->Clear();
 	DisplayTask->StringOut(0, 0, (uint8_t*) "1:");
 
-	if (!FsStreamTask->open_song_name(m_num_prog_edit, m_trackName, 0, 0))
+	if(!FsStreamTask->open_song_name(m_num_prog_edit, m_trackName, 0, 0))
 	{
 		oem2winstar(m_trackName);
 		runningNamePos = 0;
 		printRunningName(m_trackName, 2, AbstractMenu::STRING_DOUBLE);
 	}
 	else
-		DisplayTask->StringOut(2, 0, (uint8_t*) "  No wav file");
+	{
+		DisplayTask->Clear_str(0, 1, 16);
+		m_trackName = " No wav file";
+		DisplayTask->StringOut(2, 0, (uint8_t*)m_trackName.c_str());
+	}
 
 	printPlayNextMark();
 }
@@ -218,7 +228,11 @@ void MenuEditPlaylist::keyForward()
 		printRunningName(m_trackName, 2, AbstractMenu::STRING_DOUBLE);
 	}
 	else
-		DisplayTask->StringOut(2, 0, (uint8_t*) "No wav file");
+	{
+		DisplayTask->Clear_str(0, 1, 16);
+		m_trackName = " No wav file";
+		DisplayTask->StringOut(2, 0, (uint8_t*)m_trackName.c_str());
+	}
 
 	printPlayNextMark();
 }
@@ -244,8 +258,13 @@ void MenuEditPlaylist::loadSong()
 		printRunningName(m_trackName, 2, AbstractMenu::STRING_DOUBLE);
 	}
 	else
-		DisplayTask->StringOut(2, 0, (uint8_t*) "  No wav file");
+	{
+		DisplayTask->Clear_str(0, 1, 16);
+		m_trackName = " No wav file";
+		DisplayTask->StringOut(2, 0, (uint8_t*)m_trackName.c_str());
+	}
 
+	refresh();
 	tim7_start(0);
 }
 

@@ -23,25 +23,13 @@
 #include "libopencm3/stm32/usart.h"
 
 
-uint8_t num_menu = 0;
 uint8_t num_prog = 0;
-uint8_t num_prog_edit = 0;
 const uint8_t led_sym[10] =
 { 0xc0, 0xf9, 0xa4, 0xb0, 0x99, 0x92, 0x82, 0xf8, 0x80, 0x90 };
 
-uint8_t condish = 0;
 uint8_t tim5_fl = 0;
 uint8_t blink_en = 0;
 uint8_t num_tr_fl = 0;
-uint8_t enc_key_fl = 0;
-
-
-uint8_t edit_fl;
-
-volatile uint32_t audio_pos;
-
-uint8_t line_buf[5] =
-{ 0, 0, 0, 0 };
 
 
 void processGui(TTask* processingTask)
@@ -88,8 +76,8 @@ void processGui(TTask* processingTask)
 	return;
 
 
-	switch (condish)
-	{
+//	switch (condish)
+//	{
 //----------------------------------------------Delete file-----------------------------------
 //	case delete_file:
 //		if (key_ind == key_start)
@@ -141,7 +129,7 @@ void processGui(TTask* processingTask)
 //		break;
 
 //------------------------------------End--------------------------------------------------
-	}
+//	}
 }
 
 

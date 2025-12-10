@@ -482,7 +482,6 @@ bool MenuPlayer::test_file()
 		DisplayTask->Clear();
 		DisplayTask->StringOut(2, 0, (uint8_t*) "No files in      Playlist");
 		dela(0xffffff);
-		condish = MENU_PLAYER;
 	}
 	return temp;
 }
