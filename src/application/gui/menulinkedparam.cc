@@ -32,19 +32,6 @@ void MenuLinkedParam::setParams(ParamBase** settlingParamList, SubParamLinks* li
 	m_params = settlingParamList;
 	m_paramsCount = setltingParamCount;
 	m_subParamLinks = links;
-//	for(int i=0; i<maxParamCount; i++)
-//	{
-//		m_paramsList[i] = nullptr; // clean up
-//	}
-//
-//	m_paramsCount = setlingParamCount;
-//
-//	for(int i=0; i<m_paramsCount; i++)
-//	{
-//		m_paramsList[i] = settlingParamList[i];
-//	}
-//
-//	m_pagesCount = ceil((float)m_paramsCount/(float)paramsOnPage);
 }
 
 void MenuLinkedParam::show(TShowMode showMode)

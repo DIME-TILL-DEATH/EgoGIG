@@ -32,7 +32,7 @@ extern volatile uint8_t esc_dub_fl;
 extern volatile uint8_t enc_dub_fl;
 extern volatile uint8_t stp_dub_fl;
 extern uint8_t num_prog;
-extern uint8_t num_prog_edit;
+extern uint8_t m_num_prog_edit;
 extern const uint8_t led_sym[];
 extern uint8_t condish;
 extern volatile uint8_t stop_fl1;

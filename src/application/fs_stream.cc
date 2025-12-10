@@ -11,11 +11,7 @@ volatile uint8_t FsStream_enable_fl = 0;
 
 void TFsStreamTask::Code()
 {
-
 	mount();
-	//i2s_dma_interrupt_enable();
-
-	//enter_dir( "/" , "", true) ;
 
 	browser.play_list_folder = emb_string("/PLAYLIST/Default");
 

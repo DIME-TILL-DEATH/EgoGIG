@@ -10,6 +10,7 @@ public:
 			std::initializer_list<const char*> stringList, uint8_t maxStringLength);
 	~ParamStringList();
 
+	uint8_t* getString();
 	uint8_t* getString(uint8_t stringNum);
 
 	void setAffectedParamsList(ParamBase** affectedParamList, uint8_t affectedParamCount);

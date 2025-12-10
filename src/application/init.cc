@@ -374,7 +374,7 @@ extern "C" void DMA1_Stream4_IRQHandler()
 	dac_sample.left = dac_sample1.left = 0;
 	dac_sample.right = dac_sample1.right = 0;
 
-	if (play_fl)
+	if(play_fl)
 	{
 		if (FsStreamTask->SoundNeedSwap())
 		{
@@ -425,6 +425,7 @@ extern "C" void DMA1_Stream4_IRQHandler()
 		{
 			if (sound_point == 0)
 				FsStreamTask->data_notify(&second_target);
+
 			if (sound_point == wav_buff_size / 2)
 				FsStreamTask->data_notify(&first_target);
 		}
@@ -467,8 +468,7 @@ extern "C" void DMA1_Stream4_IRQHandler()
 		sound_point++;
 		sound_point &= wav_buff_size - 1;
 	}
-	else
-		play_fl1 = 1;
+	else play_fl1 = 1;
 
 	if (metronom_start)
 	{
@@ -491,6 +491,7 @@ extern "C" void DMA1_Stream4_IRQHandler()
 				temp_counter = 0;
 		}
 	}
+
 	if (tap_temp < 132300)
 		tap_temp++;
 	if (tap_temp1 < 150001)

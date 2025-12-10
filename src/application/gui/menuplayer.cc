@@ -83,7 +83,7 @@ void MenuPlayer::processPlayNext()
 	if(m_requestPlayNext)
 	{
 		m_requestPlayNext = false;
-		while (!play_fl1);
+		while(!play_fl1);
 
 		memset(sound_buff, 0, wav_buff_size);
 		memset(click_buff, 0, wav_buff_size);
@@ -186,10 +186,10 @@ void MenuPlayer::encoderLongPress()
 
 void MenuPlayer::encoderClockwise()
 {
-	if (stop_fl1)
-					stop_fl1 = 0;
+	if(stop_fl1)
+		stop_fl1 = 0;
 
-	if (count_up < song_size)
+	if(count_up < song_size)
 		count_up = enc_speed_inc(count_up, song_size);
 
 	count_down = song_size - count_up;
@@ -505,8 +505,8 @@ void MenuPlayer::jump_rand_pos(uint32_t pos)
 void MenuPlayer::init_prog(void)
 {
 	play_fl = 0;
-	while (!play_fl1)
-		;
+	while(!play_fl1);
+
 	play_fl1 = 0;
 	sound_point = 0;
 	samp_point = 0;

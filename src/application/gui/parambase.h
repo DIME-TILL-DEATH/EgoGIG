@@ -6,7 +6,7 @@
 class ParamBase
 {
 public:
-	enum gui_param_type
+	enum GuiParamType
 	{
 		GUI_PARAMETER_DUMMY,
 		GUI_PARAMETER_NUM,
@@ -27,10 +27,10 @@ public:
 		IndPan
 	};
 
-	ParamBase(gui_param_type paramType, const char* name, void* paramValuePtr);
+	ParamBase(GuiParamType paramType, const char* name, void* paramValuePtr);
 	virtual ~ParamBase() {};
 
-	gui_param_type type() const {return m_type;};
+	GuiParamType type() const {return m_type;};
 	virtual const char* name();
 	virtual uint8_t nameLength();
 
@@ -77,7 +77,7 @@ protected:
 	int32_t m_offset{0};
 	uint8_t m_stepSize{1};
 
-	gui_param_type m_type{GUI_PARAMETER_DUMMY};
+	GuiParamType m_type{GUI_PARAMETER_DUMMY};
 
 	uint8_t* m_valuePtr;
 

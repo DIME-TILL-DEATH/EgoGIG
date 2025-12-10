@@ -24,9 +24,8 @@ public:
 	static void write_ctrl(void);
 	static void read_ctrl(void);
 
-private:
 	static AbstractMenu* createMidiPcMenu(AbstractMenu* parent);
-	static bool check_busy(uint8_t type, uint8_t val, uint8_t num);
+	static bool check_busy(uint8_t type, uint8_t val, int8_t currentParamNum, int8_t currentSongNum = -1);
 };
 
 #endif /* SRC_APPLICATION_GUI_MENUMIDICONTROL_H_ */

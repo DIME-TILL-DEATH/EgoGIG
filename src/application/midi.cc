@@ -92,8 +92,8 @@ extern "C" void USART1_IRQHandler()
 			{
 				if (pc_param[i * 2] == 1 && pc_param[i * 2 + 1] == us_buf)
 				{
-					key_ind = key_right_down;
 					num_prog = (i - 1) % 99;
+					key_ind = key_right_down;
 					CSTask->Give();
 					break;
 				}
@@ -120,6 +120,7 @@ extern "C" void USART1_IRQHandler()
 			key_ind = key_stop;
 			CSTask->Give();
 		}
+
 		if (stop_fl1)
 		{
 			for (uint8_t i = 0; i < 99; i++)

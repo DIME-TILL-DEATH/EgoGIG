@@ -34,6 +34,8 @@ private:
 
 	bool play_next_file = 0;
 
+	uint8_t m_num_prog_edit{0};
+
 	void loadSong();
 	void printPlayNextMark();
 };

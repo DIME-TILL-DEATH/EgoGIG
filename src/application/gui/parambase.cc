@@ -3,7 +3,7 @@
 #include "display.h"
 #include "libopencm3/stm32/timer.h"
 
-ParamBase::ParamBase(gui_param_type paramType, const char* name, void* paramValuePtr)
+ParamBase::ParamBase(GuiParamType paramType, const char* name, void* paramValuePtr)
 {
 	m_type = paramType;
 	m_name = name;

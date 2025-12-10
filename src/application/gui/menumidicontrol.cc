@@ -1,5 +1,7 @@
 #include "menumidicontrol.h"
 
+#include "menumidipc.h"
+
 #include "paramstringlist.h"
 #include "paramsubmenu.h"
 
@@ -75,8 +77,7 @@ void MenuMidiControl::keyEsc()
 
 AbstractMenu* MenuMidiControl::createMidiPcMenu(AbstractMenu* parent)
 {
-	return nullptr;
-//	return new MenuMidiControl(parent);
+	return new MenuMidiPc(parent);
 }
 
 void MenuMidiControl::write_ctrl(void)
@@ -97,7 +98,7 @@ void MenuMidiControl::read_ctrl(void)
 	f_close(&fsys);
 }
 
-bool MenuMidiControl::check_busy(uint8_t type, uint8_t val, uint8_t currentParamNum)
+bool MenuMidiControl::check_busy(uint8_t type, uint8_t val, int8_t currentParamNum, int8_t currentSongNum)
 {
 	for (uint8_t i = 0; i < 3; i++)
 	{
@@ -109,7 +110,7 @@ bool MenuMidiControl::check_busy(uint8_t type, uint8_t val, uint8_t currentParam
 
 	for (uint8_t j = 0; j < 99; j++)
 	{
-		if (val == pc_param[j * 2 + 1] && currentParamNum != j)
+		if (val == pc_param[j * 2 + 1] && currentSongNum != j)
 		{
 			if (type == pc_param[j * 2]) return true;
 		}

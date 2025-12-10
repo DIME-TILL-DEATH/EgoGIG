@@ -45,6 +45,11 @@ ParamStringList::~ParamStringList()
 	}
 }
 
+uint8_t* ParamStringList::getString()
+{
+	return (uint8_t*)m_strings[value()];
+}
+
 uint8_t* ParamStringList::getString(uint8_t stringNum)
 {
 	return (uint8_t*)m_strings[stringNum];

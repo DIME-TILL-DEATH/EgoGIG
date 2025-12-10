@@ -15,8 +15,8 @@ void MenuEditPlaylist::show(TShowMode showMode)
 {
 	emb_string path_old = "/SONGS";
 	FsStreamTask->enter_dir(path_old.c_str(), "", true);
-	num_prog_edit = 0;
-	load_led(num_prog_edit);
+	m_num_prog_edit = 0;
+	load_led(m_num_prog_edit);
 
 	num_tr_fl = 0;
 	DisplayTask->Clear();
@@ -26,7 +26,7 @@ void MenuEditPlaylist::show(TShowMode showMode)
 	DisplayTask->Clear();
 	DisplayTask->StringOut(0, 0, (uint8_t*) "1:");
 
-	if (!FsStreamTask->open_song_name(num_prog_edit, m_trackName, 0, 0))
+	if (!FsStreamTask->open_song_name(m_num_prog_edit, m_trackName, 0, 0))
 	{
 		oem2winstar(m_trackName);
 		runningNamePos = 0;
@@ -62,7 +62,7 @@ void MenuEditPlaylist::encoderPress()
 				num_tr_fl ?
 						TFsStreamTask::action_param_t::ap_2_wav :
 						TFsStreamTask::action_param_t::ap_1_wav,
-				num_prog_edit, play_next_file);
+				m_num_prog_edit, play_next_file);
 
 //		if (act_fl) no_file = 0;
 
@@ -165,25 +165,25 @@ void MenuEditPlaylist::keyStart()
 
 void MenuEditPlaylist::keyLeftUp()
 {
-	num_prog_edit = (num_prog_edit + 10) % 99;
+	m_num_prog_edit = (m_num_prog_edit + 10) % 99;
 	loadSong();
 }
 
 void MenuEditPlaylist::keyLeftDown()
 {
-	if(num_prog_edit > 10) num_prog_edit -= 10;
+	if(m_num_prog_edit > 10) m_num_prog_edit -= 10;
 	loadSong();
 }
 
 void MenuEditPlaylist::keyRightUp()
 {
-	if(num_prog_edit) num_prog_edit--;
+	if(m_num_prog_edit) m_num_prog_edit--;
 	loadSong();
 }
 
 void MenuEditPlaylist::keyRightDown()
 {
-	num_prog_edit = (num_prog_edit + 1) % 99;
+	m_num_prog_edit = (m_num_prog_edit + 1) % 99;
 	loadSong();
 }
 
@@ -193,7 +193,7 @@ void MenuEditPlaylist::keyReturn()
 	DisplayTask->Clear();
 	DisplayTask->StringOut(0, 0, (uint8_t*) "1:");
 
-	if (!FsStreamTask->open_song_name(num_prog_edit, m_trackName, 0, 0))
+	if (!FsStreamTask->open_song_name(m_num_prog_edit, m_trackName, 0, 0))
 	{
 		oem2winstar(m_trackName);
 		runningNamePos = 0;
@@ -211,7 +211,7 @@ void MenuEditPlaylist::keyForward()
 	DisplayTask->Clear();
 	DisplayTask->StringOut(0, 0, (uint8_t*) "2:");
 
-	if (!FsStreamTask->open_song_name(num_prog_edit, m_trackName, 0, 1))
+	if (!FsStreamTask->open_song_name(m_num_prog_edit, m_trackName, 0, 1))
 	{
 		oem2winstar(m_trackName);
 		runningNamePos = 0;
@@ -232,13 +232,13 @@ void MenuEditPlaylist::loadSong()
 {
 	runningNamePos = 0;
 
-	load_led(num_prog_edit);
+	load_led(m_num_prog_edit);
 	num_tr_fl = 0;
 	act_fl = 0;
 	emb_string tmp;
 	DisplayTask->Clear_str(2, 0, 30);
 	DisplayTask->StringOut(0, 0, (uint8_t*) "1:");
-	if (!FsStreamTask->open_song_name(num_prog_edit, m_trackName, 0, 0))
+	if (!FsStreamTask->open_song_name(m_num_prog_edit, m_trackName, 0, 0))
 	{
 		oem2winstar(tmp);
 		printRunningName(m_trackName, 2, AbstractMenu::STRING_DOUBLE);
