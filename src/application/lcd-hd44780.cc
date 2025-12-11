@@ -74,6 +74,18 @@ uint8_t arrowDown[8] =
 	0b00000
 };
 
+uint8_t nextMark[8] =
+{
+    0b00000,
+    0b00000,
+    0b11100,
+    0b00100,
+    0b10101,
+    0b01110,
+    0b00100,
+	0b00000
+};
+
 void oem2winstar(emb_string &str)
 {
 	size_t size = str.length();
@@ -345,6 +357,7 @@ void lcd44780_init(void)
 
 	lcd44780_LoadCustomChar(SYMBOL_ARROW_UP, arrowUp);
 	lcd44780_LoadCustomChar(SYMBOL_ARROW_DOWN, arrowDown);
+	lcd44780_LoadCustomChar(SYMBOL_NEXT_MARK, nextMark);
 }
 
 void disp_init(void)

@@ -20,6 +20,7 @@
 // Custom symbols:
 #define SYMBOL_ARROW_UP 0
 #define SYMBOL_ARROW_DOWN 1
+#define SYMBOL_NEXT_MARK 2
 
 
 void lcd44780_ClearLCD(void);

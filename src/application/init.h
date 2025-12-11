@@ -36,7 +36,6 @@ extern uint8_t m_num_prog_edit;
 extern const uint8_t led_sym[];
 extern volatile uint8_t stop_fl1;
 extern volatile uint8_t play_fl;
-extern uint8_t num_tr_fl;
 extern volatile uint8_t tim3_end_fl;
 extern uint8_t sys_param[];
 extern uint8_t ctrl_param[];
@@ -80,7 +79,6 @@ extern uint16_t msec_tik;
 extern size_t sound_point;
 extern volatile uint32_t samp_point;
 
-extern volatile uint8_t act_fl;
 extern uint8_t us_buf1;
 extern volatile uint32_t click_size;
 extern uint8_t sys_param[];

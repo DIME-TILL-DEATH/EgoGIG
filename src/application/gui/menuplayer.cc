@@ -44,13 +44,11 @@ void MenuPlayer::show(TShowMode showMode)
 		printRunningName(m_currentSongName);
 
 		if (FsStreamTask->next_pl())
-			DisplayTask->StringOut(15, 1, (uint8_t*) ">");
+			DisplayTask->SymbolOut(15, 1, SYMBOL_NEXT_MARK);
 		DisplayTask->Sec_Print(FsStreamTask->sound_size());
 	}
 
 	load_led(num_prog);
-	num_tr_fl = 0;
-	act_fl = 0;
 
 	key_reg_out[0] |= 0x10;
 	key_reg_out[0] &= ~0x8;
@@ -446,11 +444,11 @@ bool MenuPlayer::load_prog()
 		FsStreamTask->curr_path(path_old);
 		FsStreamTask->sound_name(m_currentSongName);
 		oem2winstar(m_currentSongName);
-	//		DisplayTask->StringOut(0, 0, (uint8_t*) tmp.c_str());
+
 		runningNamePos = 0;
 		printRunningName(m_currentSongName);
 
-		if (FsStreamTask->next_pl()) DisplayTask->StringOut(15, 1, (uint8_t*) ">");
+		if (FsStreamTask->next_pl()) DisplayTask->SymbolOut(15, 1, SYMBOL_NEXT_MARK);
 		DisplayTask->Sec_Print(FsStreamTask->sound_size());
 
 		init_prog();
