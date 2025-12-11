@@ -30,6 +30,13 @@ public:
 	void keyEsc() override;
 
 private:
+	enum State
+	{
+		EDIT_TRACK1,
+		EDIT_TRACK2
+	};
+	State m_state{EDIT_TRACK1};
+
 	emb_string m_trackName;
 
 	bool play_next_file = 0;

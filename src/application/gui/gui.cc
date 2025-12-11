@@ -22,15 +22,14 @@
 #include "libopencm3/stm32/spi.h"
 #include "libopencm3/stm32/usart.h"
 
-
 uint8_t num_prog = 0;
+
 const uint8_t led_sym[10] =
 { 0xc0, 0xf9, 0xa4, 0xb0, 0x99, 0x92, 0x82, 0xf8, 0x80, 0x90 };
 
 uint8_t tim5_fl = 0;
 uint8_t blink_en = 0;
 uint8_t num_tr_fl = 0;
-
 
 void processGui(TTask* processingTask)
 {
@@ -74,62 +73,4 @@ void processGui(TTask* processingTask)
 		encoder_state1 = encoder_key = key_ind = stp_dub_fl = ret_dub_fl = fwd_dub_fl = esc_dub_fl = enc_dub_fl = 0;
 	}
 	return;
-
-
-//	switch (condish)
-//	{
-//----------------------------------------------Delete file-----------------------------------
-//	case delete_file:
-//		if (key_ind == key_start)
-//		{
-//			clean_fl();
-//			DisplayTask->Clear();
-//			DisplayTask->StringOut(5, 0, (uint8_t*) "SURE?");
-//			while (1)
-//			{
-//				if (key_ind == key_start)
-//				{
-//					FsStreamTask->delete_track(num_prog_edit);
-//					DisplayTask->StringOut(2, 0, (uint8_t*) "Song deleted");
-//					processingTask->Delay(1000);
-//					break;
-//				}
-//				if (key_ind == key_stop)
-//					break;
-//			}
-//			DisplayTask->Clear();
-//			DisplayTask->StringOut(0, 0, (uint8_t*) "1:");
-//			emb_string tmp;
-//			if (!FsStreamTask->open_song_name(num_prog_edit, tmp, 0, 0))
-//			{
-//				oem2winstar(tmp);
-//				DisplayTask->StringOut(2, 0, (uint8_t*) tmp.c_str());
-//			}
-//			else
-//				DisplayTask->StringOut(2, 0, (uint8_t*) "  No wav file");
-//			num_tr_fl = 0;
-//			condish = edit_playlist;
-//		}
-//		if (key_ind == key_stop)
-//		{
-//			DisplayTask->Clear();
-//			DisplayTask->StringOut(0, 0, (uint8_t*) "1:");
-//			clean_fl();
-//			emb_string tmp;
-//			if (!FsStreamTask->open_song_name(num_prog_edit, tmp, 0, 0))
-//			{
-//				oem2winstar(tmp);
-//				DisplayTask->StringOut(2, 0, (uint8_t*) tmp.c_str());
-//			}
-//			else
-//				DisplayTask->StringOut(2, 0, (uint8_t*) "  No wav file");
-//			num_tr_fl = 0;
-//			condish = edit_playlist;
-//		}
-//		break;
-
-//------------------------------------End--------------------------------------------------
-//	}
 }
-
-

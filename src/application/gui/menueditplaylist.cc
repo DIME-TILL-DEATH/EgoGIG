@@ -1,5 +1,7 @@
 #include "menueditplaylist.h"
 
+#include "menudeletesong.h"
+
 #include "init.h"
 #include "display.h"
 #include "fs_stream.h"
@@ -156,12 +158,7 @@ void MenuEditPlaylist::encoderCounterClockwise()
 
 void MenuEditPlaylist::keyStop()
 {
-	DisplayTask->Clear();
-	DisplayTask->StringOut(2, 0, (uint8_t*) "Remove song");
-	DisplayTask->StringOut(1, 1, (uint8_t*) "from playlist?");
-//	clean_fl();
-//	condish = delete_file;
-	// MENU = REMOVE FILE
+	showChild(new MenuDeleteSong(this, m_num_prog_edit));
 }
 
 void MenuEditPlaylist::keyStart()
