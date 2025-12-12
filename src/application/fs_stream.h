@@ -6,24 +6,16 @@
 #include "sd_storage.h"
 #include <vector>
 
+#include "lcd-hd44780.h"
+
 #include "midi_stream.h"
 #include "midi_player.h"
+
+#include "song.h"
 
 class TFsStreamTask: public TTask
 {
 public:
-
-	enum swap_need_t
-	{
-		snNo = 0, snSound = 1, snClick = 2, snAll = 3
-	};
-
-	typedef enum
-	{
-		eOk = 0, eFsError, eNotRiffWave, // формат wave_a не соответсвует RIFF/WAV
-		eWaveNotPresent,  // file_sound ("1_*.wav") отсутсвует
-		eNotMidi,
-	} error_t;
 
 	struct browser_t
 	{
@@ -51,8 +43,9 @@ public:
 	};
 	enum action_param_t
 	{
-		ap_1_wav, ap_2_wav
+		ap_1_wav, ap_2_wav, play_next
 	};
+
 	struct query_notify_t
 	{
 		notify_t notify :8;
@@ -60,7 +53,7 @@ public:
 		{
 			struct
 			{
-				action_param_t action_param :16;
+				action_param_t action_param :8;
 				uint32_t play_index :8;
 				uint32_t play_next :8;
 			} __attribute__((packed));
@@ -109,167 +102,56 @@ public:
 		notify(qn);
 	}
 
-	emb_string dir;
-	emb_string song;
-	emb_string sound_path;
-	emb_string click_path;
+	Song editingSong;
+	Song selectedSong;
 
-	inline error_t open_song_name(size_t index, emb_string &dst, uint8_t mode,
-			uint8_t num)
+	inline error_t open_song_name(size_t index, emb_string &dst, uint8_t mode, uint8_t num)
 	{
 		FIL f_temp;
-		emb_printf::sprintf(dst, "%s/%1.ego", browser.play_list_folder.c_str(),
-				index);
+		emb_printf::sprintf(dst, "%s/%1.ego", browser.play_list_folder.c_str(), index);
 		fr = f_open(&f_temp, dst.c_str(), FA_READ);
 		if (fr != FR_OK)
-			return eWaveNotPresent;
-		uint8_t temp;
-		f_read(&f_temp, &temp, 1, fw);
-		if (temp == 62)
+			return Song::eWaveNotPresent;
+
+		uint8_t tempChar;
+		f_read(&f_temp, &tempChar, 1, fw);
+		if(tempChar == 62)
+		{
 			f_lseek(&f_temp, 1);
+			editingSong.playNext = true;
+		}
 		else
+		{
 			f_lseek(&f_temp, 0);
+			editingSong.playNext = false;
+		}
+
 		f_gets(browser.buf, FF_MAX_SS, &f_temp);
 		if (num)
 			f_gets(browser.buf, FF_MAX_SS, &f_temp);
 		f_close(&f_temp);
+
 		dst = browser.buf;
 		if (dst.empty())
-			return eWaveNotPresent;
+			return Song::eWaveNotPresent;
 		if (!mode)
 			dst = dst.substr(dst.find_last_of('/') + 1, dst.length());
+
 		dst.erase(dst.find(".wav"), 5);
-		return eOk;
+		return Song::eOk;
 	}
 
 	inline error_t delete_track(size_t index)
 	{
 		emb_string temp;
-		emb_printf::sprintf(temp, "%s/%1.ego", browser.play_list_folder.c_str(),
-				index);
+		emb_printf::sprintf(temp, "%s/%1.ego", browser.play_list_folder.c_str(), index);
 		f_unlink(temp.c_str());
-		return eOk;
-	}
-
-	inline error_t open(size_t index) // выбор
-	{
-		read_chunk_count = 0;
-
-		close();
-		emb_string temp_mid;
-
-		emb_printf::sprintf(song, "%s/%1.ego", browser.play_list_folder.c_str(),
-				index);
-
-		fr = f_open(&file_song, song.c_str(), FA_READ);
-		if (fr != FR_OK)
-			return eWaveNotPresent;
-
-		uint8_t temp;
-		f_read(&file_song, &temp, 1, fw);
-		if (temp == 62)
-		{
-			f_lseek(&file_song, 1);
-			next_play = 1;
-		}
-		else
-		{
-			f_lseek(&file_song, 0);
-			next_play = 0;
-		}
-		f_gets(browser.buf, FF_MAX_SS, &file_song);
-		sound_path = browser.buf;
-		f_gets(browser.buf, FF_MAX_SS, &file_song);
-		click_path = browser.buf;
-		f_close(&file_song);
-
-		swap_need = snNo;
-
-		if (!sound_path.empty())
-		{
-			if ((fr = f_open(&file_sound, sound_path.c_str(), FA_READ))
-					!= FR_OK)
-				return eFsError;
-			// проверка на валидность формата WAV файла A
-			if (!is_valid_wave(&file_sound, 0))
-			{
-				f_close(&file_sound);
-				return eNotRiffWave;
-			}
-			else
-				sound_data_offset = file_sound.fptr;
-			// чтение имени файла sound
-			name = sound_path;
-			name = name.substr(0, sound_path.find(".wav"));
-			name = name.substr(5, name.length());
-
-			midi_player.midi_stream.clear();
-			temp_mid = sound_path;
-			temp_mid = temp_mid.substr(0, sound_path.find(".wav"));
-			temp_mid.append(".mid");
-			if (f_open(&file_click, temp_mid.c_str(), FA_READ) == FR_OK)
-			{
-				if (f_size(&file_click) < 4096)
-				{
-					f_close(&file_click);
-					// midi
-					float parse_file(const char *path,
-							midi_stream_t &midi_stream);
-					float sf = parse_file(temp_mid.c_str(),
-							midi_player.midi_stream);
-
-					midi_player.midi_stream.sort_and_merge();
-					for (auto &v : midi_player.midi_stream.items)
-					{
-						v.time_tics = (v.time_tics * 44100) / sf;
-					}
-					midi_player.reset();
-				}
-				else
-					f_close(&file_click);
-			}
-		}
-		else
-		{
-			// отсутсвует файл wave
-			return eWaveNotPresent;
-		}
-
-		if (!click_path.empty())
-		{
-			if ((fr = f_open(&file_click, click_path.c_str(), FA_READ))
-					!= FR_OK)
-				return eFsError;
-			// проверка на валидность формата WAV файла B
-			if (!is_valid_wave(&file_click, 1))
-			{
-				f_close(&file_click);
-				return eNotRiffWave;
-			}
-			else
-				click_data_offset = file_click.fptr;
-		}
-
-		/*
-		 // midi
-		 midi_player.midi_stream.clear() ;
-		 float parse_file(const char *path, midi_stream_t& midi_stream) ;
-		 float sf = parse_file("/SONGS/AMT_DEMO_TRACKS/LEHMANIZED-T1.mid", midi_player.midi_stream);
-
-		 midi_player.midi_stream.sort_and_merge();
-		 for ( auto & v : midi_player.midi_stream.items  )
-		 {
-		 v.time_tics = (v.time_tics * 44100) / sf ;
-		 }
-		 midi_player.reset();
-		 */
-
-		return eOk;
+		return Song::eOk;
 	}
 
 	inline uint8_t next_pl(void)
 	{
-		return next_play;
+		return selectedSong.playNext;
 	}
 
 	inline void curr_path(emb_string &dst)
@@ -280,34 +162,16 @@ public:
 
 	inline size_t pos()
 	{
-		return (f_tell(&file_sound) - sound_data_offset) / sizeof(wav_sample_t);
+		return (f_tell(&selectedSong.wavFile[0]) - selectedSong.soundDataOffset[0]) / sizeof(wav_sample_t);
 	}
 
 	inline void pos(size_t val)
 	{
-		fr = f_lseek(&file_sound,
-				val * sizeof(wav_sample_t) + sound_data_offset);
-		fr = f_lseek(&file_click,
-				val * sizeof(wav_sample_t) + click_data_offset);
+		fr = f_lseek(&selectedSong.wavFile[0], val * sizeof(wav_sample_t) + selectedSong.soundDataOffset[0]);
+		fr = f_lseek(&selectedSong.wavFile[1], val * sizeof(wav_sample_t) + selectedSong.soundDataOffset[1]);
 
 		midi_player.pos(val);
 
-	}
-
-	inline void close()
-	{
-		f_close(&file_sound);
-		f_close(&file_click);
-		name.clear();
-		size = 0;
-		fr = FR_OK;
-	}
-
-	inline void sound_name(emb_string &dst, bool fullname = false) const
-	{
-		dst = name;
-		if (!fullname)
-			dst = dst.substr(dst.find_last_of('/') + 1, dst.length());
 	}
 
 	inline void browser_name(emb_string &dst)
@@ -342,12 +206,14 @@ public:
 				browser.play_list_folder.length());
 	}
 
+	emb_string browserPlaylistFolder() const
+	{
+		return browser.play_list_folder;
+	}
+
 	inline bool eof(void)
 	{
-		//if ( is_valid_ff_object(&file_click) )
-		//return f_eof(&file_sound) &&  f_eof(&file_click) ;
-		//else
-		return f_eof(&file_sound);
+		return f_eof(&selectedSong.wavFile[0]);
 	}
 
 	inline bool file_flag(void)
@@ -360,25 +226,16 @@ public:
 
 	inline uint32_t sound_size()
 	{
-		uint32_t temp = size / 4 / 4410;
+		uint32_t temp = selectedSong.trackSize[0] / 4 / 4410;
 		return temp;
 	}
 
 	inline uint32_t click_size()
 	{
-		uint32_t temp = size1 / 4;
+		uint32_t temp = selectedSong.trackSize[1] / 4;
 		return temp;
 	}
 	void enter_dir(const char *name, const char *high_level_node, bool begin);
-
-	inline bool SoundNeedSwap()
-	{
-		return swap_need & snSound;
-	}
-	inline bool ClickNeedSwap()
-	{
-		return swap_need & snClick;
-	}
 
 	inline void MidiEventProcess()
 	{
@@ -396,7 +253,8 @@ protected:
 
 	inline bool umount()
 	{
-		close();
+		selectedSong.close();
+		editingSong.close();
 
 		// размонтирование раздела
 		fr = f_mount(0, "SD", 0);
@@ -412,15 +270,14 @@ protected:
 		return false;
 	}
 
-	bool is_valid_wave(FIL *file, uint8_t num);
 
 	inline void get()
 	{
 		// чтение данных из файла wave и запись в буффер
 		size_t br = 0;
 		extern volatile uint32_t samp_point;
-		samp_point = file_sound.fptr - sound_data_offset;
-		fr = f_read(&file_sound, target->dest_sound, target->size, &br);
+		samp_point = selectedSong.wavFile[0].fptr - selectedSong.soundDataOffset[0];
+		fr = f_read(&selectedSong.wavFile[0], target->dest_sound, target->size, &br);
 		size_t zeros = target->size - br;
 
 		if (zeros)
@@ -432,9 +289,9 @@ protected:
 
 		// чтение данных из файла click и запись в буффер
 		br = 0;
-		if ((file_click.fptr) > samp_point)
-			samp_point = file_click.fptr;
-		fr = f_read(&file_click, target->dest_click, target->size, &br);
+		if ((selectedSong.wavFile[1].fptr) > samp_point)
+			samp_point = selectedSong.wavFile[1].fptr;
+		fr = f_read(&selectedSong.wavFile[1], target->dest_click, target->size, &br);
 		zeros = target->size - br;
 		if (zeros)
 		{
@@ -443,7 +300,7 @@ protected:
 		else
 			[[likely]] click_strech(target);
 
-		read_chunk_count++;
+		selectedSong.read_chunk_count++;
 	}
 
 	void get_wav_name(emb_string &dir_path, emb_string &file_path,
@@ -482,6 +339,7 @@ protected:
 	void curr();
 	void next();
 	void prev();
+	void writeSongContent(emb_string& songPath, emb_string& path1, emb_string& path2);
 	//------------------------------------------------------------------------
 
 	inline void notify(const query_notify_t &val)
@@ -504,11 +362,11 @@ protected:
 	inline void sound_strech(const target_t *target)
 	{
 		for (auto &item : stretch[0])
-			if ((read_chunk_count % item.index == 0) && item.index)
+			if ((selectedSong.read_chunk_count % item.index == 0) && item.index)
 			{
 				int32_t diff = item.pos_diff * sizeof(wav_sample_t);
 
-				f_lseek(&file_sound, f_tell(&file_sound) + diff);
+				f_lseek(&selectedSong.wavFile[0], f_tell(&selectedSong.wavFile[0]) + diff);
 #if 0
     	    	   if ( item.pos_diff < -1 )
     	    	     {
@@ -528,11 +386,11 @@ protected:
 	inline void click_strech(const target_t *target)
 	{
 		for (auto &item : stretch[1])
-			if ((read_chunk_count % item.index == 0) && item.index)
+			if ((selectedSong.read_chunk_count % item.index == 0) && item.index)
 			{
 				int32_t diff = item.pos_diff * sizeof(wav_sample_t);
 
-				f_lseek(&file_click, f_tell(&file_click) + diff);
+				f_lseek(&selectedSong.wavFile[1], f_tell(&selectedSong.wavFile[1]) + diff);
 #if 0
     	    	   if ( item.pos_diff < -1 )
     	    	     {
@@ -552,21 +410,13 @@ protected:
 private:
 	void Code();
 	const target_t *target;
-	emb_string name; // имя потока (содержится в файле /xx/name.txt )
+
 
 	FATFS fs; // дескриптор раздела
-	FIL file_song; // дескриптор файла 'song'
-	FIL file_sound; // дескриптор файла 'sound'
-	FIL file_click; // дескриптор файла 'click'
+
 	FRESULT fr; // результат файловой операции
 	UINT *fw;
 
-	size_t size; // размер наибольшего из двух потоков
-	size_t size1; // размер 2 track
-	size_t sound_data_offset;
-	size_t click_data_offset;
-
-	uint32_t read_chunk_count;
 	struct stretch_t
 	{
 		size_t index;
@@ -586,14 +436,9 @@ private:
 	{ 71, -2 },
 	{ 0, 0 } } };
 
-	uint8_t next_play;
-
 	browser_t browser;
 
-	uint32_t swap_need;
-
 	midi_player_t midi_player;
-
 };
 
 extern TFsStreamTask *FsStreamTask;

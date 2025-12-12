@@ -45,7 +45,7 @@ private:
 
 	bool m_requestPlayNext{false};
 
-	bool load_prog();
+	bool loadSong();
 	bool test_file();
 
 	void jump_rand_pos(uint32_t pos);

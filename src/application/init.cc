@@ -376,28 +376,28 @@ extern "C" void DMA1_Stream4_IRQHandler()
 
 	if(play_fl)
 	{
-		if (FsStreamTask->SoundNeedSwap())
-		{
-			dac_sample.left = sound_buff[sound_point].right;
-			dac_sample.right = sound_buff[sound_point].left;
-		}
-		else
-		{
+//		if (FsStreamTask->SoundNeedSwap())
+//		{
+//			dac_sample.left = sound_buff[sound_point].right;
+//			dac_sample.right = sound_buff[sound_point].left;
+//		}
+//		else
+//		{
 			dac_sample.left = sound_buff[sound_point].left;
 			dac_sample.right = sound_buff[sound_point].right;
-		}
+//		}
 		if (sample_pos < click_size)
 		{
-			if (FsStreamTask->ClickNeedSwap())
-			{
-				dac_sample1.left = click_buff[sound_point].right;
-				dac_sample1.right = click_buff[sound_point].left;
-			}
-			else
-			{
+//			if (FsStreamTask->ClickNeedSwap())
+//			{
+//				dac_sample1.left = click_buff[sound_point].right;
+//				dac_sample1.right = click_buff[sound_point].left;
+//			}
+//			else
+//			{
 				dac_sample1.left = click_buff[sound_point].left;
 				dac_sample1.right = click_buff[sound_point].right;
-			}
+//			}
 		}
 		sample_pos = FsStreamTask->pos();
 

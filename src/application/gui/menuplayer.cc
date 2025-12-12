@@ -37,7 +37,8 @@ void MenuPlayer::show(TShowMode showMode)
 //		loadProg();
 		DisplayTask->Clear();
 		FsStreamTask->curr_path(path_old);
-		FsStreamTask->sound_name(m_currentSongName);
+//		FsStreamTask->sound_name(m_currentSongName);
+		m_currentSongName = FsStreamTask->selectedSong.songName();
 		oem2winstar(m_currentSongName);
 //		DisplayTask->StringOut(0, 0, (uint8_t*) tmp.c_str());
 		runningNamePos = 0;
@@ -89,7 +90,7 @@ void MenuPlayer::processPlayNext()
 
 		while (1)
 		{
-			if (load_prog())
+			if (loadSong())
 				num_prog = (num_prog + 1) % 99;
 			else
 				break;
@@ -243,11 +244,13 @@ void MenuPlayer::keyStop()
 		pause_fl = 0;
 		key_reg_out[0] &= ~2;
 		key_reg_out[0] |= 0x80;
+		// midi send
 		us_buf1 = 0xfc;
 		MIDITask->Give();
+
 		init_prog();
-		song_size = count_down = FsStreamTask->sound_size();
-		click_size = FsStreamTask->click_size();
+//		song_size = count_down = FsStreamTask->sound_size();
+//		click_size = FsStreamTask->click_size();
 		DisplayTask->Sec_Print(count_down);
 		count_up = 0;
 	}
@@ -308,7 +311,7 @@ void MenuPlayer::keyLeftUp()
 
 		while (1)
 		{
-			if (load_prog())
+			if (loadSong())
 				num_prog = (num_prog + 1) % 99;
 			else
 				break;
@@ -329,7 +332,7 @@ void MenuPlayer::keyLeftDown()
 
 		while (1)
 		{
-			if (load_prog())
+			if (loadSong())
 			{
 				if (num_prog)
 					num_prog--;
@@ -353,7 +356,7 @@ void MenuPlayer::keyRightUp()
 		num_prog = (num_prog - 1) % 99;
 		while (1)
 		{
-			if (load_prog())
+			if (loadSong())
 				num_prog = (num_prog - 1) % 99;
 			else
 				break;
@@ -372,7 +375,7 @@ void MenuPlayer::keyRightDown()
 		num_prog = (num_prog + 1) % 99;
 		while (1)
 		{
-			if (load_prog())
+			if (loadSong())
 				num_prog = (num_prog + 1) % 99;
 			else
 				break;
@@ -428,11 +431,13 @@ void MenuPlayer::keyEsc()
 	}
 }
 
-bool MenuPlayer::load_prog()
+bool MenuPlayer::loadSong()
 {
 	while (!play_fl1);
 
-	if (FsStreamTask->open(num_prog))
+	emb_string songPath;
+	emb_printf::sprintf(songPath, "%s/%1.ego", FsStreamTask->browserPlaylistFolder().c_str(), num_prog);
+	if(FsStreamTask->selectedSong.load(songPath))
 	{
 		return 1;
 	}
@@ -442,7 +447,8 @@ bool MenuPlayer::load_prog()
 
 		emb_string path_old = "/SONGS";
 		FsStreamTask->curr_path(path_old);
-		FsStreamTask->sound_name(m_currentSongName);
+//		FsStreamTask->sound_name(m_currentSongName);
+		m_currentSongName = FsStreamTask->selectedSong.songName();
 		oem2winstar(m_currentSongName);
 
 		runningNamePos = 0;
@@ -468,7 +474,7 @@ bool MenuPlayer::test_file()
 
 	for (; num_prog < 100; num_prog++)
 	{
-		if (!load_prog())
+		if (!loadSong())
 			break;
 	}
 

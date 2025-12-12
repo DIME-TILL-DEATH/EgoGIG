@@ -38,8 +38,8 @@ void MenuMetronome::encoderPress()
 {
 	if(!metronom_start)
 	{
-		emb_string tmp;
-		FsStreamTask->sound_name(tmp);
+		emb_string tmp = FsStreamTask->selectedSong.songName();
+//		FsStreamTask->sound_name(tmp);
 		oem2winstar(tmp);
 
 		m_parentMenu->returnFromChildMenu();
