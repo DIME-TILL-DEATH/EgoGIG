@@ -32,35 +32,43 @@ Song::FsError Song::load(const emb_string& songPath)
 
 	f_gets(buf, FF_MAX_LFN, &songFile);
 	trackPath[0] = buf;
+	if(trackPath[0].size() < 5) trackPath[0].clear(); // *.wav - minimum 5 symbols
+
 	f_gets(buf, FF_MAX_LFN, &songFile);
 	trackPath[1] = buf;
+	if(trackPath[1].size() < 5) trackPath[1].clear(); // *.wav - minimum 5 symbols
 	f_close(&songFile);
 
-	if (!trackPath[0].empty())
+	for(uint8_t i=0; i<maxTrackCount; i++)
 	{
-		if ((fr = f_open(&wavFile[0], trackPath[0].c_str(), FA_READ)) != FR_OK)
-			return eFsError;
+		if (!trackPath[i].empty())
+		{
+			if ((fr = f_open(&wavFile[i], trackPath[i].c_str(), FA_READ)) != FR_OK)
+				return eFsError;
 
-		// проверка на валидность формата WAV файла 1
-		if (!isValidWave(&wavFile[0], 0))
-		{
-			f_close(&wavFile[0]);
-			return eNotRiffWave;
-		}
-		else
-		{
-			soundDataOffset[0] = wavFile[0].fptr;
-		}
+			// проверка на валидность формата WAV файла 1
+			if (!isValidWave(&wavFile[i], i))
+			{
+				f_close(&wavFile[i]);
+				return eNotRiffWave;
+			}
+			else
+			{
+				soundDataOffset[i] = wavFile[i].fptr;
+			}
 
-		for(uint8_t i=0; i<maxTrackCount; i++)
-		{
-			if(trackPath[i].empty()) continue;
+			emb_string::size_type lineEndPos = trackPath[i].find_last_of('\n');
+			if(lineEndPos != emb_string::npos)
+			{
+				trackPath[i] = trackPath[i].substr(0, lineEndPos);
+			}
 
 			trackName[i] = trackPath[i];
 			trackName[i] = trackName[i].substr(0, trackPath[i].find(".wav"));
 			trackName[i] = trackName[i].substr(5, trackName[i].length());
 			trackName[i] = trackName[i].substr(trackName[i].find_last_of('/') + 1, trackName[i].length());
 		}
+	}
 
 		// Load midi
 //		midi_player.midi_stream.clear();
@@ -88,28 +96,7 @@ Song::FsError Song::load(const emb_string& songPath)
 //			else
 //				f_close(&midiFile);
 //		}
-	}
-	else
-	{
-		// отсутсвует файл wave
-		return eWaveNotPresent;
-	}
 
-	if (!trackPath[1].empty())
-	{
-		if ((fr = f_open(&wavFile[1], trackPath[1].c_str(), FA_READ))
-				!= FR_OK)
-			return eFsError;
-
-		// проверка на валидность формата WAV файла B
-		if (!isValidWave(&wavFile[1], 1))
-		{
-			f_close(&wavFile[1]);
-			return eNotRiffWave;
-		}
-		else
-			soundDataOffset[1] = wavFile[1].fptr;
-	}
 
 	/*
 	 // midi
@@ -149,8 +136,9 @@ Song::FsError Song::save(const emb_string& songPath)
 	{
 		if(trackPath[i].empty()) continue;
 
-//		emb_string finalString = trackPath[i];
-		f_puts(trackPath[i].c_str(), &file);
+		emb_string finalString;
+		emb_printf::sprintf(finalString, "%s\n", trackPath[i].c_str());
+		f_puts(finalString.c_str(), &file);
 	}
 
 	f_close(&file);
@@ -226,38 +214,40 @@ bool Song::isValidWave(FIL *file, uint8_t num)
 		return false;
 
 	size_t sz;
-	volatile size_t po_data = 36;
+//	volatile size_t po_data = 36;
 	while (1)
 	{
-
 		f_read(file, data_id, 4, &br);
 
-		if ((data_id[0] == 'd' && data_id[1] == 'a' && data_id[2] == 't'
-				&& data_id[3] == 'a'))
+		if((data_id[0] == 'd' && data_id[1] == 'a' && data_id[2] == 't' && data_id[3] == 'a'))
 		{
 			f_read(file, &sz, 4, &br);
 			break;
 		}
 
-		po_data = f_tell(file) - 3;
-		f_lseek(file, po_data);
+//		po_data = f_tell(file) - 3;
+//		f_lseek(file, po_data);
 	}
 
-	if (!num)
-	{
-		if ((po_data % 6))
-		{
-			f_lseek(file, f_tell(file) + 2);
-//			swap_need |= (swap_need_t) snSound;
-		}
-		trackSize[0] = sz;
-	}
+	trackSize[num] = sz;
 
-	else
-	{
-		//if ( wh.subchunk1Size == 18 ) { f_lseek(file, f_tell(file)+2) ; swap_need |= (swap_need_t)snClick ;}
-		trackSize[1] = sz;
-	}
+	// Обработка какого-то необычного типа файлов?
+
+//	if (!num)
+//	{
+//		if ((po_data % 6))
+//		{
+//			f_lseek(file, f_tell(file) + 2);
+////			swap_need |= (swap_need_t) snSound;
+//		}
+//		trackSize[0] = sz;
+//	}
+//
+//	else
+//	{
+//		//if ( wh.subchunk1Size == 18 ) { f_lseek(file, f_tell(file)+2) ; swap_need |= (swap_need_t)snClick ;}
+//		trackSize[1] = sz;
+//	}
 
 	return true;
 }
