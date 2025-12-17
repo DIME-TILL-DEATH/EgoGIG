@@ -13,7 +13,7 @@
 #include <libopencm3/cm3/nvic.h>
 #include <libopencm3/cm3/scb.h>
 
-#include "gui.h"
+#include "enc.h"
 
 #include "fs_stream.h"
 
@@ -26,6 +26,8 @@
 MenuPlayer* menuPlayer;
 Player player;
 
+uint8_t num_prog = 0;
+
 dac_sample_t dac_sample;
 dac_sample_t dac_sample1;
 
@@ -34,6 +36,9 @@ uint8_t sys_param[64];
 uint8_t ctrl_param[32];
 uint8_t pc_param[256];
 uint8_t midi_pc = 0;
+
+uint8_t tim5_fl = 0;
+uint8_t blink_en = 0;
 
 wav_sample_t sound_buff[Player::wav_buff_size];
 wav_sample_t click_buff[Player::wav_buff_size];
@@ -52,7 +57,7 @@ const target_t second_target =
 	Player::wav_buff_size / 2 * sizeof(wav_sample_t)
 };
 
-volatile uint8_t encoder_state, encoder_state1, encoder_key, key_ind;
+volatile uint8_t encoder_state, encoder_rotated, encoder_key, key_ind;
 
 volatile uint32_t click_size;
 volatile uint32_t count_down;
@@ -60,13 +65,11 @@ volatile uint32_t count_up;
 
 volatile uint32_t play_point1 = 0;
 volatile uint32_t play_point2 = 0;
-volatile uint8_t pause_fl = 0;
 
 uint32_t song_size;
 
 uint16_t key_reg_in[2];
-uint16_t key_reg_out[2] =
-{ 0, 0 };
+uint16_t key_reg_out[2] = { 0, 0 };
 uint8_t key_val;
 
 //-----------------------------------------------------------------
@@ -502,7 +505,8 @@ extern "C" void EXTI4_IRQHandler()
 				encoder_state = 1;
 			else
 				encoder_state = 2;
-			encoder_state1 = 1;
+
+			encoder_rotated = 1;
 			CSTask->Give();
 		}
 	}

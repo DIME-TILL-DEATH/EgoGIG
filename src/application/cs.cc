@@ -5,7 +5,7 @@
 #include "display.h"
 #include "fs_stream.h"
 
-#include "gui.h"
+#include "enc.h"
 #include "init.h"
 
 #include "menuplayer.h"
@@ -13,18 +13,12 @@
 #include "menumidicontrol.h"
 #include "menumidipc.h"
 
-#include "libopencm3/stm32/timer.h"
 #include "libopencm3/stm32/gpio.h"
-#include "libopencm3/stm32/dma.h"
-#include <libopencm3/cm3/nvic.h>
-#include "libopencm3/stm32/spi.h"
-#include "libopencm3/stm32/usart.h"
 
 TCSTask *CSTask;
 TSofwareTimer *DisplayBlinkTask;
 
 
-/////////////////////////////////////////////Gui//////////////////////////////////////////////////////////////
 void TCSTask::Code()
 {
 	Delay(500);
@@ -66,7 +60,44 @@ void TCSTask::Code()
 	while (1)
 	{
 		sem->Take(portMAX_DELAY);
-		processGui(this);
+
+		if(currentMenu)
+		{
+			currentMenu->task();
+
+			switch(key_ind)
+			{
+			case key_stop: currentMenu->keyStop(); break;
+			case key_stop_long: currentMenu->keyStopLong(); break;
+			case key_start: currentMenu->keyStart(); break;
+			case key_left_up: currentMenu->keyLeftUp(); break;
+			case key_left_down: currentMenu->keyLeftDown(); break;
+			case key_right_up: currentMenu->keyRightUp(); break;
+			case key_right_down: currentMenu->keyRightDown(); break;
+			case key_return: currentMenu->keyReturn(); break;
+			case key_return_long: currentMenu->keyReturnLong(); break;
+			case key_forward: currentMenu->keyForward(); break;
+			case key_forward_long: currentMenu->keyForwardLong(); break;
+			case key_esc: currentMenu->keyEsc(); break;
+			case key_encoder: currentMenu->encoderPress(); break;
+			case key_encoder_long: currentMenu->encoderLongPress(); break;
+			}
+
+			if(encoder_rotated)
+			{
+				if(encoder_state == 2)
+				{
+					currentMenu->encoderClockwise();
+				}
+				else
+				{
+					currentMenu->encoderCounterClockwise();
+				}
+			}
+
+			encoder_rotated = encoder_key = key_ind = 0;
+		}
+
 		menuPlayer->processPlayNext();
 	}
 }

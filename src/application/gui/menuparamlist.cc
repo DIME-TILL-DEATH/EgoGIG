@@ -3,7 +3,6 @@
 #include "paramsubmenu.h"
 
 #include "display.h"
-#include "gui.h"
 
 MenuParamList::MenuParamList(AbstractMenu* parent, GuiMenuType menuType)
 {

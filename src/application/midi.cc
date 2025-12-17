@@ -4,7 +4,7 @@
 #include "init.h"
 #include "libopencm3/stm32/usart.h"
 
-#include "gui.h"
+#include "enc.h"
 #include "leds.h"
 
 #include "menumidicontrol.h"

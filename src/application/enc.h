@@ -4,6 +4,25 @@
 #include "appdefs.h"
 #include "libopencm3/stm32/timer.h"
 
+enum
+{
+	key_stop = 1,
+	key_stop_long,
+	key_start,
+	key_left_up,
+	key_left_down,
+	key_right_up,
+	key_right_down,
+	key_return,
+	key_return_long,
+	key_forward,
+	key_forward_long,
+	key_esc,
+	key_encoder,
+	key_encoder_long
+};
+
+
 class TENCTask: public TTask
 {
 public:

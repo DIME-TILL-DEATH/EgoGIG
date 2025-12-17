@@ -10,7 +10,6 @@
 #include "libopencm3/stm32/exti.h"
 #include <libopencm3/cm3/nvic.h>
 
-#include "gui.h"
 #include "leds.h"
 
 TENCTask *ENCTask;
