@@ -9,6 +9,8 @@
 #include "menumetronome.h"
 #include "menumain.h"
 
+#include "parambase.h"
+
 #include "player.h"
 
 #include "leds.h"
@@ -191,7 +193,7 @@ void MenuPlayer::encoderLongPress()
 void MenuPlayer::encoderClockwise()
 {
 	if(count_up < song_size)
-		count_up = enc_speed_inc(count_up, song_size);
+		count_up = ParamBase::encSpeedInc(count_up, song_size);
 
 	player.jumpToPosition(count_up * 4410);
 
@@ -200,8 +202,8 @@ void MenuPlayer::encoderClockwise()
 
 void MenuPlayer::encoderCounterClockwise()
 {
-	if (count_up)
-		count_up = enc_speed_dec(count_up, 0);
+	if(count_up)
+		count_up = ParamBase::encSpeedDec(count_up, 0);
 
 	player.jumpToPosition(count_up * 4410);
 

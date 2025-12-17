@@ -29,7 +29,6 @@ volatile uint8_t lock_fl_old;
 uint32_t led_blink_count1 = 0;
 uint32_t led_blink_count2 = 0;
 uint32_t led_blink_count3 = 0;
-uint8_t cs_resum_fl = 0;
 
 void tim_start(uint16_t del)
 {
@@ -316,3 +315,21 @@ extern "C" void TIM3_IRQHandler()
 	}
 }
 
+extern "C" void EXTI4_IRQHandler()
+{
+	nvic_clear_pending_irq (NVIC_EXTI4_IRQ);
+	if (!lock_fl)
+	{
+		if (drebezg(EXTI4) == 1)
+		{
+			if (GPIOC_IDR &GPIO5)
+				encoder_state = 1;
+			else
+				encoder_state = 2;
+
+			encoder_rotated = 1;
+			CSTask->Give();
+		}
+	}
+	exti_reset_request (EXTI4);
+}

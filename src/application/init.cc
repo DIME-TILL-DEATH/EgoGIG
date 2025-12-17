@@ -494,24 +494,6 @@ extern "C" void DMA1_Stream4_IRQHandler()
 		tap_temp2++;
 }
 
-extern "C" void EXTI4_IRQHandler()
-{
-	nvic_clear_pending_irq (NVIC_EXTI4_IRQ);
-	if (!lock_fl)
-	{
-		if (drebezg(EXTI4) == 1)
-		{
-			if (GPIOC_IDR &GPIO5)
-				encoder_state = 1;
-			else
-				encoder_state = 2;
-
-			encoder_rotated = 1;
-			CSTask->Give();
-		}
-	}
-	exti_reset_request (EXTI4);
-}
 extern "C" void DMA2_Stream0_IRQHandler()
 {
 	dma_clear_interrupt_flags(DMA2, DMA_STREAM0, DMA_TCIF);

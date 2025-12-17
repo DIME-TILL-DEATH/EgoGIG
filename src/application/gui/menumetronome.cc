@@ -6,6 +6,8 @@
 #include "fs_stream.h"
 #include "leds.h"
 
+#include "parambase.h"
+
 MenuMetronome::MenuMetronome(AbstractMenu* parent)
 {
 	m_menuType = MENU_METRONOME;
@@ -51,7 +53,7 @@ void MenuMetronome::encoderPress()
 void MenuMetronome::encoderClockwise()
 {
 	if(tempo < 240)
-		tempo = enc_speed_inc(tempo, 240);
+		tempo = ParamBase::encSpeedInc(tempo, 240);
 
 	metronom_int = 44100.0f / (tempo / 60.0f) + 0.5f;
 	ind_temp();
@@ -60,7 +62,7 @@ void MenuMetronome::encoderClockwise()
 void MenuMetronome::encoderCounterClockwise()
 {
 	if(tempo > 20)
-		tempo = enc_speed_dec(tempo, 20);
+		tempo = ParamBase::encSpeedDec(tempo, 20);
 
 	metronom_int = 44100.0f / (tempo / 60.0f) + 0.5f;
 	ind_temp();

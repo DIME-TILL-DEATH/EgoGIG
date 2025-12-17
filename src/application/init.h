@@ -28,15 +28,10 @@ extern Player player;
 
 extern uint16_t key_reg_out[];
 extern uint8_t num_prog;
-extern uint8_t m_num_prog_edit;
-extern const uint8_t led_sym[];
 extern volatile uint8_t tim3_end_fl;
 extern uint8_t sys_param[];
 extern uint8_t ctrl_param[];
 extern uint8_t pc_param[];
-extern uint8_t cs_resum_fl;
-extern volatile uint32_t file_end_fl;
-extern volatile uint8_t lock_fl;
 extern volatile uint8_t key_ind;
 extern volatile uint32_t metronom_int;
 extern uint16_t metronom_counter;
@@ -113,12 +108,6 @@ inline uint8_t drebezg(uint32_t line)
 	TIM9_CR1 |= TIM_CR1_CEN;
 	return sss;
 }
-
-//inline void load_led(uint8_t num)
-//{
-//	uint8_t temp = num + 1;
-//	key_reg_out[1] = (led_sym[temp / 10]) | ((led_sym[temp % 10]) << 8);
-//}
 
 inline void __attribute__ ((always_inline)) dela(uint32_t p)
 {
