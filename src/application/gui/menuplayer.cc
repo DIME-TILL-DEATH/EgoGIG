@@ -36,18 +36,16 @@ void MenuPlayer::show(TShowMode showMode)
 	}
 	else
 	{
-//		loadProg();
 		DisplayTask->Clear();
 		FsStreamTask->curr_path(path_old);
-//		FsStreamTask->sound_name(m_currentSongName);
 		m_currentSongName = FsStreamTask->selectedSong.songName();
 		oem2winstar(m_currentSongName);
-//		DisplayTask->StringOut(0, 0, (uint8_t*) tmp.c_str());
 		runningNamePos = 0;
 		printRunningName(m_currentSongName);
 
-		if (FsStreamTask->next_pl())
+		if(FsStreamTask->selectedSong.playNext)
 			DisplayTask->SymbolOut(15, 1, SYMBOL_NEXT_MARK);
+
 		DisplayTask->Sec_Print(FsStreamTask->sound_size());
 	}
 
@@ -135,7 +133,7 @@ void MenuPlayer::encoderPress()
 		printRunningName(m_currentSongName);
 
 
-		if (FsStreamTask->next_pl())
+		if(FsStreamTask->selectedSong.playNext)
 			DisplayTask->StringOut(15, 1, (uint8_t*) SYMBOL_NEXT_MARK);
 
 		if (sys_param[direction_counter])
@@ -172,7 +170,7 @@ void MenuPlayer::encoderPress()
 		runningNamePos = 0;
 		printRunningName(m_currentSongName);
 
-		if (FsStreamTask->next_pl())
+		if (FsStreamTask->selectedSong.playNext)
 			DisplayTask->StringOut(15, 1, (uint8_t*) SYMBOL_NEXT_MARK);
 
 		if(player.state() == Player::PLAYER_PAUSE)
@@ -242,7 +240,7 @@ void MenuPlayer::keyStop()
 	us_buf1 = 0xfc;
 	MIDITask->Give();
 
-	init_prog();
+	initSong();
 
 	DisplayTask->Sec_Print(count_down);
 	count_up = 0;
@@ -282,7 +280,7 @@ void MenuPlayer::keyStart()
 			key_reg_out[0] &= ~0x80;
 
 			if(playPoint1Selected && m_loopModeActive && sys_param[loop_points])
-				jump_rand_pos(play_point1);
+				player.jumpToPosition(play_point1);
 
 			us_buf1 = 0xfa;
 			MIDITask->Give();
@@ -392,7 +390,7 @@ void MenuPlayer::keyReturn()
 {
 	if(no_file) return;
 
-	jump_rand_pos(play_point1);
+	player.jumpToPosition(play_point1);
 }
 
 void MenuPlayer::keyReturnLong()
@@ -410,7 +408,7 @@ void MenuPlayer::keyForward()
 {
 	if(no_file) return;
 
-	jump_rand_pos(play_point2);
+	player.jumpToPosition(play_point2);
 }
 
 void MenuPlayer::keyForwardLong()
@@ -429,6 +427,7 @@ void MenuPlayer::keyEsc()
 		tim7_start(1);
 		key_reg_out[0] &= ~0x10;
 		key_reg_out[0] |= 0x8;
+
 		showChild(new MenuMain(this));
 	}
 }
@@ -456,10 +455,10 @@ bool MenuPlayer::loadSong()
 		runningNamePos = 0;
 		printRunningName(m_currentSongName);
 
-		if (FsStreamTask->next_pl()) DisplayTask->SymbolOut(15, 1, SYMBOL_NEXT_MARK);
+		if(FsStreamTask->selectedSong.playNext) DisplayTask->SymbolOut(15, 1, SYMBOL_NEXT_MARK);
 		DisplayTask->Sec_Print(FsStreamTask->sound_size());
 
-		init_prog();
+		initSong();
 		song_size = count_down = FsStreamTask->sound_size();
 		click_size = FsStreamTask->click_size();
 		play_point1 = play_point2 = playPoint1Selected = playPoint2Selected = 0;
@@ -492,22 +491,7 @@ bool MenuPlayer::test_file()
 	return temp;
 }
 
-void MenuPlayer::jump_rand_pos(uint32_t pos)
-{
-	FsStreamTask->pos(pos);
-	count_up = pos / 4410.0f;
-	count_down = song_size - count_up;
-
-	if (sys_param[direction_counter])
-		DisplayTask->Sec_Print(count_down);
-	else
-		DisplayTask->Sec_Print(count_up);
-
-	memset(sound_buff, 0, Player::wav_buff_size);
-	memset(click_buff, 0, Player::wav_buff_size);
-}
-
-void MenuPlayer::init_prog(void)
+void MenuPlayer::initSong(void)
 {
 	while(player.state() == Player::PLAYER_LOADING_SONG);
 

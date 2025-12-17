@@ -52,8 +52,7 @@ private:
 	bool loadSong();
 	bool test_file();
 
-	void jump_rand_pos(uint32_t pos);
-	void init_prog(void);
+	void initSong(void);
 };
 
 

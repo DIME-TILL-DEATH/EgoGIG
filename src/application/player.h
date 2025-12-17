@@ -22,6 +22,7 @@ public:
 	void startPlay();
 	void stopPlay();
 	void pause();
+	void jumpToPosition(uint32_t pos);
 
 	void initSong();
 	void songInitiated();

@@ -106,11 +106,6 @@ public:
 		return Song::eOk;
 	}
 
-	inline uint8_t next_pl(void)
-	{
-		return selectedSong.playNext;
-	}
-
 	inline void curr_path(emb_string &dst)
 	{
 		f_getcwd(browser.buf, FF_MAX_LFN);

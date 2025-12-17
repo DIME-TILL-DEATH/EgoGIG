@@ -19,6 +19,7 @@ MenuMetronome::~MenuMetronome()
 
 void MenuMetronome::show(TShowMode showMode)
 {
+	DisplayTask->Clear();
 	DisplayTask->StringOut(0, 0, (uint8_t*) "    Metronome");
 	DisplayTask->StringOut(0, 1, (uint8_t*) "    Tempo 120");
 	tempo = 120;
