@@ -61,7 +61,7 @@ public:
 	void showChild(AbstractMenu* child);
 	void returnFromChildMenu();
 
-	static void printRunningName(emb_string name, uint8_t xPos = 0, StingSize  strSize = STRING_SINGLE);
+	static void printRunningName(emb_string name, uint8_t xPos = 0, uint8_t yPos = 0, StingSize  strSize = STRING_SINGLE);
 
 protected:
 	AbstractMenu* m_parentMenu = nullptr;

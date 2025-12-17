@@ -16,6 +16,8 @@
 class TFsStreamTask: public TTask
 {
 public:
+	Song editingSong;
+	Song selectedSong;
 
 	struct browser_t
 	{
@@ -30,12 +32,7 @@ public:
 
 	};
 
-	inline TFsStreamTask(const char *name, const int stack_size,
-			const int priority) :
-			TTask(name, stack_size, priority, true)
-	{
-
-	}
+	TFsStreamTask(const char *name, const int stack_size, const int priority);
 
 	enum notify_t
 	{
@@ -43,7 +40,7 @@ public:
 	};
 	enum action_param_t
 	{
-		ap_1_wav, ap_2_wav, play_next
+		enter_directory, save_song
 	};
 
 	struct query_notify_t
@@ -55,7 +52,6 @@ public:
 			{
 				action_param_t action_param :8;
 				uint32_t play_index :8;
-				uint32_t play_next :8;
 			} __attribute__((packed));
 		} __attribute__((packed));
 	} __attribute__((packed));
@@ -79,14 +75,12 @@ public:
 		{ .notify = qn_prev };
 		notify(qn);
 	}
-	inline void action_notify(action_param_t val, uint8_t play_index,
-			uint8_t play_next)
+	inline void action_notify(action_param_t val, uint8_t play_index)
 	{
 		query_notify_t qn;
 		qn.notify = qn_action;
 		qn.action_param = val;
 		qn.play_index = play_index;
-		qn.play_next = play_next;
 		notify(qn);
 	}
 	inline void curr_notify()
@@ -102,44 +96,7 @@ public:
 		notify(qn);
 	}
 
-	Song editingSong;
-	Song selectedSong;
-
-	inline error_t open_song_name(size_t index, emb_string &dst, uint8_t mode, uint8_t num)
-	{
-		FIL f_temp;
-		emb_printf::sprintf(dst, "%s/%1.ego", browser.play_list_folder.c_str(), index);
-		fr = f_open(&f_temp, dst.c_str(), FA_READ);
-		if (fr != FR_OK)
-			return Song::eWaveNotPresent;
-
-		uint8_t tempChar;
-		f_read(&f_temp, &tempChar, 1, fw);
-		if(tempChar == 62)
-		{
-			f_lseek(&f_temp, 1);
-			editingSong.playNext = true;
-		}
-		else
-		{
-			f_lseek(&f_temp, 0);
-			editingSong.playNext = false;
-		}
-
-		f_gets(browser.buf, FF_MAX_SS, &f_temp);
-		if (num)
-			f_gets(browser.buf, FF_MAX_SS, &f_temp);
-		f_close(&f_temp);
-
-		dst = browser.buf;
-		if (dst.empty())
-			return Song::eWaveNotPresent;
-		if (!mode)
-			dst = dst.substr(dst.find_last_of('/') + 1, dst.length());
-
-		dst.erase(dst.find(".wav"), 5);
-		return Song::eOk;
-	}
+	bool currentPathIsDirectory();
 
 	inline error_t delete_track(size_t index)
 	{
@@ -335,7 +292,7 @@ protected:
 
 	//-------------------------------------------------------------------
 
-	void action(action_param_t val, uint8_t play_index, uint8_t play_next);
+	void action(action_param_t val, uint8_t play_index);
 	void curr();
 	void next();
 	void prev();

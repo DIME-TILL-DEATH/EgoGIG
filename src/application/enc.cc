@@ -62,7 +62,7 @@ void TENCTask::Code()
 				}
 				break;   // stop
 			case 247:
-				if (!lock_fl || (stop_fl1))
+				if (!lock_fl) // || (stop_fl1))
 				{
 					key_ind = key_start;
 					key_push_fl = 1;
@@ -155,7 +155,7 @@ void TENCTask::Code()
 				}
 				break;
 			case 4:
-				if ((!lock_fl || (stop_fl1)) && (GPIOA_IDR & GPIO10))
+				if ((!lock_fl) && (GPIOA_IDR & GPIO10)) //((!lock_fl || (stop_fl1)) && (GPIOA_IDR & GPIO10))
 				{
 					key_ind = key_start;
 					key_push_fl = 1;
@@ -287,31 +287,34 @@ extern "C" void TIM3_IRQHandler()
 	tim3_end_fl = 1;
 	if (ret_push_fl || fwd_push_fl || enc_push_fl || stp_push_fl)
 	{
-		if (ret_push_fl)
+		if(ret_push_fl)
 		{
-			if (!lock_fl)
+			if(!lock_fl)
 			{
 				key_ind = key_return;
 				ret_dub_fl = 1;
 				CSTask->Give();
 			}
 		}
-		if (fwd_push_fl)
+
+		if(fwd_push_fl)
 		{
-			if (!lock_fl)
+			if(!lock_fl)
 			{
 				key_ind = key_forward;
 				fwd_dub_fl = 1;
 				CSTask->Give();
 			}
 		}
-		if (enc_push_fl)
+
+		if(enc_push_fl)
 		{
 			key_ind = key_encoder;
 			enc_dub_fl = 1;
 			CSTask->Give();
 		}
-		if (stp_push_fl)
+
+		if(stp_push_fl)
 		{
 			key_ind = key_stop;
 			stp_dub_fl = 1;

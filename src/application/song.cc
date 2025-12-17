@@ -3,7 +3,7 @@
 //#include "fs_stream.h"
 char Song::buf[FF_MAX_LFN + 4];
 
-uint8_t Song::load(const emb_string& songPath)
+Song::FsError Song::load(const emb_string& songPath)
 {
 	FRESULT fr;
 	UINT *fw;
@@ -30,9 +30,9 @@ uint8_t Song::load(const emb_string& songPath)
 		playNext = 0;
 	}
 
-	f_gets(buf, FF_MAX_SS, &songFile);
+	f_gets(buf, FF_MAX_LFN, &songFile);
 	trackPath[0] = buf;
-	f_gets(buf, FF_MAX_SS, &songFile);
+	f_gets(buf, FF_MAX_LFN, &songFile);
 	trackPath[1] = buf;
 	f_close(&songFile);
 
@@ -42,7 +42,7 @@ uint8_t Song::load(const emb_string& songPath)
 			return eFsError;
 
 		// проверка на валидность формата WAV файла 1
-		if (!is_valid_wave(&wavFile[0], 0))
+		if (!isValidWave(&wavFile[0], 0))
 		{
 			f_close(&wavFile[0]);
 			return eNotRiffWave;
@@ -52,11 +52,15 @@ uint8_t Song::load(const emb_string& songPath)
 			soundDataOffset[0] = wavFile[0].fptr;
 		}
 
-		// чтение имени файла sound
-		trackName[0] = trackPath[0];
-		trackName[0] = trackName[0].substr(0, trackPath[0].find(".wav"));
-		trackName[0] = trackName[0].substr(5, trackName[0].length());
-		trackName[0] = trackName[0].substr(trackName[0].find_last_of('/') + 1, trackName[0].length());
+		for(uint8_t i=0; i<maxTrackCount; i++)
+		{
+			if(trackPath[i].empty()) continue;
+
+			trackName[i] = trackPath[i];
+			trackName[i] = trackName[i].substr(0, trackPath[i].find(".wav"));
+			trackName[i] = trackName[i].substr(5, trackName[i].length());
+			trackName[i] = trackName[i].substr(trackName[i].find_last_of('/') + 1, trackName[i].length());
+		}
 
 		// Load midi
 //		midi_player.midi_stream.clear();
@@ -96,8 +100,9 @@ uint8_t Song::load(const emb_string& songPath)
 		if ((fr = f_open(&wavFile[1], trackPath[1].c_str(), FA_READ))
 				!= FR_OK)
 			return eFsError;
+
 		// проверка на валидность формата WAV файла B
-		if (!is_valid_wave(&wavFile[1], 1))
+		if (!isValidWave(&wavFile[1], 1))
 		{
 			f_close(&wavFile[1]);
 			return eNotRiffWave;
@@ -123,6 +128,35 @@ uint8_t Song::load(const emb_string& songPath)
 	return eOk;
 }
 
+Song::FsError Song::save(const emb_string& songPath)
+{
+	FIL file;
+	FRESULT fr = f_open(&file, songPath.c_str(), FA_OPEN_ALWAYS | FA_WRITE);
+	UINT fw;
+
+	if(fr != FR_OK)	return FsError::eFsError;
+
+	f_lseek(&file, 0);
+	f_truncate(&file);
+
+	char temp = 62;
+	if (playNext)
+		f_write(&file, &temp, 1, &fw);
+	else
+		f_lseek(&file, 0);
+
+	for(uint8_t i=0; i<maxTrackCount; i++)
+	{
+		if(trackPath[i].empty()) continue;
+
+//		emb_string finalString = trackPath[i];
+		f_puts(trackPath[i].c_str(), &file);
+	}
+
+	f_close(&file);
+	return eOk;
+}
+
 void Song::close()
 {
 	for(uint8_t i =0; i < maxTrackCount; i++)
@@ -132,7 +166,18 @@ void Song::close()
 	}
 }
 
-bool Song::is_valid_wave(FIL *file, uint8_t num)
+bool Song::isValidWave(emb_string filePath)
+{
+	FRESULT fr;
+
+	FIL songFile;
+	fr = f_open(&songFile, filePath.c_str(), FA_READ);
+	if (fr != FR_OK) return false;
+
+	return isValidWave(&songFile, 0);
+}
+
+bool Song::isValidWave(FIL *file, uint8_t num)
 {
 	FRESULT fr;
 	UINT br;

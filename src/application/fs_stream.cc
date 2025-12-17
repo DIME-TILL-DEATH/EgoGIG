@@ -9,6 +9,12 @@
 TFsStreamTask *FsStreamTask;
 volatile uint8_t FsStream_enable_fl = 0;
 
+TFsStreamTask::TFsStreamTask(const char *name, const int stack_size, const int priority)
+		: TTask(name, stack_size, priority, true)
+{
+
+}
+
 void TFsStreamTask::Code()
 {
 	mount();
@@ -132,7 +138,7 @@ void TFsStreamTask::Code()
 			curr();
 			break;
 		case qn_action:
-			action(qn.action_param, qn.play_index, qn.play_next);
+			action(qn.action_param, qn.play_index);
 			break;
 		default:
 		{
@@ -142,89 +148,6 @@ void TFsStreamTask::Code()
 		TScheduler::Yeld();
 	}
 }
-
-//bool TFsStreamTask::is_valid_wave(FIL *file, uint8_t num)
-//{
-//	wave_header_t wh;
-//	UINT br = 0;
-//	if ((fr = f_read(file, &wh, 12, &br)) != FR_OK)
-//		return false;
-//
-//	// RIFF
-//	if (!(wh.chunkId[0] == 'R' && wh.chunkId[1] == 'I' && wh.chunkId[2] == 'F'
-//			&& wh.chunkId[3] == 'F'))
-//	{
-//		return false;
-//	}
-//
-//	// WAVE
-//	if (!(wh.format[0] == 'W' && wh.format[1] == 'A' && wh.format[2] == 'V'
-//			&& wh.format[3] == 'E'))
-//	{
-//		return false;
-//	}
-//
-//	uint32_t find_data = file->fptr;
-//	char data_id[4];
-//	while (1)
-//	{
-//		f_lseek(file, find_data++);
-//		f_read(file, data_id, 4, &br);
-//		if ((data_id[0] == 'f' && data_id[1] == 'm' && data_id[2] == 't'
-//				&& data_id[3] == ' '))
-//		{
-//			f_read(file, &wh.subchunk1Size, 20, &br);
-//			break;
-//		}
-//	}
-//
-//	if (wh.subchunk1Size != 16 && wh.subchunk1Size != 18)
-//		return false;
-//	if (wh.audioFormat != 1)
-//		return false;
-//	if (wh.numChannels != 2)
-//		return false;
-//	if (wh.sampleRate != 44100)
-//		return false;
-//	if (wh.bitsPerSample != 16)
-//		return false;
-//
-//	size_t sz;
-//	volatile size_t po_data = 36;
-//	while (1)
-//	{
-//
-//		f_read(file, data_id, 4, &br);
-//
-//		if ((data_id[0] == 'd' && data_id[1] == 'a' && data_id[2] == 't'
-//				&& data_id[3] == 'a'))
-//		{
-//			f_read(file, &sz, 4, &br);
-//			break;
-//		}
-//
-//		po_data = f_tell(file) - 3;
-//		f_lseek(file, po_data);
-//	}
-//
-//	if (!num)
-//	{
-//		if ((po_data % 6))
-//		{
-//			f_lseek(file, f_tell(file) + 2);
-////			swap_need |= (swap_need_t) snSound;
-//		}
-//		size = sz;
-//	}
-//
-//	else
-//	{
-//		//if ( wh.subchunk1Size == 18 ) { f_lseek(file, f_tell(file)+2) ; swap_need |= (swap_need_t)snClick ;}
-//		size1 = sz;
-//	}
-//
-//	return true;
-//}
 
 //-------------------------------------------------------------------
 void TFsStreamTask::enter_dir(const char *name, const char *high_level_node,
@@ -272,50 +195,36 @@ void TFsStreamTask::enter_dir(const char *name, const char *high_level_node,
 	}
 }
 
-
-void TFsStreamTask::writeSongContent(emb_string& songPath, emb_string& path1, emb_string& path2)
+bool TFsStreamTask::currentPathIsDirectory()
 {
-	FIL file;
-	char temp = 62;
-
-	fr = f_open(&file, songPath.c_str(), FA_OPEN_ALWAYS | FA_WRITE);
-	f_lseek(&file, 0);
-	f_truncate(&file);
-
-	if (play_next)
-		f_write(&file, &temp, 1, fw);
-	else
-		f_lseek(&file, 0);
-
-	f_puts(path1.c_str(), &file);
-	f_puts(path2.c_str(), &file);
-
-	extern volatile uint8_t led_blink_fl;
-	led_blink_fl = 1;
-
-	f_close(&file);
+	return browser.fno.fattrib & AM_DIR;
 }
 
 emb_string str1;
-void TFsStreamTask::action(action_param_t val, uint8_t play_index, uint8_t play_next)
+void TFsStreamTask::action(action_param_t val, uint8_t play_index)
 {
-	if (browser.fno.fattrib & AM_DIR)
+	if(val == enter_directory)
 	{
-		// entry to dir
-		browser.tmp = emb_string(browser.fno.fname);
-		if (browser.tmp == "..")
+		if(browser.fno.fattrib & AM_DIR)
 		{
-			fr = f_getcwd(browser.buf, FF_MAX_LFN);
-			browser.tmp = browser.buf;
-			size_t slash_pos = browser.tmp.find_last_of('/');
-			browser.tmp = browser.tmp.substr(slash_pos + 1,
-					browser.tmp.length());
-		}
+			// entry to dir
+			browser.tmp = emb_string(browser.fno.fname);
+			if (browser.tmp == "..")
+			{
+				fr = f_getcwd(browser.buf, FF_MAX_LFN);
+				browser.tmp = browser.buf;
+				size_t slash_pos = browser.tmp.find_last_of('/');
+				browser.tmp = browser.tmp.substr(slash_pos + 1,
+						browser.tmp.length());
+			}
 
-		// entry to dir
-		enter_dir(browser.fno.fname, browser.tmp.c_str());
+			// entry to dir
+			enter_dir(browser.fno.fname, browser.tmp.c_str());
+		}
+		return;
 	}
-	else
+
+	if(val == save_song)
 	{
 		// file action
 		DIR d;
@@ -328,42 +237,10 @@ void TFsStreamTask::action(action_param_t val, uint8_t play_index, uint8_t play_
 			fr = f_closedir(&d);
 		}
 		FIL f;
+
 		emb_string songPath;
-		emb_string str2;
-
-
 		emb_printf::sprintf(songPath, "%s/%1.ego", browser.play_list_folder.c_str(), play_index);
-
-		if (val == ap_1_wav)
-		{
-			str1.clear();
-			str2.clear();
-
-			f_getcwd(browser.buf, FF_MAX_SS);
-			emb_printf::sprintf(str1, "%s/%s\n", browser.buf, browser.fno.fname);
-
-			fr = f_open(&f, str1.c_str(), FA_READ);
-//			if (is_valid_wave(&f, 0))
-//			{
-//				writeSongContent(songPath, str1, str2);
-//			}
-
-			f_close(&f);
-		}
-		else
-		{
-			str2.clear();
-
-			f_getcwd(browser.buf, FF_MAX_SS);
-			emb_printf::sprintf(str2, "%s/%s\n", browser.buf, browser.fno.fname);
-			fr = f_open(&f, str2.c_str(), FA_READ);
-//			if (is_valid_wave(&f, 1))
-//			{
-//				writeSongContent(songPath, str1, str2);
-//			}
-
-			f_close(&f);
-		}
+		editingSong.save(songPath);
 	}
 }
 

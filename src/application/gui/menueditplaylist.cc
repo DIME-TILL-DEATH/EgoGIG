@@ -16,95 +16,106 @@ void MenuEditPlaylist::show(TShowMode showMode)
 {
 	emb_string path_old = "/SONGS";
 	FsStreamTask->enter_dir(path_old.c_str(), "", true);
-	m_num_prog_edit = 0;
-	load_led(m_num_prog_edit);
+	m_numProgEdit = 0;
+	load_led(m_numProgEdit);
 
 	DisplayTask->Clear();
 	DisplayTask->StringOut(4, 0, (uint8_t*) "Browser");
 	DisplayTask->StringOut(1, 1, (uint8_t*) "Edit Playlist");
 	taskDelay(1000);
 	DisplayTask->Clear();
-	DisplayTask->StringOut(0, 0, (uint8_t*) "1:");
 
-	if (!FsStreamTask->open_song_name(m_num_prog_edit, m_trackName, 0, 0))
-	{
-		oem2winstar(m_trackName);
-		runningNamePos = 0;
-		printRunningName(m_trackName, 2, AbstractMenu::STRING_DOUBLE);
-	}
-	else
-		DisplayTask->StringOut(2, 0, (uint8_t*) "  No wav file");
+	loadSong();
 }
 
 void MenuEditPlaylist::refresh()
 {
-	DisplayTask->Clear();
 	runningNamePos = 0;
+	DisplayTask->Clear_str(7, 0, 8);
 
-	switch(m_state)
+	emb_string currentPath;
+	FsStreamTask->browser_name(currentPath);
+
+	if(m_state == EDITING)
 	{
-	case EDIT_TRACK1:
-	{
-		DisplayTask->StringOut(0, 0, (uint8_t*) "1:");
-		break;
+		if(FsStreamTask->currentPathIsDirectory())
+		{
+			DisplayTask->StringOut(7, 0, (uint8_t*)"(dir.)");
+		}
+		else
+		{
+			if(!FsStreamTask->editingSong.isValidWave(m_chosenTrackPath))
+				DisplayTask->StringOut(7, 0, (uint8_t*)"(err.)");
+		}
 	}
 
-	case EDIT_TRACK2:
-	{
-		DisplayTask->StringOut(0, 0, (uint8_t*) "2:");
-		break;
-	}
-	}
-	oem2winstar(m_trackName);
-	printRunningName(m_trackName, 2, AbstractMenu::STRING_DOUBLE);
-	printPlayNextMark();
-	tim7_start(0);
+	DisplayTask->Clear_str(0, 1, 16);
+	printRunningName(m_chosenTrackName, 0, 1);
 }
 
 void MenuEditPlaylist::task()
 {
 	if(tim5_fl)
 	{
-		printRunningName(m_trackName, 2, AbstractMenu::STRING_DOUBLE);
+		printRunningName(m_chosenTrackName, 0, 1);
 		printPlayNextMark();
 	}
 }
 
 void MenuEditPlaylist::encoderPress()
 {
-	emb_string tmp;
-	emb_string tmp1;
-	FsStreamTask->browser_name(tmp1);
-	FsStreamTask->curr_path(tmp);
-	if (!(!tmp.compare("/SONGS") && !tmp1.compare("..")))
+	if(FsStreamTask->currentPathIsDirectory())
 	{
-		FsStreamTask->action_notify(
-				m_state ?
-						TFsStreamTask::action_param_t::ap_2_wav :
-						TFsStreamTask::action_param_t::ap_1_wav,
-				m_num_prog_edit, play_next_file);
+		FsStreamTask->action_notify(TFsStreamTask::action_param_t::enter_directory, m_numProgEdit);
+		FsStreamTask->browser_name(m_chosenTrackName);
+		FsStreamTask->curr_path(m_chosenTrackPath);
+		m_chosenTrackPath += "/" + m_chosenTrackName;
+		refresh();
+	}
+	else
+	{
+		if(FsStreamTask->editingSong.isValidWave(m_chosenTrackPath))
+		{
+			FsStreamTask->browser_name(m_chosenTrackName);
+			FsStreamTask->curr_path(m_chosenTrackPath);
+			m_chosenTrackPath += "/" + m_chosenTrackName;
 
-		FsStreamTask->browser_name(m_trackName);
-		DisplayTask->Clear_str(2, 0, 14);
-		DisplayTask->Clear_str(0, 1, 16);
-		oem2winstar(m_trackName);
-		printRunningName(m_trackName, 2, AbstractMenu::STRING_DOUBLE);
+			FsStreamTask->editingSong.trackPath[m_editingTrack] = m_chosenTrackPath;
 
-		printPlayNextMark();
+//			emb_string egoFilePath, playlistPath;
+//			FsStreamTask->play_list_folder(playlistPath);
+//			emb_printf::sprintf(egoFilePath, "%s/%1.ego", playlistPath.c_str(), m_numProgEdit);
+			FsStreamTask->action_notify(TFsStreamTask::action_param_t::save_song, m_numProgEdit);
+//			FsStreamTask->editingSong.save(egoFilePath);
+
+
+			led_blink_fl = 1;
+
+			DisplayTask->Clear();
+
+			emb_string trackNumString;
+			emb_printf::sprintf(trackNumString, "Track %1 selected", m_editingTrack + 1);
+			DisplayTask->StringOut(0, 0, (uint8_t*)trackNumString.c_str());
+			taskDelay(500);
+
+			loadSong(m_editingTrack);
+		}
 	}
 }
 
 void MenuEditPlaylist::encoderLongPress()
 {
-	play_next_file = !play_next_file;
+	FsStreamTask->editingSong.playNext = !FsStreamTask->editingSong.playNext;
 	printPlayNextMark();
-	encoderPress();
 }
 
 void MenuEditPlaylist::encoderClockwise()
 {
 	FsStreamTask->next_notify();
-	FsStreamTask->browser_name(m_trackName);
+	FsStreamTask->browser_name(m_chosenTrackName);
+	m_chosenTrackPath = m_chosenTrackName;
+
+	m_state = EDITING;
 
 	refresh();
 }
@@ -113,22 +124,25 @@ void MenuEditPlaylist::encoderCounterClockwise()
 {
 	FsStreamTask->prev_notify();
 	emb_string tmp;
-	FsStreamTask->browser_name(m_trackName);
+	FsStreamTask->browser_name(m_chosenTrackName);
 	FsStreamTask->curr_path(tmp);
 
-	if (!tmp.compare("/SONGS") && !m_trackName.compare(".."))
+	if (!tmp.compare("/SONGS") && !m_chosenTrackName.compare(".."))
 	{
 		FsStreamTask->next_notify();
 	}
 
-	FsStreamTask->browser_name(m_trackName);
+	FsStreamTask->browser_name(m_chosenTrackName);
+	m_chosenTrackPath = m_chosenTrackName;
+
+	m_state = EDITING;
 
 	refresh();
 }
 
 void MenuEditPlaylist::keyStop()
 {
-	showChild(new MenuDeleteSong(this, m_num_prog_edit));
+	showChild(new MenuDeleteSong(this, m_numProgEdit));
 }
 
 void MenuEditPlaylist::keyStart()
@@ -138,72 +152,74 @@ void MenuEditPlaylist::keyStart()
 
 void MenuEditPlaylist::keyLeftUp()
 {
-	m_num_prog_edit = (m_num_prog_edit + 10) % 99;
+	m_numProgEdit = (m_numProgEdit + 10) % 99;
 	loadSong();
 }
 
 void MenuEditPlaylist::keyLeftDown()
 {
-	if(m_num_prog_edit > 10) m_num_prog_edit -= 10;
+	if(m_numProgEdit > 10) m_numProgEdit -= 10;
 	loadSong();
 }
 
 void MenuEditPlaylist::keyRightUp()
 {
-	if(m_num_prog_edit) m_num_prog_edit--;
+	if(m_numProgEdit) m_numProgEdit--;
 	loadSong();
 }
 
 void MenuEditPlaylist::keyRightDown()
 {
-	m_num_prog_edit = (m_num_prog_edit + 1) % 99;
+	m_numProgEdit = (m_numProgEdit + 1) % 99;
 	loadSong();
 }
 
 void MenuEditPlaylist::keyReturn()
 {
-	m_state = EDIT_TRACK1;
+	m_editingTrack = 0;
 
 	DisplayTask->Clear();
-	DisplayTask->StringOut(0, 0, (uint8_t*) "1:");
+	emb_string trackString;
+	emb_printf::sprintf(trackString, "Track %1", m_editingTrack + 1);
+	DisplayTask->StringOut(0, 0, (uint8_t*) trackString.c_str());
 
-	if(!FsStreamTask->open_song_name(m_num_prog_edit, m_trackName, 0, 0))
+	m_chosenTrackName = FsStreamTask->editingSong.trackName[m_editingTrack];
+	m_chosenTrackPath = FsStreamTask->editingSong.trackPath[m_editingTrack];
+
+	if(m_chosenTrackPath.empty())
 	{
-		oem2winstar(m_trackName);
-		runningNamePos = 0;
-		printRunningName(m_trackName, 2, AbstractMenu::STRING_DOUBLE);
+		m_chosenTrackName = noWavString;
+		m_state = SELECTED_NO_FILE;
 	}
 	else
 	{
-		DisplayTask->Clear_str(0, 1, 16);
-		m_trackName = " No wav file";
-		DisplayTask->StringOut(2, 0, (uint8_t*)m_trackName.c_str());
+		m_state = SELECTED_FILE_EXIST;
 	}
-
-	printPlayNextMark();
+	refresh();
 }
 
 void MenuEditPlaylist::keyForward()
 {
-	m_state = EDIT_TRACK2;
+	m_editingTrack = 1;
 
 	DisplayTask->Clear();
-	DisplayTask->StringOut(0, 0, (uint8_t*) "2:");
+	emb_string trackString;
+	emb_printf::sprintf(trackString, "Track %1", m_editingTrack + 1);
+	DisplayTask->StringOut(0, 0, (uint8_t*) trackString.c_str());
 
-	if (!FsStreamTask->open_song_name(m_num_prog_edit, m_trackName, 0, 1))
+	m_chosenTrackName = FsStreamTask->editingSong.trackName[m_editingTrack];
+	m_chosenTrackPath = FsStreamTask->editingSong.trackPath[m_editingTrack];
+
+	if(m_chosenTrackPath.empty())
 	{
-		oem2winstar(m_trackName);
-		runningNamePos = 0;
-		printRunningName(m_trackName, 2, AbstractMenu::STRING_DOUBLE);
+		m_chosenTrackName = noWavString;
+		m_state = SELECTED_NO_FILE;
 	}
 	else
 	{
-		DisplayTask->Clear_str(0, 1, 16);
-		m_trackName = " No wav file";
-		DisplayTask->StringOut(2, 0, (uint8_t*)m_trackName.c_str());
+		m_state = SELECTED_FILE_EXIST;
 	}
-
-	printPlayNextMark();
+	refresh();
 }
 
 void MenuEditPlaylist::keyEsc()
@@ -211,41 +227,46 @@ void MenuEditPlaylist::keyEsc()
 	m_parentMenu->returnFromChildMenu();
 }
 
-void MenuEditPlaylist::loadSong()
+void MenuEditPlaylist::loadSong(uint8_t showState)
 {
 	runningNamePos = 0;
 	DisplayTask->Clear();
 
-	load_led(m_num_prog_edit);
+	load_led(m_numProgEdit);
 
-	DisplayTask->Clear_str(2, 0, 30);
-	DisplayTask->StringOut(0, 0, (uint8_t*) "1:");
-	if (!FsStreamTask->open_song_name(m_num_prog_edit, m_trackName, 0, 0))
+	DisplayTask->Clear();
+	emb_string trackString;
+	emb_printf::sprintf(trackString, "Track %1", showState + 1);
+	DisplayTask->StringOut(0, 0, (uint8_t*) trackString.c_str());
+
+	emb_string songPath;
+	emb_printf::sprintf(songPath, "%s/%1.ego", FsStreamTask->browserPlaylistFolder().c_str(), m_numProgEdit);
+	if(FsStreamTask->editingSong.load(songPath) == Song::eOk)
 	{
-		oem2winstar(m_trackName);
-		printRunningName(m_trackName, 2, AbstractMenu::STRING_DOUBLE);
+		m_chosenTrackName = FsStreamTask->editingSong.trackName[showState];
+		m_chosenTrackPath = FsStreamTask->editingSong.trackPath[showState];
+		printRunningName(m_chosenTrackName, 0, 1);
+
+		m_state = SELECTED_FILE_EXIST;
 	}
 	else
 	{
-		DisplayTask->Clear_str(0, 1, 16);
-		m_trackName = " No wav file";
-		DisplayTask->StringOut(2, 0, (uint8_t*)m_trackName.c_str());
-	}
-	play_next_file = FsStreamTask->file_flag();
+		FsStreamTask->editingSong = Song();
+		m_chosenTrackPath.clear();
+		m_chosenTrackName = noWavString;
 
-//	refresh();
+		m_state = SELECTED_NO_FILE;
+	}
+
+	m_editingTrack = showState;
+
 	tim7_start(0);
 }
 
 void MenuEditPlaylist::printPlayNextMark()
 {
-	if (play_next_file == true)
-	{
-		if(play_next_file)
-			DisplayTask->SymbolOut(15, 1, SYMBOL_NEXT_MARK);
-		else
-			DisplayTask->Clear_str(15, 1, 1);
-	}
+	if(FsStreamTask->editingSong.playNext == true)
+		DisplayTask->SymbolOut(15, 0, SYMBOL_NEXT_MARK);
 	else
-		DisplayTask->Clear_str(15, 1, 1);
+		DisplayTask->Clear_str(15, 0, 1);
 }

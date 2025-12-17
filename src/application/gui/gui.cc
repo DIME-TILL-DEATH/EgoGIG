@@ -50,10 +50,10 @@ void processGui(TTask* processingTask)
 		case key_esc: currentMenu->keyEsc(); break;
 		case key_encoder:
 		{
-			if (!enc_dub_fl)
-				currentMenu->encoderPress();
-			else
+			if(enc_dub_fl)
 				currentMenu->encoderLongPress();
+			else
+				currentMenu->encoderPress();
 			break;
 		}
 		}

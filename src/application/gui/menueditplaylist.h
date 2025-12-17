@@ -32,18 +32,22 @@ public:
 private:
 	enum State
 	{
-		EDIT_TRACK1,
-		EDIT_TRACK2
+		SELECTED_NO_FILE,
+		SELECTED_FILE_EXIST,
+		EDITING
 	};
-	State m_state{EDIT_TRACK1};
+	State m_state{SELECTED_NO_FILE};
 
-	emb_string m_trackName;
+	uint8_t m_editingTrack{0};
 
-	bool play_next_file = 0;
+	uint8_t m_numProgEdit{0};
 
-	uint8_t m_num_prog_edit{0};
+	emb_string m_chosenTrackName;
+	emb_string m_chosenTrackPath;
 
-	void loadSong();
+	const char* noWavString = "  No wav file";
+
+	void loadSong(uint8_t showState = 0);
 	void printPlayNextMark();
 };
 

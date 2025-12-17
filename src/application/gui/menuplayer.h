@@ -36,7 +36,7 @@ public:
 
 private:
 
-	uint8_t stop_fl = 0;
+//	uint8_t stop_fl = 0;
 	uint8_t play_point1_fl = 0;
 	uint8_t play_point2_fl = 0;
 	uint32_t no_file = 0;

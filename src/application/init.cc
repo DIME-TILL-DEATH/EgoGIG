@@ -20,8 +20,11 @@
 #include "abstractmenu.h"
 #include "menuplayer.h"
 
+#include "player.h"
+
 // Main top-level unit
 MenuPlayer* menuPlayer;
+Player player;
 
 dac_sample_t dac_sample;
 dac_sample_t dac_sample1;
@@ -44,8 +47,8 @@ const target_t second_target =
 { (char*) (sound_buff + wav_buff_size / 2), (char*) (click_buff
 		+ wav_buff_size / 2), wav_buff_size / 2 * sizeof(wav_sample_t) };
 
-volatile uint8_t encoder_state, encoder_state1, encoder_key, key_ind, play_fl,
-		play_fl1, play_fl2;
+volatile uint8_t encoder_state, encoder_state1, encoder_key, key_ind;
+//play_fl, play_fl1, play_fl2;
 volatile uint32_t click_size;
 volatile uint32_t count_down;
 volatile uint32_t count_up;
@@ -55,7 +58,7 @@ volatile uint32_t play_point1 = 0;
 volatile uint32_t play_point2 = 0;
 volatile uint8_t pause_fl = 0;
 
-volatile uint8_t stop_fl1 = 1;
+//volatile uint8_t stop_fl1 = 1;
 
 uint32_t song_size;
 
@@ -367,44 +370,28 @@ volatile size_t abs_sample_count = 0;
 
 extern "C" void DMA1_Stream4_IRQHandler()
 {
-	static size_t i = 0;
-
 	dma_clear_interrupt_flags(DMA1, DMA_STREAM4, DMA_TCIF);
 
 	dac_sample.left = dac_sample1.left = 0;
 	dac_sample.right = dac_sample1.right = 0;
 
-	if(play_fl)
+	if(player.state() == Player::PLAYER_PLAYING)//if(play_fl)
 	{
-//		if (FsStreamTask->SoundNeedSwap())
-//		{
-//			dac_sample.left = sound_buff[sound_point].right;
-//			dac_sample.right = sound_buff[sound_point].left;
-//		}
-//		else
-//		{
-			dac_sample.left = sound_buff[sound_point].left;
-			dac_sample.right = sound_buff[sound_point].right;
-//		}
+		dac_sample.left = sound_buff[sound_point].left;
+		dac_sample.right = sound_buff[sound_point].right;
+
 		if (sample_pos < click_size)
 		{
-//			if (FsStreamTask->ClickNeedSwap())
-//			{
-//				dac_sample1.left = click_buff[sound_point].right;
-//				dac_sample1.right = click_buff[sound_point].left;
-//			}
-//			else
-//			{
 				dac_sample1.left = click_buff[sound_point].left;
 				dac_sample1.right = click_buff[sound_point].right;
-//			}
 		}
 		sample_pos = FsStreamTask->pos();
 
 		if (count_up >= song_size)
 		{
-			play_fl = 0;
-			stop_fl1 = 1;
+//			play_fl = 0;
+//			stop_fl1 = 1;
+			player.stopPlay();
 			if (FsStreamTask->next_pl())
 			{
 				if(currentMenu)
@@ -468,7 +455,7 @@ extern "C" void DMA1_Stream4_IRQHandler()
 		sound_point++;
 		sound_point &= wav_buff_size - 1;
 	}
-	else play_fl1 = 1;
+	else player.songInitiated();
 
 	if (metronom_start)
 	{

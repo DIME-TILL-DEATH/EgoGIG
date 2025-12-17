@@ -44,7 +44,7 @@ void MenuSelectPlaylist::task()
 
 void MenuSelectPlaylist::encoderPress()
 {
-	FsStreamTask->action_notify(TFsStreamTask::action_param_t::ap_1_wav, 0, 0);
+	FsStreamTask->action_notify(TFsStreamTask::action_param_t::enter_directory, 0);
 	emb_string tmp;
 	FsStreamTask->browser_name(tmp);
 	DisplayTask->Clear();

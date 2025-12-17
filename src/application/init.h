@@ -5,6 +5,7 @@
 #include "libopencm3/stm32/timer.h"
 
 #include "menuplayer.h"
+#include "player.h"
 
 enum
 {
@@ -23,6 +24,7 @@ enum
 };
 
 extern MenuPlayer* menuPlayer;
+extern Player player;
 
 extern const size_t wav_buff_size;
 extern uint16_t key_reg_out[];
@@ -34,8 +36,8 @@ extern volatile uint8_t stp_dub_fl;
 extern uint8_t num_prog;
 extern uint8_t m_num_prog_edit;
 extern const uint8_t led_sym[];
-extern volatile uint8_t stop_fl1;
-extern volatile uint8_t play_fl;
+//extern volatile uint8_t stop_fl1;
+//extern volatile uint8_t play_fl;
 extern volatile uint8_t tim3_end_fl;
 extern uint8_t sys_param[];
 extern uint8_t ctrl_param[];
@@ -51,16 +53,15 @@ extern uint16_t temp_counter;
 extern uint32_t tap_temp;
 extern uint32_t tap_temp1;
 extern uint32_t tap_temp2;
-extern volatile uint8_t play_fl2;
-extern volatile uint8_t stop_fl;
-extern volatile uint8_t stop_fl1;
+//extern volatile uint8_t play_fl2;
+//extern volatile uint8_t stop_fl;
+//extern volatile uint8_t stop_fl1;
 extern volatile uint8_t pause_fl;
 
 extern volatile uint8_t play_point_ind;
 extern volatile uint32_t play_point1;
 extern volatile uint32_t play_point2;
-extern volatile uint8_t pause_fl;
-extern volatile uint8_t stop_fl1;
+//extern volatile uint8_t stop_fl1;
 
 extern volatile uint32_t count_down;
 extern volatile uint32_t count_up;
@@ -72,8 +73,8 @@ extern uint16_t key_reg_in[2];
 extern uint16_t key_reg_out[2];
 extern uint8_t key_val;
 
-extern volatile uint8_t encoder_state, encoder_state1, encoder_key, key_ind,
-		play_fl, play_fl1;
+extern volatile uint8_t encoder_state, encoder_state1, encoder_key, key_ind;
+//		play_fl, play_fl1;
 
 extern uint16_t msec_tik;
 extern size_t sound_point;
@@ -84,6 +85,7 @@ extern volatile uint32_t click_size;
 extern uint8_t sys_param[];
 extern uint32_t song_size;
 extern uint8_t blink_en;
+extern volatile uint8_t led_blink_fl;
 
 extern uint8_t tim5_fl;
 

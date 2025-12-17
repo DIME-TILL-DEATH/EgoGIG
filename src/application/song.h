@@ -9,7 +9,7 @@ class Song
 {
 public:
 
-	enum error_t
+	enum FsError
 	{
 		eOk = 0,
 		eFsError,
@@ -19,7 +19,8 @@ public:
 		eNotMidi,
 	};
 
-	uint8_t load(const emb_string& songPath);
+	FsError load(const emb_string& songPath);
+	FsError save(const emb_string& songPath);
 	void close();
 
 	emb_string songName();
@@ -42,10 +43,11 @@ public:
 
 	uint32_t read_chunk_count;
 
+	bool isValidWave(FIL *file, uint8_t num);
+	bool isValidWave(emb_string filePath);
+
 private:
 	static char buf[FF_MAX_LFN + 4];
-
-	bool is_valid_wave(FIL *file, uint8_t num);
 
 	char m_songName[16];
 	char m_songComment[32];
