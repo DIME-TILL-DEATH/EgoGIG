@@ -44,5 +44,6 @@ void Player::pause()
 	{
 	case PLAYER_PLAYING: m_state = PLAYER_PAUSE; break;
 	case PLAYER_PAUSE: m_state = PLAYER_PLAYING; break;
+	default: break;
 	}
 }

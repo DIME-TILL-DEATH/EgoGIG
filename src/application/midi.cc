@@ -22,12 +22,6 @@ void TMIDITask::Code()
 	}
 }
 
-//extern volatile uint8_t play_fl2;
-//extern volatile uint8_t stop_fl;
-//extern volatile uint8_t stop_fl1;
-//extern volatile uint8_t pause_fl;
-//extern volatile uint8_t play_fl1;
-
 uint8_t midi_buf = 0;
 uint8_t midi_ev = 0;
 
@@ -40,9 +34,6 @@ extern "C" void USART1_IRQHandler()
 	case 0:
 		if (us_buf == 0xfa)
 		{
-//			play_fl = 1;
-//			pause_fl = 0;
-//			play_fl2 = 1;
 			player.startPlay();
 			key_reg_out[0] |= 2;
 			key_reg_out[0] &= ~0x80;
@@ -51,8 +42,6 @@ extern "C" void USART1_IRQHandler()
 		if (us_buf == 0xfb)
 		{
 			player.pause();
-//			pause_fl = 1;
-//			play_fl = 0;
 			midi_buf = 0;
 		}
 		if (us_buf == 0xfc)
@@ -71,9 +60,6 @@ extern "C" void USART1_IRQHandler()
 	case 0xb0: //CC
 		if (ctrl_param[ctrl1_t] == MenuMidiControl::MIDI_IN_CC  && ctrl_param[ctrl1] == us_buf)
 		{
-//			play_fl = 1;
-//			pause_fl = 0;
-//			play_fl2 = 1;
 			player.startPlay();
 
 			key_reg_out[0] |= 2;
@@ -81,8 +67,6 @@ extern "C" void USART1_IRQHandler()
 		}
 		if (ctrl_param[ctrl2_t] == MenuMidiControl::MIDI_IN_CC && ctrl_param[ctrl2] == us_buf)
 		{
-//			pause_fl = 1;
-//			play_fl = 0;
 			player.pause();
 		}
 		if (ctrl_param[ctrl3_t] == MenuMidiControl::MIDI_IN_CC && ctrl_param[ctrl3] == us_buf)
@@ -109,9 +93,6 @@ extern "C" void USART1_IRQHandler()
 	case 0x90: // Note
 		if (ctrl_param[ctrl1_t] == MenuMidiControl::MIDI_IN_NOTE && ctrl_param[ctrl1] == us_buf)
 		{
-//			play_fl = 1;
-//			pause_fl = 0;
-//			play_fl2 = 1;
 			player.startPlay();
 
 			key_reg_out[0] |= 2;
@@ -119,8 +100,6 @@ extern "C" void USART1_IRQHandler()
 		}
 		if (ctrl_param[ctrl2_t] == MenuMidiControl::MIDI_IN_NOTE && ctrl_param[ctrl2] == us_buf)
 		{
-//			pause_fl = 1;
-//			play_fl = 0;
 			player.pause();
 		}
 		if (ctrl_param[ctrl3_t] == MenuMidiControl::MIDI_IN_NOTE && ctrl_param[ctrl3] == us_buf)
@@ -147,9 +126,6 @@ extern "C" void USART1_IRQHandler()
 	case 0xc0: // PC
 		if (ctrl_param[ctrl1_t] == MenuMidiControl::MIDI_IN_PC  && ctrl_param[ctrl1] == us_buf)
 		{
-//			play_fl = 1;
-//			pause_fl = 0;
-//			play_fl2 = 1;
 			player.startPlay();
 
 			key_reg_out[0] |= 2;
@@ -157,8 +133,6 @@ extern "C" void USART1_IRQHandler()
 		}
 		if (ctrl_param[ctrl2_t] == MenuMidiControl::MIDI_IN_PC && ctrl_param[ctrl2] == us_buf)
 		{
-//			pause_fl = 1;
-//			play_fl = 0;
 			player.pause();
 		}
 		if (ctrl_param[ctrl3_t] == MenuMidiControl::MIDI_IN_PC && ctrl_param[ctrl3] == us_buf)

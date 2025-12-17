@@ -8,6 +8,7 @@ class Player
 public:
 	enum State
 	{
+		UNKNOWN,
 		PLAYER_IDLE,
 		PLAYER_LOADING_SONG, 	// play_fl1
 		PLAYER_PLAYING,	// play_fl, play_fl2

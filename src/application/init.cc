@@ -39,14 +39,21 @@ wav_sample_t sound_buff[Player::wav_buff_size];
 wav_sample_t click_buff[Player::wav_buff_size];
 
 const target_t first_target =
-{ (char*) sound_buff, (char*) click_buff, Player::wav_buff_size / 2
-		* sizeof(wav_sample_t) };
+{
+	(char*) sound_buff,
+	(char*) click_buff,
+	Player::wav_buff_size / 2 * sizeof(wav_sample_t)
+};
+
 const target_t second_target =
-{ (char*) (sound_buff + Player::wav_buff_size / 2), (char*) (click_buff
-		+ Player::wav_buff_size / 2), Player::wav_buff_size / 2 * sizeof(wav_sample_t) };
+{
+	(char*) (sound_buff + Player::wav_buff_size / 2),
+	(char*) (click_buff + Player::wav_buff_size / 2),
+	Player::wav_buff_size / 2 * sizeof(wav_sample_t)
+};
 
 volatile uint8_t encoder_state, encoder_state1, encoder_key, key_ind;
-//play_fl, play_fl1, play_fl2;
+
 volatile uint32_t click_size;
 volatile uint32_t count_down;
 volatile uint32_t count_up;
@@ -54,8 +61,6 @@ volatile uint32_t count_up;
 volatile uint32_t play_point1 = 0;
 volatile uint32_t play_point2 = 0;
 volatile uint8_t pause_fl = 0;
-
-//volatile uint8_t stop_fl1 = 1;
 
 uint32_t song_size;
 
@@ -386,8 +391,6 @@ extern "C" void DMA1_Stream4_IRQHandler()
 
 		if (count_up >= song_size)
 		{
-//			play_fl = 0;
-//			stop_fl1 = 1;
 			player.stopPlay();
 			if (FsStreamTask->next_pl())
 			{
@@ -452,7 +455,11 @@ extern "C" void DMA1_Stream4_IRQHandler()
 		sound_point++;
 		sound_point &= Player::wav_buff_size - 1;
 	}
-	else player.songInitiated();
+
+	if(player.state() == Player::PLAYER_LOADING_SONG)
+	{
+		player.songInitiated();
+	}
 
 	if (metronom_start)
 	{

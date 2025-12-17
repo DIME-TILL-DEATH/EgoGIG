@@ -45,7 +45,6 @@ extern uint16_t temp_counter;
 extern uint32_t tap_temp;
 extern uint32_t tap_temp1;
 extern uint32_t tap_temp2;
-extern volatile uint8_t pause_fl;
 
 extern volatile uint32_t play_point1;
 extern volatile uint32_t play_point2;

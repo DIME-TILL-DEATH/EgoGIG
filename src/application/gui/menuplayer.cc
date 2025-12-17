@@ -69,7 +69,7 @@ void MenuPlayer::refresh()
 
 void MenuPlayer::task()
 {
-	if(pause_fl)
+	if(player.state() == Player::PLAYER_PAUSE)
 	{
 		// Led blink
 		if(tim5_fl)
@@ -119,7 +119,7 @@ void MenuPlayer::encoderPress()
 {
 	if(no_file) return;
 
-	if (player.state() == Player::PLAYER_IDLE)
+	if(player.state() == Player::PLAYER_IDLE)
 	{
 		DisplayTask->Clear();
 
@@ -175,7 +175,7 @@ void MenuPlayer::encoderPress()
 		if (FsStreamTask->next_pl())
 			DisplayTask->StringOut(15, 1, (uint8_t*) SYMBOL_NEXT_MARK);
 
-		if (pause_fl)
+		if(player.state() == Player::PLAYER_PAUSE)
 		{
 			if (sys_param[direction_counter])
 				DisplayTask->Sec_Print(count_down);
@@ -195,9 +195,6 @@ void MenuPlayer::encoderLongPress()
 
 void MenuPlayer::encoderClockwise()
 {
-//	if(stop_fl1)
-//		stop_fl1 = 0;
-
 	if(count_up < song_size)
 		count_up = enc_speed_inc(count_up, song_size);
 
@@ -212,9 +209,6 @@ void MenuPlayer::encoderClockwise()
 	memset(sound_buff, 0, Player::wav_buff_size);
 	memset(click_buff, 0, Player::wav_buff_size);
 	sound_point = 0;
-
-//	if (play_fl2)
-//		play_fl = 1;
 }
 
 void MenuPlayer::encoderCounterClockwise()
@@ -279,11 +273,12 @@ void MenuPlayer::keyStart()
 {
 	if(no_file) return;
 
+	key_reg_out[0] |= 2; //green led light
+
 	switch(player.state())
 	{
 		case Player::PLAYER_IDLE:
 		{
-			key_reg_out[0] |= 2;
 			key_reg_out[0] &= ~0x80;
 
 			if(playPoint1Selected && m_loopModeActive && sys_param[loop_points])
