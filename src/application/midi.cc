@@ -5,6 +5,7 @@
 #include "libopencm3/stm32/usart.h"
 
 #include "gui.h"
+#include "leds.h"
 
 #include "menumidicontrol.h"
 
@@ -35,8 +36,6 @@ extern "C" void USART1_IRQHandler()
 		if (us_buf == 0xfa)
 		{
 			player.startPlay();
-			key_reg_out[0] |= 2;
-			key_reg_out[0] &= ~0x80;
 			midi_buf = 0;
 		}
 		if (us_buf == 0xfb)
@@ -61,9 +60,6 @@ extern "C" void USART1_IRQHandler()
 		if (ctrl_param[ctrl1_t] == MenuMidiControl::MIDI_IN_CC  && ctrl_param[ctrl1] == us_buf)
 		{
 			player.startPlay();
-
-			key_reg_out[0] |= 2;
-			key_reg_out[0] &= ~0x80;
 		}
 		if (ctrl_param[ctrl2_t] == MenuMidiControl::MIDI_IN_CC && ctrl_param[ctrl2] == us_buf)
 		{
@@ -94,9 +90,6 @@ extern "C" void USART1_IRQHandler()
 		if (ctrl_param[ctrl1_t] == MenuMidiControl::MIDI_IN_NOTE && ctrl_param[ctrl1] == us_buf)
 		{
 			player.startPlay();
-
-			key_reg_out[0] |= 2;
-			key_reg_out[0] &= ~0x80;
 		}
 		if (ctrl_param[ctrl2_t] == MenuMidiControl::MIDI_IN_NOTE && ctrl_param[ctrl2] == us_buf)
 		{
@@ -127,9 +120,6 @@ extern "C" void USART1_IRQHandler()
 		if (ctrl_param[ctrl1_t] == MenuMidiControl::MIDI_IN_PC  && ctrl_param[ctrl1] == us_buf)
 		{
 			player.startPlay();
-
-			key_reg_out[0] |= 2;
-			key_reg_out[0] &= ~0x80;
 		}
 		if (ctrl_param[ctrl2_t] == MenuMidiControl::MIDI_IN_PC && ctrl_param[ctrl2] == us_buf)
 		{

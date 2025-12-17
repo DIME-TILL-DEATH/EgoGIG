@@ -4,6 +4,7 @@
 #include "fs_stream.h"
 
 #include "display.h"
+#include "leds.h"
 
 void Player::initSong()
 {
@@ -33,11 +34,17 @@ void Player::songInitiated()
 void Player::startPlay()
 {
 	m_state = PLAYER_PLAYING;
+
+	Leds::greenOn();
+	Leds::redOff();
 }
 
 void Player::stopPlay()
 {
 	m_state = PLAYER_IDLE;
+
+	Leds::redOn();
+	Leds::greenOff();
 }
 
 void Player::pause()
@@ -45,7 +52,12 @@ void Player::pause()
 	switch(m_state)
 	{
 	case PLAYER_PLAYING: m_state = PLAYER_PAUSE; break;
-	case PLAYER_PAUSE: m_state = PLAYER_PLAYING; break;
+	case PLAYER_PAUSE:
+	{
+		m_state = PLAYER_PLAYING;
+		Leds::greenOn();
+		break;
+	}
 	default: break;
 	}
 }

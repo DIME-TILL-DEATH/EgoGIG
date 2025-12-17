@@ -52,9 +52,6 @@ void TCSTask::Code()
 	while (FsStream_enable_fl);
 
 	DisplayTask->Clear();
-	key_reg_out[0] |= 0x90;
-
-	load_led(num_prog);
 
 	MenuSystem::read_sys();
 	MenuMidiControl::read_ctrl();

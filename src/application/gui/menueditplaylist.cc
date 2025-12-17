@@ -4,6 +4,7 @@
 
 #include "init.h"
 #include "display.h"
+#include "leds.h"
 #include "fs_stream.h"
 
 MenuEditPlaylist::MenuEditPlaylist(AbstractMenu* parent)
@@ -17,7 +18,7 @@ void MenuEditPlaylist::show(TShowMode showMode)
 	emb_string path_old = "/SONGS";
 	FsStreamTask->enter_dir(path_old.c_str(), "", true);
 	m_numProgEdit = 0;
-	load_led(m_numProgEdit);
+	Leds::digit(m_numProgEdit);
 
 	DisplayTask->Clear();
 	DisplayTask->StringOut(4, 0, (uint8_t*) "Browser");
@@ -232,7 +233,7 @@ void MenuEditPlaylist::loadSong(uint8_t showState)
 	runningNamePos = 0;
 	DisplayTask->Clear();
 
-	load_led(m_numProgEdit);
+	Leds::digit(m_numProgEdit);
 
 	DisplayTask->Clear();
 	emb_string trackString;

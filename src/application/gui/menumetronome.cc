@@ -4,6 +4,7 @@
 #include "display.h"
 #include "enc.h"
 #include "fs_stream.h"
+#include "leds.h"
 
 MenuMetronome::MenuMetronome(AbstractMenu* parent)
 {
@@ -67,8 +68,9 @@ void MenuMetronome::encoderCounterClockwise()
 
 void MenuMetronome::keyStop()
 {
-	key_reg_out[0] &= ~2;
-	key_reg_out[0] |= 0x80;
+	Leds::redOn();
+	Leds::greenOff();
+
 	metronom_start = 0;
 }
 
@@ -77,8 +79,9 @@ void MenuMetronome::keyStart()
 	metronom_int = 44100.0f / (tempo / 60.0f) + 0.5f;
 	metronom_counter = temp_counter = 0;
 	metronom_start = 1;
-	key_reg_out[0] |= 2;
-	key_reg_out[0] &= ~0x80;
+
+	Leds::redOff();
+	Leds::greenOn();
 }
 
 void MenuMetronome::keyForward()

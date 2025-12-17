@@ -11,6 +11,8 @@
 
 #include "player.h"
 
+#include "leds.h"
+
 MenuPlayer::MenuPlayer()
 {
 	m_menuType = MENU_PLAYER;
@@ -49,15 +51,14 @@ void MenuPlayer::show(TShowMode showMode)
 		DisplayTask->Sec_Print(FsStreamTask->sound_size());
 	}
 
-	load_led(num_prog);
+	Leds::digit(num_prog);
+	Leds::redOn();
+	Leds::menuGreenOn();
 
-	key_reg_out[0] |= 0x10;
-	key_reg_out[0] &= ~0x8;
-
-	if (playPoint1Selected)
-		key_reg_out[1] &= ~(1 << 7);
-	if (playPoint2Selected)
-		key_reg_out[1] &= ~(1 << 15);
+	if(playPoint1Selected)
+		Leds::digitPoint1On();
+	if(playPoint2Selected)
+		Leds::digitPoint2On();
 }
 
 void MenuPlayer::refresh()
@@ -69,11 +70,10 @@ void MenuPlayer::task()
 {
 	if(player.state() == Player::PLAYER_PAUSE)
 	{
-		// Led blink
 		if(tim5_fl)
-			key_reg_out[0] |= 2;
+			Leds::greenOn();
 		else
-			key_reg_out[0] &= ~2;
+			Leds::greenOff();
 	}
 
 	if(tim5_fl) printRunningName(m_currentSongName);
@@ -99,14 +99,11 @@ void MenuPlayer::processPlayNext()
 				break;
 		}
 
-		load_led(num_prog);
+		Leds::digit(num_prog);
 
 		taskDelay(100);
 
 		player.startPlay();
-
-		key_reg_out[0] |= 2;
-		key_reg_out[0] &= ~0x80;
 
 		us_buf1 = 0xfa;
 		MIDITask->Give();
@@ -196,16 +193,8 @@ void MenuPlayer::encoderClockwise()
 	if(count_up < song_size)
 		count_up = enc_speed_inc(count_up, song_size);
 
-	count_down = song_size - count_up;
+	player.jumpToPosition(count_up * 4410);
 
-	if (sys_param[direction_counter])
-		DisplayTask->Sec_Print(count_down);
-	else
-		DisplayTask->Sec_Print(count_up);
-
-	FsStreamTask->pos(count_up * 4410);
-	memset(sound_buff, 0, Player::wav_buff_size);
-	memset(click_buff, 0, Player::wav_buff_size);
 	sound_point = 0;
 }
 
@@ -214,16 +203,8 @@ void MenuPlayer::encoderCounterClockwise()
 	if (count_up)
 		count_up = enc_speed_dec(count_up, 0);
 
-	count_down = song_size - count_up;
+	player.jumpToPosition(count_up * 4410);
 
-	if (sys_param[direction_counter])
-		DisplayTask->Sec_Print(count_down);
-	else
-		DisplayTask->Sec_Print(count_up);
-
-	FsStreamTask->pos(count_up * 4410);
-	memset(sound_buff, 0, Player::wav_buff_size);
-	memset(click_buff, 0, Player::wav_buff_size);
 	sound_point = 0;
 }
 
@@ -232,9 +213,6 @@ void MenuPlayer::keyStop()
 	if(no_file) return;
 
 	player.stopPlay();
-
-	key_reg_out[0] &= ~2;
-	key_reg_out[0] |= 0x80;
 
 	// midi send
 	us_buf1 = 0xfc;
@@ -254,16 +232,17 @@ void MenuPlayer::keyStopLong()
 	if(m_loopModeActive)
 	{
 		m_loopModeActive = false;
-		key_reg_out[1] |= 1 << 7;
-		key_reg_out[1] |= 1 << 15;
+
+		Leds::digitPoint1Off();
+		Leds::digitPoint2Off();
 	}
 	else
 	{
 		m_loopModeActive = true;
 		if (playPoint1Selected)
-			key_reg_out[1] &= ~(1 << 7);
+			Leds::digitPoint1On();
 		if (playPoint2Selected)
-			key_reg_out[1] &= ~(1 << 15);
+			Leds::digitPoint2On();
 	}
 }
 
@@ -271,14 +250,12 @@ void MenuPlayer::keyStart()
 {
 	if(no_file) return;
 
-	key_reg_out[0] |= 2; //green led light
+
 
 	switch(player.state())
 	{
 		case Player::PLAYER_IDLE:
 		{
-			key_reg_out[0] &= ~0x80;
-
 			if(playPoint1Selected && m_loopModeActive && sys_param[loop_points])
 				player.jumpToPosition(play_point1);
 
@@ -316,7 +293,7 @@ void MenuPlayer::keyLeftUp()
 			else
 				break;
 		}
-		load_led(num_prog);
+		Leds::digit(num_prog);
 
 		keyStop();
 	}
@@ -342,7 +319,7 @@ void MenuPlayer::keyLeftDown()
 			else
 				break;
 		}
-		load_led(num_prog);
+		Leds::digit(num_prog);
 
 		keyStop();
 	}
@@ -361,7 +338,7 @@ void MenuPlayer::keyRightUp()
 			else
 				break;
 		}
-		load_led(num_prog);
+		Leds::digit(num_prog);
 
 		keyStop();
 	}
@@ -380,7 +357,7 @@ void MenuPlayer::keyRightDown()
 			else
 				break;
 		}
-		load_led(num_prog);
+		Leds::digit(num_prog);
 		keyStop();
 	}
 
@@ -401,7 +378,8 @@ void MenuPlayer::keyReturnLong()
 	playPoint1Selected = 1;
 	if (!play_point2)
 		play_point2 = song_size * 4410;
-	key_reg_out[1] &= ~(1 << 7);
+
+	Leds::digitPoint1On();
 }
 
 void MenuPlayer::keyForward()
@@ -417,7 +395,7 @@ void MenuPlayer::keyForwardLong()
 
 	play_point2 = FsStreamTask->pos();
 	playPoint2Selected = 1;
-	key_reg_out[1] &= ~(1 << 15);
+	Leds::digitPoint2On();
 }
 
 void MenuPlayer::keyEsc()
@@ -425,8 +403,10 @@ void MenuPlayer::keyEsc()
 	if(player.state() == Player::PLAYER_IDLE)
 	{
 		tim7_start(1);
-		key_reg_out[0] &= ~0x10;
-		key_reg_out[0] |= 0x8;
+
+		Leds::redOff();
+		Leds::greenOff();
+		Leds::menuRedOn();
 
 		showChild(new MenuMain(this));
 	}

@@ -111,11 +111,11 @@ inline uint8_t drebezg(uint32_t line)
 	return sss;
 }
 
-inline void load_led(uint8_t num)
-{
-	uint8_t temp = num + 1;
-	key_reg_out[1] = (led_sym[temp / 10]) | ((led_sym[temp % 10]) << 8);
-}
+//inline void load_led(uint8_t num)
+//{
+//	uint8_t temp = num + 1;
+//	key_reg_out[1] = (led_sym[temp / 10]) | ((led_sym[temp % 10]) << 8);
+//}
 
 inline void __attribute__ ((always_inline)) dela(uint32_t p)
 {

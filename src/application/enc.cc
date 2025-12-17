@@ -11,6 +11,7 @@
 #include <libopencm3/cm3/nvic.h>
 
 #include "gui.h"
+#include "leds.h"
 
 TENCTask *ENCTask;
 extern uint8_t key_val;
@@ -262,7 +263,7 @@ void TENCTask::Code()
 			if (lock_fl_old != lock_fl)
 			{
 				lock_fl_old = lock_fl;
-				key_reg_out[0] |= 4;
+				Leds::lockOn();
 			}
 		}
 		else
@@ -271,7 +272,7 @@ void TENCTask::Code()
 			if (lock_fl_old != lock_fl)
 			{
 				lock_fl_old = lock_fl;
-				key_reg_out[0] &= ~4;
+				Leds::lockOff();
 			}
 		}
 	}
@@ -281,6 +282,7 @@ extern "C" void TIM3_IRQHandler()
 	timer_clear_flag(TIM3, TIM_SR_UIF);
 	timer_disable_irq(TIM3, TIM_SR_UIF);
 	tim3_end_fl = 1;
+
 	if (ret_push_fl || fwd_push_fl || enc_push_fl || stp_push_fl)
 	{
 		if(ret_push_fl)

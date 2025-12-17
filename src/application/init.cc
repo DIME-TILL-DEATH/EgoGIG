@@ -402,7 +402,7 @@ extern "C" void DMA1_Stream4_IRQHandler()
 			else
 			{
 				if (!sys_param[auto_next_track])
-					menuPlayer->keyStop();
+					key_ind = key_stop;// request stop from ISR, not menuPlayer->keyStop();
 				else
 					menuPlayer->requestPlayNext();
 			}
