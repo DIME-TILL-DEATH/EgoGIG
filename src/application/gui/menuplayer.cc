@@ -145,18 +145,21 @@ void MenuPlayer::encoderPress()
 		DisplayTask->Clear();
 
 		uint8_t prog_temp = num_prog + 1;
-		emb_string tmp;
 		for (; prog_temp < 100; prog_temp++)
 		{
-//			if(!FsStreamTask->open_song_name(prog_temp, tmp, 0, 0))
-//				break;
+			emb_string songPath;
+			emb_printf::sprintf(songPath, "%s/%1.ego", FsStreamTask->browserPlaylistFolder().c_str(), prog_temp);
+			if(FsStreamTask->editingSong.load(songPath) == Song::eOk)
+			{
+				break;
+			}
 		}
 
 		if (prog_temp != 100)
 		{
-			oem2winstar(tmp);
+			oem2winstar(FsStreamTask->editingSong.trackName[0]);
 			runningNamePos = 0;
-			printRunningName(tmp);
+			printRunningName(FsStreamTask->editingSong.trackName[0]);
 		}
 		else
 		{
@@ -222,6 +225,7 @@ void MenuPlayer::keyStop()
 
 	initSong();
 
+	count_down = FsStreamTask->sound_size();
 	DisplayTask->Sec_Print(count_down);
 	count_up = 0;
 
@@ -251,8 +255,6 @@ void MenuPlayer::keyStopLong()
 void MenuPlayer::keyStart()
 {
 	if(no_file) return;
-
-
 
 	switch(player.state())
 	{
@@ -306,8 +308,8 @@ void MenuPlayer::keyLeftDown()
 	if(player.state() == Player::PLAYER_IDLE)
 	{
 		dela(0xfffff);
-		if (num_prog > 10)
-			num_prog -= 10;
+
+		num_prog = (num_prog - 10) % 99;
 
 		while (1)
 		{
