@@ -47,6 +47,7 @@ public:
 	virtual void encoderCounterClockwise() {};
 
 	virtual void keyStop() {};
+	virtual void keyStopLong() {};
 	virtual void keyStart() {};
 
 	virtual void keyLeftUp() {};
@@ -54,7 +55,9 @@ public:
 	virtual void keyRightUp() {};
 	virtual void keyRightDown() {};
 	virtual void keyReturn() {};
+	virtual void keyReturnLong() {};
 	virtual void keyForward() {};
+	virtual void keyForwardLong() {};
 	virtual void keyEsc() {};
 
 	GuiMenuType menuType();

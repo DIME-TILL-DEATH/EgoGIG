@@ -17,15 +17,11 @@ extern uint8_t key_val;
 extern uint8_t blink_en;
 volatile uint8_t key_push_fl = 0;
 volatile uint8_t stp_push_fl = 0;
-volatile uint8_t stp_dub_fl = 0;
 volatile uint8_t ret_push_fl = 0;
 volatile uint8_t fwd_push_fl = 0;
-volatile uint8_t ret_dub_fl = 0;
-volatile uint8_t fwd_dub_fl = 0;
 volatile uint8_t esc_push_fl = 0;
 volatile uint8_t esc_dub_fl = 0;
 volatile uint8_t enc_push_fl = 0;
-volatile uint8_t enc_dub_fl = 0;
 volatile uint8_t tim3_end_fl;
 volatile uint8_t led_blink_fl;
 volatile uint8_t lock_fl;
@@ -291,8 +287,7 @@ extern "C" void TIM3_IRQHandler()
 		{
 			if(!lock_fl)
 			{
-				key_ind = key_return;
-				ret_dub_fl = 1;
+				key_ind = key_return_long;
 				CSTask->Give();
 			}
 		}
@@ -301,23 +296,20 @@ extern "C" void TIM3_IRQHandler()
 		{
 			if(!lock_fl)
 			{
-				key_ind = key_forward;
-				fwd_dub_fl = 1;
+				key_ind = key_forward_long;
 				CSTask->Give();
 			}
 		}
 
 		if(enc_push_fl)
 		{
-			key_ind = key_encoder;
-			enc_dub_fl = 1;
+			key_ind = key_encoder_long;
 			CSTask->Give();
 		}
 
 		if(stp_push_fl)
 		{
-			key_ind = key_stop;
-			stp_dub_fl = 1;
+			key_ind = key_stop_long;
 			CSTask->Give();
 		}
 	}

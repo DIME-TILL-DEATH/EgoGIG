@@ -14,6 +14,8 @@ public:
 		PLAYER_PAUSE
 	};
 
+	static constexpr size_t wav_buff_size = 4 * 1024;
+
 	State state() { return m_state; }
 
 	void startPlay();

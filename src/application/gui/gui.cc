@@ -40,22 +40,19 @@ void processGui(TTask* processingTask)
 		switch(key_ind)
 		{
 		case key_stop: currentMenu->keyStop(); break;
+		case key_stop_long: currentMenu->keyStopLong(); break;
 		case key_start: currentMenu->keyStart(); break;
 		case key_left_up: currentMenu->keyLeftUp(); break;
 		case key_left_down: currentMenu->keyLeftDown(); break;
 		case key_right_up: currentMenu->keyRightUp(); break;
 		case key_right_down: currentMenu->keyRightDown(); break;
 		case key_return: currentMenu->keyReturn(); break;
+		case key_return_long: currentMenu->keyReturnLong(); break;
 		case key_forward: currentMenu->keyForward(); break;
+		case key_forward_long: currentMenu->keyForwardLong(); break;
 		case key_esc: currentMenu->keyEsc(); break;
-		case key_encoder:
-		{
-			if(enc_dub_fl)
-				currentMenu->encoderLongPress();
-			else
-				currentMenu->encoderPress();
-			break;
-		}
+		case key_encoder: currentMenu->encoderPress(); break;
+		case key_encoder_long: currentMenu->encoderLongPress(); break;
 		}
 
 		if(encoder_state1)
@@ -70,7 +67,7 @@ void processGui(TTask* processingTask)
 			}
 		}
 
-		encoder_state1 = encoder_key = key_ind = stp_dub_fl = ret_dub_fl = fwd_dub_fl = esc_dub_fl = enc_dub_fl = 0;
+		encoder_state1 = encoder_key = key_ind = 0;
 	}
 	return;
 }

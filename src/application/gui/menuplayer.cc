@@ -56,9 +56,9 @@ void MenuPlayer::show(TShowMode showMode)
 	key_reg_out[0] |= 0x10;
 	key_reg_out[0] &= ~0x8;
 
-	if (play_point1_fl)
+	if (playPoint1Selected)
 		key_reg_out[1] &= ~(1 << 7);
-	if (play_point2_fl)
+	if (playPoint2Selected)
 		key_reg_out[1] &= ~(1 << 15);
 }
 
@@ -86,11 +86,11 @@ void MenuPlayer::processPlayNext()
 	if(m_requestPlayNext)
 	{
 		m_requestPlayNext = false;
-//		while(!play_fl1);
+
 		while(player.state() == Player::PLAYER_LOADING_SONG)
 
-		memset(sound_buff, 0, wav_buff_size);
-		memset(click_buff, 0, wav_buff_size);
+		memset(sound_buff, 0, Player::wav_buff_size);
+		memset(click_buff, 0, Player::wav_buff_size);
 		num_prog = (num_prog + 1) % 99;
 
 		while (1)
@@ -103,11 +103,8 @@ void MenuPlayer::processPlayNext()
 
 		load_led(num_prog);
 
-//		stop_fl1 = 0;
-//		pause_fl = 0;
-
 		taskDelay(100);
-//		play_fl = play_fl2 = 1;
+
 		player.startPlay();
 
 		key_reg_out[0] |= 2;
@@ -212,8 +209,8 @@ void MenuPlayer::encoderClockwise()
 		DisplayTask->Sec_Print(count_up);
 
 	FsStreamTask->pos(count_up * 4410);
-	memset(sound_buff, 0, wav_buff_size);
-	memset(click_buff, 0, wav_buff_size);
+	memset(sound_buff, 0, Player::wav_buff_size);
+	memset(click_buff, 0, Player::wav_buff_size);
 	sound_point = 0;
 
 //	if (play_fl2)
@@ -222,9 +219,6 @@ void MenuPlayer::encoderClockwise()
 
 void MenuPlayer::encoderCounterClockwise()
 {
-//	if (stop_fl1)
-//		stop_fl1 = 0;
-
 	if (count_up)
 		count_up = enc_speed_dec(count_up, 0);
 
@@ -236,51 +230,48 @@ void MenuPlayer::encoderCounterClockwise()
 		DisplayTask->Sec_Print(count_up);
 
 	FsStreamTask->pos(count_up * 4410);
-	memset(sound_buff, 0, wav_buff_size);
-	memset(click_buff, 0, wav_buff_size);
+	memset(sound_buff, 0, Player::wav_buff_size);
+	memset(click_buff, 0, Player::wav_buff_size);
 	sound_point = 0;
-
-//	if (play_fl2)
-//		play_fl = 1;
-
 }
 
 void MenuPlayer::keyStop()
 {
 	if(no_file) return;
 
-	if(!stp_dub_fl)
+	player.stopPlay();
+
+	key_reg_out[0] &= ~2;
+	key_reg_out[0] |= 0x80;
+
+	// midi send
+	us_buf1 = 0xfc;
+	MIDITask->Give();
+
+	init_prog();
+
+	DisplayTask->Sec_Print(count_down);
+	count_up = 0;
+
+}
+
+void MenuPlayer::keyStopLong()
+{
+	if(no_file) return;
+
+	if(m_loopModeActive)
 	{
-		player.stopPlay();
-
-		key_reg_out[0] &= ~2;
-		key_reg_out[0] |= 0x80;
-
-		// midi send
-		us_buf1 = 0xfc;
-		MIDITask->Give();
-
-		init_prog();
-
-		DisplayTask->Sec_Print(count_down);
-		count_up = 0;
+		m_loopModeActive = false;
+		key_reg_out[1] |= 1 << 7;
+		key_reg_out[1] |= 1 << 15;
 	}
 	else
 	{
-		if(!play_point_ind)
-		{
-			play_point_ind = 1;
-			key_reg_out[1] |= 1 << 7;
-			key_reg_out[1] |= 1 << 15;
-		}
-		else
-		{
-			play_point_ind = 0;
-			if (play_point1_fl)
-				key_reg_out[1] &= ~(1 << 7);
-			if (play_point2_fl)
-				key_reg_out[1] &= ~(1 << 15);
-		}
+		m_loopModeActive = true;
+		if (playPoint1Selected)
+			key_reg_out[1] &= ~(1 << 7);
+		if (playPoint2Selected)
+			key_reg_out[1] &= ~(1 << 15);
 	}
 }
 
@@ -295,9 +286,7 @@ void MenuPlayer::keyStart()
 			key_reg_out[0] |= 2;
 			key_reg_out[0] &= ~0x80;
 
-			if(play_point1_fl && !play_point_ind
-					&& player.state() != Player::PLAYER_PAUSE
-					&& sys_param[loop_points])
+			if(playPoint1Selected && m_loopModeActive && sys_param[loop_points])
 				jump_rand_pos(play_point1);
 
 			us_buf1 = 0xfa;
@@ -316,6 +305,7 @@ void MenuPlayer::keyStart()
 			MIDITask->Give();
 			break;
 		}
+		default: break;
 	}
 }
 
@@ -407,34 +397,34 @@ void MenuPlayer::keyReturn()
 {
 	if(no_file) return;
 
-	if(ret_dub_fl)  // Long press
-	{
-		play_point1 = FsStreamTask->pos();
-		play_point1_fl = 1;
-		if (!play_point2)
-			play_point2 = song_size * 4410;
-		key_reg_out[1] &= ~(1 << 7);
-	}
-	else
-	{
-		jump_rand_pos(play_point1);
-	}
+	jump_rand_pos(play_point1);
+}
+
+void MenuPlayer::keyReturnLong()
+{
+	if(no_file) return;
+
+	play_point1 = FsStreamTask->pos();
+	playPoint1Selected = 1;
+	if (!play_point2)
+		play_point2 = song_size * 4410;
+	key_reg_out[1] &= ~(1 << 7);
 }
 
 void MenuPlayer::keyForward()
 {
 	if(no_file) return;
 
-	if (fwd_dub_fl) // Long press
-	{
-		play_point2 = FsStreamTask->pos();
-		play_point2_fl = 1;
-		key_reg_out[1] &= ~(1 << 15);
-	}
-	else
-	{
-		jump_rand_pos(play_point2);
-	}
+	jump_rand_pos(play_point2);
+}
+
+void MenuPlayer::keyForwardLong()
+{
+	if(no_file) return;
+
+	play_point2 = FsStreamTask->pos();
+	playPoint2Selected = 1;
+	key_reg_out[1] &= ~(1 << 15);
 }
 
 void MenuPlayer::keyEsc()
@@ -477,7 +467,7 @@ bool MenuPlayer::loadSong()
 		init_prog();
 		song_size = count_down = FsStreamTask->sound_size();
 		click_size = FsStreamTask->click_size();
-		play_point1 = play_point2 = play_point1_fl = play_point2_fl = 0;
+		play_point1 = play_point2 = playPoint1Selected = playPoint2Selected = 0;
 		count_up = 0;
 
 		return 0;
@@ -518,8 +508,8 @@ void MenuPlayer::jump_rand_pos(uint32_t pos)
 	else
 		DisplayTask->Sec_Print(count_up);
 
-	memset(sound_buff, 0, wav_buff_size);
-	memset(click_buff, 0, wav_buff_size);
+	memset(sound_buff, 0, Player::wav_buff_size);
+	memset(click_buff, 0, Player::wav_buff_size);
 }
 
 void MenuPlayer::init_prog(void)

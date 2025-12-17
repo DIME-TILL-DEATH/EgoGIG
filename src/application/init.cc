@@ -35,17 +35,15 @@ uint8_t ctrl_param[32];
 uint8_t pc_param[256];
 uint8_t midi_pc = 0;
 
-const size_t wav_buff_size = 4 * 1024;
-
-wav_sample_t sound_buff[wav_buff_size];
-wav_sample_t click_buff[wav_buff_size];
+wav_sample_t sound_buff[Player::wav_buff_size];
+wav_sample_t click_buff[Player::wav_buff_size];
 
 const target_t first_target =
-{ (char*) sound_buff, (char*) click_buff, wav_buff_size / 2
+{ (char*) sound_buff, (char*) click_buff, Player::wav_buff_size / 2
 		* sizeof(wav_sample_t) };
 const target_t second_target =
-{ (char*) (sound_buff + wav_buff_size / 2), (char*) (click_buff
-		+ wav_buff_size / 2), wav_buff_size / 2 * sizeof(wav_sample_t) };
+{ (char*) (sound_buff + Player::wav_buff_size / 2), (char*) (click_buff
+		+ Player::wav_buff_size / 2), Player::wav_buff_size / 2 * sizeof(wav_sample_t) };
 
 volatile uint8_t encoder_state, encoder_state1, encoder_key, key_ind;
 //play_fl, play_fl1, play_fl2;
@@ -53,7 +51,6 @@ volatile uint32_t click_size;
 volatile uint32_t count_down;
 volatile uint32_t count_up;
 
-volatile uint8_t play_point_ind;
 volatile uint32_t play_point1 = 0;
 volatile uint32_t play_point2 = 0;
 volatile uint8_t pause_fl = 0;
@@ -413,7 +410,7 @@ extern "C" void DMA1_Stream4_IRQHandler()
 			if (sound_point == 0)
 				FsStreamTask->data_notify(&second_target);
 
-			if (sound_point == wav_buff_size / 2)
+			if (sound_point == Player::wav_buff_size / 2)
 				FsStreamTask->data_notify(&first_target);
 		}
 
@@ -433,7 +430,7 @@ extern "C" void DMA1_Stream4_IRQHandler()
 			msec_tik = 0;
 		}
 
-		if (sys_param[loop_points] && !play_point_ind)
+		if (sys_param[loop_points] && menuPlayer->loopModeActive())
 		{
 			if (play_point2 > play_point1)
 				if ((count_up * 4410) >= play_point2)
@@ -453,7 +450,7 @@ extern "C" void DMA1_Stream4_IRQHandler()
 
 		//инкремент с заворачиванием индекса
 		sound_point++;
-		sound_point &= wav_buff_size - 1;
+		sound_point &= Player::wav_buff_size - 1;
 	}
 	else player.songInitiated();
 
