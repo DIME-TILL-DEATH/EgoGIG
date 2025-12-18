@@ -1,6 +1,8 @@
 #include "player.h"
 
 #include "init.h"
+#include "cs.h"
+#include "enc.h"
 #include "fs_stream.h"
 
 #include "display.h"
@@ -37,6 +39,26 @@ void Player::decrementSoundPos()
 	}
 }
 
+void Player::processLoop()
+{
+	if(sys_param[loop_points] && menuPlayer->loopModeActive())
+	{
+		if (m_loopPoint2 > m_loopPoint1)
+			if ((countUp * 4410) >= m_loopPoint2)
+			{
+				key_ind = key_return;
+				CSTask->Give();
+			}
+
+		if (m_loopPoint1 > m_loopPoint2)
+			if ((countUp * 4410) >= m_loopPoint1)
+			{
+				key_ind = key_forward;
+				CSTask->Give();
+			}
+	}
+}
+
 void Player::initSong()
 {
 	m_state = PLAYER_LOADING_SONG;
@@ -44,6 +66,8 @@ void Player::initSong()
 	FsStreamTask->pos(0);
 	countUp = 0;
 	m_songPoint = 0;
+	m_loopPoint1 = 0;
+	m_loopPoint2 = 0;
 
 	for(uint32_t a=0; a < maxTrackCount; a++)
 	{
@@ -94,6 +118,28 @@ void Player::pause()
 	}
 }
 
+void Player::setLoopPoint1()
+{
+	m_loopPoint1 = FsStreamTask->pos();
+
+	if (!m_loopPoint2)
+		m_loopPoint2 = FsStreamTask->selectedSong.songSize() * 4410;
+}
+
+void Player::setLoopPoint2()
+{
+	m_loopPoint2 = FsStreamTask->pos();
+}
+
+void Player::jumpToLp1()
+{
+	jumpToPosition(m_loopPoint1);
+}
+
+void Player::jumpToLp2()
+{
+	jumpToPosition(m_loopPoint2);
+}
 
 void Player::jumpToPosition(uint32_t pos)
 {

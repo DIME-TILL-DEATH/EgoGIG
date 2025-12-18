@@ -248,7 +248,7 @@ void MenuPlayer::keyStart()
 		case Player::PLAYER_IDLE:
 		{
 			if(playPoint1Selected && m_loopModeActive && sys_param[loop_points])
-				player.jumpToPosition(play_point1);
+				player.jumpToLp1();
 
 			us_buf1 = 0xfa;
 			MIDITask->Give();
@@ -358,17 +358,15 @@ void MenuPlayer::keyReturn()
 {
 	if(no_file) return;
 
-	player.jumpToPosition(play_point1);
+	player.jumpToLp1();
 }
 
 void MenuPlayer::keyReturnLong()
 {
 	if(no_file) return;
 
-	play_point1 = FsStreamTask->pos();
 	playPoint1Selected = 1;
-	if (!play_point2)
-		play_point2 = FsStreamTask->selectedSong.songSize() * 4410;
+	player.setLoopPoint1();
 
 	Leds::digitPoint1On();
 }
@@ -377,15 +375,16 @@ void MenuPlayer::keyForward()
 {
 	if(no_file) return;
 
-	player.jumpToPosition(play_point2);
+	player.jumpToLp1();
 }
 
 void MenuPlayer::keyForwardLong()
 {
 	if(no_file) return;
 
-	play_point2 = FsStreamTask->pos();
 	playPoint2Selected = 1;
+	player.setLoopPoint2();
+
 	Leds::digitPoint2On();
 }
 
@@ -431,7 +430,7 @@ bool MenuPlayer::loadSong()
 
 		initSong();
 
-		play_point1 = play_point2 = playPoint1Selected = playPoint2Selected = 0;
+		playPoint1Selected = playPoint2Selected = 0;
 
 		return 0;
 	}

@@ -25,13 +25,20 @@ public:
 	const wav_sample_t& sample(uint8_t trackNum);
 	void incrementSoundPos();
 	void decrementSoundPos();
+	void processLoop();
 
 	State state() { return m_state; }
 
 	void startPlay();
 	void stopPlay();
 	void pause();
+
+	void setLoopPoint1();
+	void setLoopPoint2();
+
 	void jumpToPosition(uint32_t pos);
+	void jumpToLp1();
+	void jumpToLp2();
 
 	void starMetronome();
 	void stopMetronome();
@@ -46,6 +53,9 @@ private:
 
 	size_t m_buffPoint{0};
 	uint32_t m_songPoint{0};
+
+	uint32_t m_loopPoint1{0};
+	uint32_t m_loopPoint2{0};
 
 	const target_t first_target =
 	{

@@ -38,7 +38,7 @@ public:
 
 	bool loopModeActive() {return m_loopModeActive;}
 
-	uint8_t num_prog;
+	uint8_t num_prog{0};
 
 private:
 

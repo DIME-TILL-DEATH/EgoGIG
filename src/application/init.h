@@ -46,9 +46,6 @@ extern uint32_t tap_temp;
 extern uint32_t tap_temp1;
 extern uint32_t tap_temp2;
 
-extern volatile uint32_t play_point1;
-extern volatile uint32_t play_point2;
-
 extern uint16_t key_reg_in[2];
 extern uint16_t key_reg_out[2];
 

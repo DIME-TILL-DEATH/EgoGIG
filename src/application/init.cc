@@ -33,9 +33,6 @@ uint8_t __CCM_BSS__ pc_param[256];
 
 uint8_t tim5_fl = 0;
 
-volatile uint32_t play_point1 = 0;
-volatile uint32_t play_point2 = 0;
-
 uint16_t key_reg_in[2];
 uint16_t key_reg_out[2] = { 0, 0 };
 
@@ -356,6 +353,9 @@ extern "C" void DMA1_Stream4_IRQHandler()
 
 		[[likely]] case Player::PLAYER_PLAYING:
 		{
+			dac_sample[0] = player.sample(0);
+			dac_sample[1] = player.sample(1);
+
 			if(timeCounter == 44100 * 10) // 10 Sec
 				timeCounter =0;
 			else
@@ -380,10 +380,6 @@ extern "C" void DMA1_Stream4_IRQHandler()
 				}
 			}
 
-
-			dac_sample[0] = player.sample(0);
-			dac_sample[1] = player.sample(1);
-
 			if(player.countUp >= FsStreamTask->selectedSong.songSize())
 			{
 				player.stopPlay();
@@ -406,23 +402,7 @@ extern "C" void DMA1_Stream4_IRQHandler()
 			else
 			{
 				player.incrementSoundPos();
-			}
-
-			if (sys_param[loop_points] && menuPlayer->loopModeActive())
-			{
-				if (play_point2 > play_point1)
-					if ((player.countUp * 4410) >= play_point2)
-					{
-						key_ind = key_return;
-						CSTask->Give();
-					}
-
-				if (play_point1 > play_point2)
-					if ((player.countUp * 4410) >= play_point1)
-					{
-						key_ind = key_forward;
-						CSTask->Give();
-					}
+				player.processLoop();
 			}
 
 			FsStreamTask->MidiEventProcess();
