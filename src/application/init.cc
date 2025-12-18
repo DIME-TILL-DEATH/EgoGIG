@@ -22,51 +22,47 @@
 
 #include "player.h"
 
-// Main top-level unit
 MenuPlayer* menuPlayer;
 Player player;
 
 uint8_t num_prog = 0;
 
-dac_sample_t dac_sample;
-dac_sample_t dac_sample1;
+dac_sample_t dac_sample[2];
 
 uint8_t sys_param[64];
-
 uint8_t ctrl_param[32];
 uint8_t pc_param[256];
+
 uint8_t midi_pc = 0;
 
 uint8_t tim5_fl = 0;
 uint8_t blink_en = 0;
 
-wav_sample_t sound_buff[Player::wav_buff_size];
-wav_sample_t click_buff[Player::wav_buff_size];
+//wav_sample_t sound_buff[Player::wav_buff_size];
+//wav_sample_t click_buff[Player::wav_buff_size];
 
 const target_t first_target =
 {
-	(char*) sound_buff,
-	(char*) click_buff,
+	(char*) player.soundBuff[0],
+	(char*) player.soundBuff[1],
 	Player::wav_buff_size / 2 * sizeof(wav_sample_t)
 };
 
 const target_t second_target =
 {
-	(char*) (sound_buff + Player::wav_buff_size / 2),
-	(char*) (click_buff + Player::wav_buff_size / 2),
+	(char*) (player.soundBuff[0] + Player::wav_buff_size / 2),
+	(char*) (player.soundBuff[1] + Player::wav_buff_size / 2),
 	Player::wav_buff_size / 2 * sizeof(wav_sample_t)
 };
 
-volatile uint8_t encoder_state, encoder_rotated, encoder_key, key_ind;
 
-volatile uint32_t click_size;
+
+
 volatile uint32_t count_down;
 volatile uint32_t count_up;
 
 volatile uint32_t play_point1 = 0;
 volatile uint32_t play_point2 = 0;
-
-uint32_t song_size;
 
 uint16_t key_reg_in[2];
 uint16_t key_reg_out[2] = { 0, 0 };
@@ -221,7 +217,7 @@ void init(void)
 	dma_disable_peripheral_increment_mode(DMA1, DMA_STREAM4);
 	dma_set_transfer_mode(DMA1, DMA_STREAM4, DMA_SxCR_DIR_MEM_TO_PERIPHERAL);
 	dma_set_peripheral_address(DMA1, DMA_STREAM4, (uint32_t) &SPI2_DR);
-	dma_set_memory_address(DMA1, DMA_STREAM4, (uint32_t) &dac_sample);
+	dma_set_memory_address(DMA1, DMA_STREAM4, (uint32_t) &dac_sample[0]);
 	dma_enable_circular_mode(DMA1, DMA_STREAM4);
 	dma_set_number_of_data(DMA1, DMA_STREAM4, 4);
 	dma_channel_select(DMA1, DMA_STREAM4, DMA_SxCR_CHSEL_0);
@@ -235,7 +231,7 @@ void init(void)
 	dma_disable_peripheral_increment_mode(DMA1, DMA_STREAM7);
 	dma_set_transfer_mode(DMA1, DMA_STREAM7, DMA_SxCR_DIR_MEM_TO_PERIPHERAL);
 	dma_set_peripheral_address(DMA1, DMA_STREAM7, (uint32_t) &SPI3_DR);
-	dma_set_memory_address(DMA1, DMA_STREAM7, (uint32_t) &dac_sample1);
+	dma_set_memory_address(DMA1, DMA_STREAM7, (uint32_t) &dac_sample[1]);
 	dma_enable_circular_mode(DMA1, DMA_STREAM7);
 	dma_set_number_of_data(DMA1, DMA_STREAM7, 4);
 	dma_channel_select(DMA1, DMA_STREAM7, DMA_SxCR_CHSEL_0);
@@ -358,9 +354,6 @@ void i2s_dma_interrupt_disable()
 }
 
 size_t sound_point = 0;
-uint16_t msec_tik = 0;
-volatile uint32_t samp_point;
-volatile uint32_t sample_pos = 0;
 
 volatile uint32_t metronom_int;
 uint16_t metronom_counter = 0;
@@ -371,105 +364,130 @@ uint32_t tap_temp;
 uint32_t tap_temp1;
 uint32_t tap_temp2;
 
-volatile size_t abs_sample_count = 0;
-
+volatile uint32_t sample_pos = 0;
+uint32_t timeCounter = 0;
 extern "C" void DMA1_Stream4_IRQHandler()
 {
 	dma_clear_interrupt_flags(DMA1, DMA_STREAM4, DMA_TCIF);
 
-	dac_sample.left = dac_sample1.left = 0;
-	dac_sample.right = dac_sample1.right = 0;
+	dac_sample[0].left = dac_sample[1].left = 0;
+	dac_sample[0].right = dac_sample[1].right = 0;
 
-	if(player.state() == Player::PLAYER_PLAYING)//if(play_fl)
+	switch(player.state())
 	{
-		dac_sample.left = sound_buff[sound_point].left;
-		dac_sample.right = sound_buff[sound_point].right;
-
-		if (sample_pos < click_size)
+		case Player::PLAYER_IDLE:
 		{
-				dac_sample1.left = click_buff[sound_point].left;
-				dac_sample1.right = click_buff[sound_point].right;
+			timeCounter = 0;
+			break;
 		}
-		sample_pos = FsStreamTask->pos();
 
-		if (count_up >= song_size)
+		case Player::PLAYER_PLAYING:
 		{
-			player.stopPlay();
-			if(FsStreamTask->selectedSong.playNext)
+			dac_sample[0].left = player.soundBuff[0][sound_point].left;
+			dac_sample[0].right = player.soundBuff[0][sound_point].right;
+
+			if(timeCounter == 44100 * 10) // 10 Sec
+				timeCounter =0;
+			else
+				timeCounter++;
+
+			if(timeCounter)
 			{
-				if(currentMenu)
+				if(timeCounter % 4410 == 0) //100 msec
 				{
-					menuPlayer->requestPlayNext();
+					count_up++;
+					count_down--;
+
+					if (currentMenu->menuType() == MENU_PLAYER)
+					{
+						if (sys_param[direction_counter])
+							DisplayTask->Sec_Print(count_down);
+						else
+							DisplayTask->Sec_Print(count_up);
+					}
 				}
+
+				// 44100/(44100 - 25000000/567) = 5320 is 82,89 samples, 5113 is 83 samples
+				if(timeCounter % 5320 == 0 && sound_point != 0)
+				{
+					sound_point--;
+				}
+			}
+
+			if(sample_pos < FsStreamTask->selectedSong.trackSize[1] / sizeof(wav_sample_t)) // FsStreamTack->click_size()
+			{
+					dac_sample[1].left = player.soundBuff[1][sound_point].left;
+					dac_sample[1].right = player.soundBuff[1][sound_point].right;
+			}
+			sample_pos = FsStreamTask->pos();
+
+			if (count_up >= FsStreamTask->selectedSong.songSize())
+			{
+				player.stopPlay();
+				if(FsStreamTask->selectedSong.playNext)
+				{
+					if(currentMenu)
+					{
+						menuPlayer->requestPlayNext();
+					}
+				}
+				else
+				{
+					if (!sys_param[auto_next_track])
+						key_ind = key_stop;// request stop from ISR, not menuPlayer->keyStop();
+					else
+						menuPlayer->requestPlayNext();
+				}
+				CSTask->Give();
 			}
 			else
 			{
-				if (!sys_param[auto_next_track])
-					key_ind = key_stop;// request stop from ISR, not menuPlayer->keyStop();
-				else
-					menuPlayer->requestPlayNext();
+				if (sound_point == 0)
+					FsStreamTask->data_notify(&second_target);
+
+				if (sound_point == Player::wav_buff_size / 2)
+					FsStreamTask->data_notify(&first_target);
 			}
-			CSTask->Give();
-		}
-		else
-		{
-			if (sound_point == 0)
-				FsStreamTask->data_notify(&second_target);
 
-			if (sound_point == Player::wav_buff_size / 2)
-				FsStreamTask->data_notify(&first_target);
-		}
-
-		msec_tik++;
-		if (msec_tik == 4410)
-		{
-			count_up++;
-			count_down--;
-
-			if (currentMenu->menuType() == MENU_PLAYER)
+			if (sys_param[loop_points] && menuPlayer->loopModeActive())
 			{
-				if (sys_param[direction_counter])
-					DisplayTask->Sec_Print(count_down);
-				else
-					DisplayTask->Sec_Print(count_up);
+				if (play_point2 > play_point1)
+					if ((count_up * 4410) >= play_point2)
+					{
+						key_ind = key_return;
+						CSTask->Give();
+					}
+				if (play_point1 > play_point2)
+					if ((count_up * 4410) >= play_point1)
+					{
+						key_ind = key_forward;
+						CSTask->Give();
+					}
 			}
-			msec_tik = 0;
+
+			FsStreamTask->MidiEventProcess();
+
+			//инкремент с заворачиванием индекса
+			sound_point++;
+			sound_point &= Player::wav_buff_size - 1;
+			break;
 		}
 
-		if (sys_param[loop_points] && menuPlayer->loopModeActive())
+		case Player::PLAYER_LOADING_SONG:
 		{
-			if (play_point2 > play_point1)
-				if ((count_up * 4410) >= play_point2)
-				{
-					key_ind = key_return;
-					CSTask->Give();
-				}
-			if (play_point1 > play_point2)
-				if ((count_up * 4410) >= play_point1)
-				{
-					key_ind = key_forward;
-					CSTask->Give();
-				}
+			timeCounter = 0;
+			sound_point = 0;
+			player.songInitiated();
+			break;
 		}
-
-		FsStreamTask->MidiEventProcess();
-
-		//инкремент с заворачиванием индекса
-		sound_point++;
-		sound_point &= Player::wav_buff_size - 1;
 	}
 
-	if(player.state() == Player::PLAYER_LOADING_SONG)
-	{
-		player.songInitiated();
-	}
-
-	if (metronom_start)
+	if(metronom_start)
 	{
 		if (metronom_fl)
 		{
 			//dac_sample1.left = metronom_cod[metronom_counter];
-			dac_sample1.right = metronom_cod[metronom_counter];
+			dac_sample[1].right = metronom_cod[metronom_counter];
 			metronom_counter++;
 			if (metronom_counter == 3935)
 			{

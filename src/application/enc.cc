@@ -13,6 +13,8 @@
 #include "leds.h"
 
 TENCTask *ENCTask;
+
+volatile uint8_t encoder_state, encoder_rotated, encoder_key, key_ind;
 extern uint8_t key_val;
 extern uint8_t blink_en;
 volatile uint8_t key_push_fl = 0;

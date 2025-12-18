@@ -41,7 +41,6 @@ extern uint32_t tap_temp;
 extern uint32_t tap_temp1;
 extern uint32_t tap_temp2;
 
-extern uint32_t song_size;
 extern uint8_t blink_en;
 
 extern volatile uint32_t play_point1;
@@ -50,23 +49,16 @@ extern volatile uint32_t play_point2;
 extern volatile uint32_t count_down;
 extern volatile uint32_t count_up;
 
-extern wav_sample_t sound_buff[];
-extern wav_sample_t click_buff[];
-
 extern uint16_t key_reg_in[2];
 extern uint16_t key_reg_out[2];
 extern uint8_t key_val;
 
-extern volatile uint8_t encoder_state, encoder_rotated, encoder_key, key_ind;
 
-extern uint16_t msec_tik;
 extern size_t sound_point;
-extern volatile uint32_t samp_point;
 
 extern uint8_t us_buf1;
 extern volatile uint32_t click_size;
 extern uint8_t sys_param[];
-extern uint32_t song_size;
 extern uint8_t blink_en;
 extern volatile uint8_t led_blink_fl;
 

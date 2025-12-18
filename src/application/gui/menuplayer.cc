@@ -36,7 +36,7 @@ void MenuPlayer::show(TShowMode showMode)
 	{
 		if (!test_file())
 			if (num_prog < 99)
-				DisplayTask->Sec_Print(FsStreamTask->sound_size());
+				DisplayTask->Sec_Print(FsStreamTask->selectedSong.songSize());
 	}
 	else
 	{
@@ -50,7 +50,7 @@ void MenuPlayer::show(TShowMode showMode)
 		if(FsStreamTask->selectedSong.playNext)
 			DisplayTask->SymbolOut(15, 1, SYMBOL_NEXT_MARK);
 
-		DisplayTask->Sec_Print(FsStreamTask->sound_size());
+		DisplayTask->Sec_Print(FsStreamTask->selectedSong.songSize());
 	}
 
 	Leds::digit(num_prog);
@@ -89,8 +89,10 @@ void MenuPlayer::processPlayNext()
 
 		while(player.state() == Player::PLAYER_LOADING_SONG)
 
-		memset(sound_buff, 0, Player::wav_buff_size);
-		memset(click_buff, 0, Player::wav_buff_size);
+//		memset(sound_buff, 0, Player::wav_buff_size);
+//		memset(click_buff, 0, Player::wav_buff_size);
+		player.initSong();
+
 		num_prog = (num_prog + 1) % 99;
 
 		while (1)
@@ -195,8 +197,8 @@ void MenuPlayer::encoderLongPress()
 
 void MenuPlayer::encoderClockwise()
 {
-	if(count_up < song_size)
-		count_up = ParamBase::encSpeedInc(count_up, song_size);
+	if(count_up < FsStreamTask->selectedSong.songSize())
+		count_up = ParamBase::encSpeedInc(count_up, FsStreamTask->selectedSong.songSize());
 
 	player.jumpToPosition(count_up * 4410);
 
@@ -225,7 +227,7 @@ void MenuPlayer::keyStop()
 
 	initSong();
 
-	count_down = FsStreamTask->sound_size();
+	count_down = FsStreamTask->selectedSong.songSize();
 	DisplayTask->Sec_Print(count_down);
 	count_up = 0;
 
@@ -381,7 +383,7 @@ void MenuPlayer::keyReturnLong()
 	play_point1 = FsStreamTask->pos();
 	playPoint1Selected = 1;
 	if (!play_point2)
-		play_point2 = song_size * 4410;
+		play_point2 = FsStreamTask->selectedSong.songSize() * 4410;
 
 	Leds::digitPoint1On();
 }
@@ -440,11 +442,10 @@ bool MenuPlayer::loadSong()
 		printRunningName(m_currentSongName);
 
 		if(FsStreamTask->selectedSong.playNext) DisplayTask->SymbolOut(15, 1, SYMBOL_NEXT_MARK);
-		DisplayTask->Sec_Print(FsStreamTask->sound_size());
+		DisplayTask->Sec_Print(FsStreamTask->selectedSong.songSize());
 
 		initSong();
-		song_size = count_down = FsStreamTask->sound_size();
-		click_size = FsStreamTask->click_size();
+		count_down = FsStreamTask->selectedSong.songSize();
 		play_point1 = play_point2 = playPoint1Selected = playPoint2Selected = 0;
 		count_up = 0;
 

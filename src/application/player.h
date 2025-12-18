@@ -12,10 +12,14 @@ public:
 		PLAYER_IDLE,
 		PLAYER_LOADING_SONG, 	// play_fl1
 		PLAYER_PLAYING,	// play_fl, play_fl2
-		PLAYER_PAUSE
+		PLAYER_PAUSE,
+		METRONOME_PLAYING
 	};
 
-	static constexpr size_t wav_buff_size = 4 * 1024;
+	static constexpr uint8_t maxTrackCount = 4;
+	static constexpr size_t wav_buff_size = sizeof(wav_sample_t) * 512;
+
+	wav_sample_t soundBuff[maxTrackCount][wav_buff_size];
 
 	State state() { return m_state; }
 
@@ -29,7 +33,6 @@ public:
 
 private:
 	State m_state{PLAYER_IDLE};
-
 };
 
 

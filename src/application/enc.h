@@ -21,6 +21,10 @@ enum
 	key_encoder_long
 };
 
+extern volatile uint8_t encoder_state;
+extern volatile uint8_t encoder_rotated;
+extern volatile uint8_t encoder_key;
+extern volatile uint8_t key_ind;
 
 class TENCTask: public TTask
 {

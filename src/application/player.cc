@@ -10,19 +10,15 @@ void Player::initSong()
 {
 	m_state = PLAYER_LOADING_SONG;
 
-	sound_point = 0;
-	samp_point = 0;
-
 	FsStreamTask->pos(0);
 
-	msec_tik = 0;
-
-	for (uint32_t i = 0; i < (wav_buff_size); i++)
+	for(uint32_t a=0; a < maxTrackCount; a++)
 	{
-		sound_buff[i].left = 0;
-		sound_buff[i].right = 0;
-		click_buff[i].left = 0;
-		click_buff[i].right = 0;
+		for (uint32_t i = 0; i < (wav_buff_size); i++)
+		{
+			soundBuff[a][i].left = 0;
+			soundBuff[a][i].right = 0;
+		}
 	}
 }
 
@@ -67,14 +63,13 @@ void Player::jumpToPosition(uint32_t pos)
 {
 	FsStreamTask->pos(pos);
 	count_up = pos / 4410.0f;
-	count_down = song_size - count_up;
+	count_down = FsStreamTask->selectedSong.songSize() - count_up;
 
 	if (sys_param[direction_counter])
 		DisplayTask->Sec_Print(count_down);
 	else
 		DisplayTask->Sec_Print(count_up);
 
-	memset(sound_buff, 0, Player::wav_buff_size);
-	memset(click_buff, 0, Player::wav_buff_size);
+	memset(soundBuff, 0, Player::wav_buff_size * maxTrackCount);
 }
 

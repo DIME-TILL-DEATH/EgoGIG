@@ -4,6 +4,7 @@
 #include "appdefs.h"
 
 #include "ff.h"
+#include "player.h"
 
 class Song
 {
@@ -29,16 +30,16 @@ public:
 
 	bool playNext;
 
-	static constexpr uint8_t maxTrackCount = 4;
-	emb_string trackPath[maxTrackCount];
-	emb_string trackName[maxTrackCount];
+
+	emb_string trackPath[Player::maxTrackCount];
+	emb_string trackName[Player::maxTrackCount];
 	uint8_t trackCount{0};
 
-	bool trackValid[maxTrackCount];
-	uint32_t trackSize[maxTrackCount];
-	uint16_t soundDataOffset[maxTrackCount];
+	bool trackValid[Player::maxTrackCount];
+	uint32_t trackSize[Player::maxTrackCount];
+	uint16_t soundDataOffset[Player::maxTrackCount];
 
-	FIL wavFile[maxTrackCount];
+	FIL wavFile[Player::maxTrackCount];
 	FIL midiFile;
 
 	uint32_t read_chunk_count;
@@ -46,11 +47,15 @@ public:
 	bool isValidWave(FIL *file, uint8_t num);
 	bool isValidWave(emb_string filePath);
 
+	uint32_t songSize() { return m_songSize;}
+
 private:
 	static char buf[FF_MAX_LFN + 4];
 
 	char m_songName[16];
 	char m_songComment[32];
+
+	uint32_t m_songSize;
 };
 
 

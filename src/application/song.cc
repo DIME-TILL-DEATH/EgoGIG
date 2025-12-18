@@ -39,7 +39,7 @@ Song::FsError Song::load(const emb_string& songPath)
 	if(trackPath[1].size() < 5) trackPath[1].clear(); // *.wav - minimum 5 symbols
 	f_close(&songFile);
 
-	for(uint8_t i=0; i<maxTrackCount; i++)
+	for(uint8_t i=0; i<Player::maxTrackCount; i++)
 	{
 		if (!trackPath[i].empty())
 		{
@@ -69,6 +69,9 @@ Song::FsError Song::load(const emb_string& songPath)
 			trackName[i] = trackName[i].substr(trackName[i].find_last_of('/') + 1, trackName[i].length());
 		}
 	}
+
+	// MAX FROM TRACKS
+	m_songSize = trackSize[0] / 4 / 4410;
 
 		// Load midi
 //		midi_player.midi_stream.clear();
@@ -132,7 +135,7 @@ Song::FsError Song::save(const emb_string& songPath)
 	else
 		f_lseek(&file, 0);
 
-	for(uint8_t i=0; i<maxTrackCount; i++)
+	for(uint8_t i=0; i<Player::maxTrackCount; i++)
 	{
 		if(trackPath[i].empty()) continue;
 
@@ -147,7 +150,7 @@ Song::FsError Song::save(const emb_string& songPath)
 
 void Song::close()
 {
-	for(uint8_t i =0; i < maxTrackCount; i++)
+	for(uint8_t i =0; i < Player::maxTrackCount; i++)
 	{
 		f_close(&wavFile[i]);
 		f_close(&midiFile);

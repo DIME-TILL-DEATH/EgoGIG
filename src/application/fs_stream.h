@@ -176,17 +176,17 @@ public:
 			return true;
 	}
 
-	inline uint32_t sound_size()
-	{
-		uint32_t temp = selectedSong.trackSize[0] / 4 / 4410;
-		return temp;
-	}
-
-	inline uint32_t click_size()
-	{
-		uint32_t temp = selectedSong.trackSize[1] / 4;
-		return temp;
-	}
+//	inline uint32_t sound_size()
+//	{
+//		uint32_t temp = selectedSong.trackSize[0] / 4 / 4410;
+//		return temp;
+//	}
+//
+//	inline uint32_t click_size()
+//	{
+//		uint32_t temp = selectedSong.trackSize[1] / 4;
+//		return temp;
+//	}
 	void enter_dir(const char *name, const char *high_level_node, bool begin);
 
 	inline void MidiEventProcess()
@@ -227,36 +227,33 @@ protected:
 	{
 		// чтение данных из файла wave и запись в буффер
 		size_t br = 0;
-		extern volatile uint32_t samp_point;
-		samp_point = selectedSong.wavFile[0].fptr - selectedSong.soundDataOffset[0];
+
 		fr = f_read(&selectedSong.wavFile[0], target->dest_sound, target->size, &br);
 		size_t zeros = target->size - br;
 
-		if (zeros)
+		if(zeros)
 		{
 			memset(target->dest_sound + br, 0, zeros);
 		}
-		else
-			[[likely]] sound_strech(target);
+//		else
+//			[[likely]] sound_strech(target);
 
 		// чтение данных из файла click и запись в буффер
 		br = 0;
-		if ((selectedSong.wavFile[1].fptr) > samp_point)
-			samp_point = selectedSong.wavFile[1].fptr;
+
 		fr = f_read(&selectedSong.wavFile[1], target->dest_click, target->size, &br);
 		zeros = target->size - br;
 		if (zeros)
 		{
 			memset(target->dest_click + br, 0, zeros);
 		}
-		else
-			[[likely]] click_strech(target);
+//		else
+//			[[likely]] click_strech(target);
 
 		selectedSong.read_chunk_count++;
 	}
 
-	void get_wav_name(emb_string &dir_path, emb_string &file_path,
-			emb_string &mask)
+	void get_wav_name(emb_string &dir_path, emb_string &file_path, emb_string &mask)
 	{
 		DIR dir; /* Directory search object */
 		FILINFO fno; /* File information */
@@ -273,8 +270,7 @@ protected:
 		}
 	}
 
-	void find(emb_string &dir_path, emb_string &sound_path,
-			emb_string &click_path)
+	void find(emb_string &dir_path, emb_string &sound_path, emb_string &click_path)
 	{
 		emb_string mask = "1_*.wav";
 		get_wav_name(dir_path, sound_path, mask);
@@ -311,53 +307,53 @@ protected:
 		}
 	}
 
-	inline void sound_strech(const target_t *target)
-	{
-		for (auto &item : stretch[0])
-			if ((selectedSong.read_chunk_count % item.index == 0) && item.index)
-			{
-				int32_t diff = item.pos_diff * sizeof(wav_sample_t);
-
-				f_lseek(&selectedSong.wavFile[0], f_tell(&selectedSong.wavFile[0]) + diff);
-#if 0
-    	    	   if ( item.pos_diff < -1 )
-    	    	     {
-
-    	    		     auto s = reinterpret_cast< uint32_t* >(target->dest_sound) ;
-
-    	    		     uint32_t fill = s [ target->size / sizeof(wav_sample_t) - item.pos_diff ] ;
-
-                         std::for_each ( s + target->size / sizeof(wav_sample_t) - (item.pos_diff - 1) , s + target->size / sizeof(wav_sample_t) - 1 ,
-                        		 [ & ]( auto & i) { i = fill ; }
-                                       ) ;
-    	    	     }
-#endif
-			}
-	}
-
-	inline void click_strech(const target_t *target)
-	{
-		for (auto &item : stretch[1])
-			if ((selectedSong.read_chunk_count % item.index == 0) && item.index)
-			{
-				int32_t diff = item.pos_diff * sizeof(wav_sample_t);
-
-				f_lseek(&selectedSong.wavFile[1], f_tell(&selectedSong.wavFile[1]) + diff);
-#if 0
-    	    	   if ( item.pos_diff < -1 )
-    	    	     {
-
-    	    		     auto s = reinterpret_cast< uint32_t* >(target->dest_click) ;
-
-    	    		     uint32_t fill = s [ target->size / sizeof(wav_sample_t) - item.pos_diff ] ;
-
-                         std::for_each ( s + target->size / sizeof(wav_sample_t) - (item.pos_diff - 1) , s + target->size / sizeof(wav_sample_t) - 1 ,
-                        		 [ & ]( auto & i) { i = fill ; }
-                                       ) ;
-    	    	     }
-#endif
-			}
-	}
+//	inline void sound_strech(const target_t *target)
+//	{
+//		for (auto &item : stretch[0])
+//			if ((selectedSong.read_chunk_count % item.index == 0) && item.index)
+//			{
+//				int32_t diff = item.pos_diff * sizeof(wav_sample_t);
+//
+//				f_lseek(&selectedSong.wavFile[0], f_tell(&selectedSong.wavFile[0]) + diff);
+//#if 0
+//    	    	   if ( item.pos_diff < -1 )
+//    	    	     {
+//
+//    	    		     auto s = reinterpret_cast< uint32_t* >(target->dest_sound) ;
+//
+//    	    		     uint32_t fill = s [ target->size / sizeof(wav_sample_t) - item.pos_diff ] ;
+//
+//                         std::for_each ( s + target->size / sizeof(wav_sample_t) - (item.pos_diff - 1) , s + target->size / sizeof(wav_sample_t) - 1 ,
+//                        		 [ & ]( auto & i) { i = fill ; }
+//                                       ) ;
+//    	    	     }
+//#endif
+//			}
+//	}
+//
+//	inline void click_strech(const target_t *target)
+//	{
+//		for (auto &item : stretch[1])
+//			if ((selectedSong.read_chunk_count % item.index == 0) && item.index)
+//			{
+//				int32_t diff = item.pos_diff * sizeof(wav_sample_t);
+//
+//				f_lseek(&selectedSong.wavFile[1], f_tell(&selectedSong.wavFile[1]) + diff);
+//#if 0
+//    	    	   if ( item.pos_diff < -1 )
+//    	    	     {
+//
+//    	    		     auto s = reinterpret_cast< uint32_t* >(target->dest_click) ;
+//
+//    	    		     uint32_t fill = s [ target->size / sizeof(wav_sample_t) - item.pos_diff ] ;
+//
+//                         std::for_each ( s + target->size / sizeof(wav_sample_t) - (item.pos_diff - 1) , s + target->size / sizeof(wav_sample_t) - 1 ,
+//                        		 [ & ]( auto & i) { i = fill ; }
+//                                       ) ;
+//    	    	     }
+//#endif
+//			}
+//	}
 
 private:
 	void Code();
@@ -369,24 +365,24 @@ private:
 	FRESULT fr; // результат файловой операции
 	UINT *fw;
 
-	struct stretch_t
-	{
-		size_t index;
-		int32_t pos_diff;
-	} __attribute__((packed))
-#ifndef __STRETCH_DATA_FILE__
-	static constexpr
-#endif
-	stretch[2][3] =
-	{
-	{
-	{ 5, -2 },
-	{ 71, -2 },
-	{ 0, 0 } },
-	{
-	{ 5, -2 },
-	{ 71, -2 },
-	{ 0, 0 } } };
+//	struct stretch_t
+//	{
+//		size_t index;
+//		int32_t pos_diff;
+//	} __attribute__((packed))
+//#ifndef __STRETCH_DATA_FILE__
+//	static constexpr
+//#endif
+//	stretch[2][3] =
+//	{
+//	{
+//	{ 5, -2 },
+//	{ 71, -2 },
+//	{ 0, 0 } },
+//	{
+//	{ 5, -2 },
+//	{ 71, -2 },
+//	{ 0, 0 } } };
 
 	browser_t browser;
 
