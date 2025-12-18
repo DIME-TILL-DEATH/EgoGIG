@@ -440,8 +440,13 @@ extern "C" void DMA1_Stream4_IRQHandler()
 		{
 			if(metronom_fl)
 			{
-				//dac_sample1.left = metronomeData[metronom_counter];
-				dac_sample[1].right = metronomeData[metronom_counter];
+				switch(sys_param[metronome_out])
+				{
+				case METRONOME_TO_OUT1: dac_sample[0].left = metronomeData[metronom_counter]; break;
+				case METRONOME_TO_OUT2:	dac_sample[0].right = metronomeData[metronom_counter]; break;
+				case METRONOME_TO_OUT3:	dac_sample[1].left = metronomeData[metronom_counter]; break;
+				case METRONOME_TO_OUT4:	dac_sample[1].right = metronomeData[metronom_counter]; break;
+				}
 				metronom_counter++;
 				if (metronom_counter == 3935)
 				{

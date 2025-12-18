@@ -16,7 +16,7 @@ public:
 		METRONOME_PLAYING
 	};
 
-	static constexpr uint8_t maxTrackCount = 4;
+	static constexpr uint8_t maxTrackCount = 2;
 	static constexpr size_t wav_buff_size = sizeof(wav_sample_t) * 512;
 
 	wav_sample_t soundBuff[maxTrackCount][wav_buff_size];

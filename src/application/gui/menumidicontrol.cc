@@ -47,6 +47,7 @@ MenuMidiControl::MenuMidiControl(AbstractMenu* parent)
 	subParamLinks[3].link[0]->setScaling(1, 1);
 
 	params[4] = new ParamSubmenu("MIDI PC Set", &MenuMidiControl::createMidiPcMenu, nullptr);
+	subParamLinks[4].count = 0;
 
 	for(int i = 0; i < paramsCount; i++)
 	{

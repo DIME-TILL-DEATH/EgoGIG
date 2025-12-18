@@ -19,7 +19,7 @@ public:
 
 	typedef struct
 	{
-		uint8_t count;
+		uint8_t count{0};
 		ParamBase** link;
 	}SubParamLinks;
 

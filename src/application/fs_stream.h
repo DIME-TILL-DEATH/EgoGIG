@@ -119,11 +119,10 @@ public:
 
 	inline void pos(size_t val)
 	{
-		fr = f_lseek(&selectedSong.wavFile[0], val * sizeof(wav_sample_t) + selectedSong.soundDataOffset[0]);
-		fr = f_lseek(&selectedSong.wavFile[1], val * sizeof(wav_sample_t) + selectedSong.soundDataOffset[1]);
+		for(uint8_t i=0; i<Player::maxTrackCount; i++)
+			fr = f_lseek(&selectedSong.wavFile[i], val * sizeof(wav_sample_t) + selectedSong.soundDataOffset[i]);
 
 		midi_player.pos(val);
-
 	}
 
 	inline void browser_name(emb_string &dst)
@@ -163,18 +162,6 @@ public:
 		return browser.play_list_folder;
 	}
 
-	inline bool eof(void)
-	{
-		return f_eof(&selectedSong.wavFile[0]);
-	}
-
-	inline bool file_flag(void)
-	{
-		if (browser.fno.fattrib & AM_DIR)
-			return false;
-		else
-			return true;
-	}
 
 //	inline uint32_t sound_size()
 //	{
@@ -193,6 +180,8 @@ public:
 	{
 		midi_player.process();
 	}
+
+	midi_player_t midi_player;
 
 protected:
 
@@ -386,7 +375,7 @@ private:
 
 	browser_t browser;
 
-	midi_player_t midi_player;
+
 };
 
 extern TFsStreamTask *FsStreamTask;

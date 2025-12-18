@@ -1,6 +1,6 @@
 #include "song.h"
 
-//#include "fs_stream.h"
+#include "fs_stream.h"
 char Song::buf[FF_MAX_LFN + 4];
 
 Song::FsError Song::load(const emb_string& songPath)
@@ -74,46 +74,31 @@ Song::FsError Song::load(const emb_string& songPath)
 	m_songSize = trackSize[0] / 4 / 4410;
 
 		// Load midi
-//		midi_player.midi_stream.clear();
-//		temp_mid = trackPath[0];
-//		temp_mid = temp_mid.substr(0, trackPath[0].find(".wav"));
-//		temp_mid.append(".mid");
-//
-//		FIL file_midi;
-//		if (f_open(&midiFile, temp_mid.c_str(), FA_READ) == FR_OK)
-//		{
-//			if (f_size(&midiFile) < 4096)
-//			{
-//				f_close(&midiFile);
-//				// midi
-//				float parse_file(const char *path, midi_stream_t &midi_stream);
-//				float sf = parse_file(temp_mid.c_str(), midi_player.midi_stream);
-//
-//				midi_player.midi_stream.sort_and_merge();
-//				for (auto &v : midi_player.midi_stream.items)
-//				{
-//					v.time_tics = (v.time_tics * 44100) / sf;
-//				}
-//				midi_player.reset();
-//			}
-//			else
-//				f_close(&midiFile);
-//		}
+	FsStreamTask->midi_player.midi_stream.clear();
+	temp_mid = trackPath[0];
+	temp_mid = temp_mid.substr(0, trackPath[0].find(".wav"));
+	temp_mid.append(".mid");
 
+	FIL file_midi;
+	if (f_open(&midiFile, temp_mid.c_str(), FA_READ) == FR_OK)
+	{
+		if (f_size(&midiFile) < 4096)
+		{
+			f_close(&midiFile);
+			// midi
+			float parse_file(const char *path, midi_stream_t &midi_stream);
+			float sf = parse_file(temp_mid.c_str(), FsStreamTask->midi_player.midi_stream);
 
-	/*
-	 // midi
-	 midi_player.midi_stream.clear() ;
-	 float parse_file(const char *path, midi_stream_t& midi_stream) ;
-	 float sf = parse_file("/SONGS/AMT_DEMO_TRACKS/LEHMANIZED-T1.mid", midi_player.midi_stream);
-
-	 midi_player.midi_stream.sort_and_merge();
-	 for ( auto & v : midi_player.midi_stream.items  )
-	 {
-	 v.time_tics = (v.time_tics * 44100) / sf ;
-	 }
-	 midi_player.reset();
-	 */
+			FsStreamTask->midi_player.midi_stream.sort_and_merge();
+			for (auto &v : FsStreamTask->midi_player.midi_stream.items)
+			{
+				v.time_tics = (v.time_tics * 44100) / sf;
+			}
+			FsStreamTask->midi_player.reset();
+		}
+		else
+			f_close(&midiFile);
+	}
 
 	return eOk;
 }

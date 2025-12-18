@@ -12,7 +12,16 @@ enum
 	auto_next_track = 0,
 	direction_counter,
 	direction_scrol_playlist,
-	loop_points
+	loop_points,
+	metronome_out
+};
+
+enum MetronomeOut
+{
+	METRONOME_TO_OUT4 = 0,
+	METRONOME_TO_OUT3,
+	METRONOME_TO_OUT2,
+	METRONOME_TO_OUT1
 };
 
 enum

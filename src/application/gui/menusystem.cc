@@ -9,7 +9,7 @@
 MenuSystem::MenuSystem(AbstractMenu* parent)
 	:MenuParamList(parent, MENU_SYSTEM)
 {
-	const uint8_t paramNum = 4;
+	const uint8_t paramNum = 5;
 	ParamBase* params[paramNum];
 
 	params[0] = new ParamStringList("Auto next", &sys_param[auto_next_track], {"Off", "On "}, 5);
@@ -24,6 +24,11 @@ MenuSystem::MenuSystem(AbstractMenu* parent)
 	params[3] = new ParamStringList("LB points", &sys_param[loop_points], {"Off", "On "}, 5);
 	params[3]->setDisplayPosition(11);
 
+	params[4] = new ParamStringList("METRONOME", &sys_param[metronome_out], {"OUT4", "OUT3", "OUT2", "OUT1",}, 5);
+	params[4]->setDisplayPosition(11);
+	params[4]->setBounds(0, 3);
+	params[4]->setInverse(true);
+
 	setParams(params, paramNum);
 }
 
@@ -37,6 +42,8 @@ void MenuSystem::read_sys(void)
 {
 	FIL fsys;
 	UINT br;
+
+	memset(sys_param, 0, 64);
 	f_open(&fsys, "/system.ego", FA_OPEN_ALWAYS | FA_READ);
 	f_read(&fsys, sys_param, 64, &br);
 	f_close(&fsys);

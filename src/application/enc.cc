@@ -227,7 +227,7 @@ void TENCTask::Code()
 				tim_start(0xf700);
 				pushedButtons = 0;
 			}
-			if(pushedButtons & ESC_PUSHED) //(enc_push_fl)
+			if(pushedButtons & ENC_PUSHED) //(enc_push_fl)
 			{
 				timer_disable_irq(TIM3, TIM_SR_UIF);
 				if (!tim3_end_fl)
