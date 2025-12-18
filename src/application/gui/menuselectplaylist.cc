@@ -29,7 +29,6 @@ void MenuSelectPlaylist::show(TShowMode showMode)
 
 	oem2winstar(tmp);
 	DisplayTask->StringOut(0, 0, (uint8_t*) tmp.c_str());
-	num_prog = 0;
 }
 
 void MenuSelectPlaylist::refresh()

@@ -6,6 +6,32 @@
 #include "display.h"
 #include "leds.h"
 
+const wav_sample_t& Player::sample(uint8_t trackNum)
+{
+	if(m_soundPoint < FsStreamTask->selectedSong.trackSize[trackNum])
+		return soundBuff[trackNum][m_soundPoint];
+	else
+		return emptySample;
+}
+
+void Player::incrementSoundPos()
+{
+	if (m_soundPoint == 0)
+		FsStreamTask->data_notify(&second_target);
+
+	if (m_soundPoint == wav_buff_size / 2)
+		FsStreamTask->data_notify(&first_target);
+
+
+	m_soundPoint++;
+	m_soundPoint &= wav_buff_size - 1;
+}
+
+void Player::decrementSoundPos()
+{
+	if(m_soundPoint > 0) m_soundPoint--;
+}
+
 void Player::initSong()
 {
 	m_state = PLAYER_LOADING_SONG;
@@ -25,6 +51,7 @@ void Player::initSong()
 
 void Player::songInitiated()
 {
+	m_soundPoint = 0;
 	m_state = PLAYER_IDLE;
 }
 
@@ -64,6 +91,8 @@ void Player::jumpToPosition(uint32_t pos)
 {
 	FsStreamTask->pos(pos);
 	player.countUp = pos / 4410.0f;
+
+	m_soundPoint = 0;
 
 	DisplayTask->Sec_Print(player.counterValue());
 

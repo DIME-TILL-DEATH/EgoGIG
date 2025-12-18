@@ -38,6 +38,8 @@ public:
 
 	bool loopModeActive() {return m_loopModeActive;}
 
+	uint8_t num_prog;
+
 private:
 
 	uint8_t playPoint1Selected = 0;

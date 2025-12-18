@@ -16,11 +16,15 @@ public:
 		METRONOME_PLAYING
 	};
 
-	static constexpr uint8_t maxTrackCount = 4;
+	static constexpr uint8_t maxTrackCount = 3;
 	static constexpr size_t wav_buff_size = sizeof(wav_sample_t) * 512;
 
 	wav_sample_t soundBuff[maxTrackCount][wav_buff_size];
 	uint32_t countUp{0};
+
+	const wav_sample_t& sample(uint8_t trackNum);
+	void incrementSoundPos();
+	void decrementSoundPos();
 
 	State state() { return m_state; }
 
@@ -39,6 +43,24 @@ public:
 
 private:
 	State m_state{PLAYER_IDLE};
+
+	size_t m_soundPoint = 0;
+
+	const target_t first_target =
+	{
+		(char*) soundBuff[0],
+		(char*) soundBuff[1],
+		wav_buff_size / 2 * sizeof(wav_sample_t)
+	};
+
+	const target_t second_target =
+	{
+		(char*) (soundBuff[0] + Player::wav_buff_size / 2),
+		(char*) (soundBuff[1] + Player::wav_buff_size / 2),
+		wav_buff_size / 2 * sizeof(wav_sample_t)
+	};
+
+	wav_sample_t emptySample{0, 0};
 };
 
 

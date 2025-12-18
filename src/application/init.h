@@ -27,11 +27,12 @@ extern MenuPlayer* menuPlayer;
 extern Player player;
 
 extern uint16_t key_reg_out[];
-extern uint8_t num_prog;
 extern volatile uint8_t tim3_end_fl;
+
 extern uint8_t sys_param[];
 extern uint8_t ctrl_param[];
 extern uint8_t pc_param[];
+
 extern volatile uint8_t key_ind;
 extern volatile uint32_t metronom_int;
 extern uint32_t tap_temp;
@@ -47,11 +48,7 @@ extern uint16_t key_reg_in[2];
 extern uint16_t key_reg_out[2];
 extern uint8_t key_val;
 
-
-extern size_t sound_point;
-
 extern uint8_t us_buf1;
-extern volatile uint32_t click_size;
 extern uint8_t sys_param[];
 extern uint8_t blink_en;
 extern volatile uint8_t led_blink_fl;

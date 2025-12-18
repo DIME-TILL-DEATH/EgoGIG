@@ -5,6 +5,7 @@
 #include "libopencm3/stm32/usart.h"
 
 #include "enc.h"
+#include "init.h"
 #include "leds.h"
 
 #include "menumidicontrol.h"
@@ -77,7 +78,7 @@ extern "C" void USART1_IRQHandler()
 			{
 				if (pc_param[i * 2] == 1 && pc_param[i * 2 + 1] == us_buf)
 				{
-					num_prog = (i - 1) % 99;
+					menuPlayer->num_prog = (i - 1) % 99;
 					key_ind = key_right_down;
 					CSTask->Give();
 					break;
@@ -108,7 +109,7 @@ extern "C" void USART1_IRQHandler()
 				if (pc_param[i * 2] == 2 && pc_param[i * 2 + 1] == us_buf)
 				{
 					key_ind = key_right_down;
-					num_prog = (i - 1) % 99;
+					menuPlayer->num_prog = (i - 1) % 99;
 					CSTask->Give();
 					break;
 				}
@@ -138,7 +139,7 @@ extern "C" void USART1_IRQHandler()
 				if (!pc_param[i * 2] && pc_param[i * 2 + 1] == us_buf)
 				{
 					key_ind = key_right_down;
-					num_prog = (i - 1) % 99;
+					menuPlayer->num_prog = (i - 1) % 99;
 					CSTask->Give();
 					break;
 				}

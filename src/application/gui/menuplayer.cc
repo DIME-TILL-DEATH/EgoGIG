@@ -89,8 +89,6 @@ void MenuPlayer::processPlayNext()
 
 		while(player.state() == Player::PLAYER_LOADING_SONG)
 
-//		memset(sound_buff, 0, Player::wav_buff_size);
-//		memset(click_buff, 0, Player::wav_buff_size);
 		player.initSong();
 
 		num_prog = (num_prog + 1) % 99;
@@ -195,8 +193,6 @@ void MenuPlayer::encoderClockwise()
 		player.countUp = ParamBase::encSpeedInc(player.countUp, FsStreamTask->selectedSong.songSize());
 
 	player.jumpToPosition(player.countUp * 4410);
-
-	sound_point = 0;
 }
 
 void MenuPlayer::encoderCounterClockwise()
@@ -205,8 +201,6 @@ void MenuPlayer::encoderCounterClockwise()
 		player.countUp = ParamBase::encSpeedDec(player.countUp, 0);
 
 	player.jumpToPosition(player.countUp * 4410);
-
-	sound_point = 0;
 }
 
 void MenuPlayer::keyStop()
@@ -221,9 +215,7 @@ void MenuPlayer::keyStop()
 
 	initSong();
 
-
 	DisplayTask->Sec_Print(player.counterValue());
-
 }
 
 void MenuPlayer::keyStopLong()

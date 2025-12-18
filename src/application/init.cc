@@ -25,8 +25,6 @@
 MenuPlayer* menuPlayer;
 Player player;
 
-uint8_t num_prog = 0;
-
 dac_sample_t dac_sample[2];
 
 uint8_t sys_param[64];
@@ -37,20 +35,6 @@ uint8_t midi_pc = 0;
 
 uint8_t tim5_fl = 0;
 uint8_t blink_en = 0;
-
-const target_t first_target =
-{
-	(char*) player.soundBuff[0],
-	(char*) player.soundBuff[1],
-	Player::wav_buff_size / 2 * sizeof(wav_sample_t)
-};
-
-const target_t second_target =
-{
-	(char*) (player.soundBuff[0] + Player::wav_buff_size / 2),
-	(char*) (player.soundBuff[1] + Player::wav_buff_size / 2),
-	Player::wav_buff_size / 2 * sizeof(wav_sample_t)
-};
 
 volatile uint32_t play_point1 = 0;
 volatile uint32_t play_point2 = 0;
@@ -344,7 +328,7 @@ void i2s_dma_interrupt_disable()
 	dma_disable_transfer_complete_interrupt(DMA1, DMA_STREAM4);
 }
 
-size_t sound_point = 0;
+
 volatile uint32_t metronom_int;
 
 uint16_t temp_counter = 0;
@@ -377,9 +361,6 @@ extern "C" void DMA1_Stream4_IRQHandler()
 
 		[[likely]] case Player::PLAYER_PLAYING:
 		{
-			dac_sample[0].left = player.soundBuff[0][sound_point].left;
-			dac_sample[0].right = player.soundBuff[0][sound_point].right;
-
 			if(timeCounter == 44100 * 10) // 10 Sec
 				timeCounter =0;
 			else
@@ -398,20 +379,18 @@ extern "C" void DMA1_Stream4_IRQHandler()
 				}
 
 				// 44100/(44100 - 25000000/567) = 5320 is 82,89 samples, 5113 is 83 samples
-				if(timeCounter % 5320 == 0 && sound_point != 0)
+				if(timeCounter % 5320 == 0)
 				{
-					sound_point--;
+					player.decrementSoundPos();
 				}
 			}
 
-			if(sample_pos < FsStreamTask->selectedSong.trackSize[1] / sizeof(wav_sample_t)) // FsStreamTack->click_size()
-			{
-					dac_sample[1].left = player.soundBuff[1][sound_point].left;
-					dac_sample[1].right = player.soundBuff[1][sound_point].right;
-			}
+			for(uint8_t i=0; i < Player::maxTrackCount; i++)
+				dac_sample[i] = player.sample(i);
+
 			sample_pos = FsStreamTask->pos();
 
-			if (player.countUp >= FsStreamTask->selectedSong.songSize())
+			if(player.countUp >= FsStreamTask->selectedSong.songSize())
 			{
 				player.stopPlay();
 				if(FsStreamTask->selectedSong.playNext)
@@ -432,11 +411,7 @@ extern "C" void DMA1_Stream4_IRQHandler()
 			}
 			else
 			{
-				if (sound_point == 0)
-					FsStreamTask->data_notify(&second_target);
-
-				if (sound_point == Player::wav_buff_size / 2)
-					FsStreamTask->data_notify(&first_target);
+				player.incrementSoundPos();
 			}
 
 			if (sys_param[loop_points] && menuPlayer->loopModeActive())
@@ -457,17 +432,12 @@ extern "C" void DMA1_Stream4_IRQHandler()
 			}
 
 			FsStreamTask->MidiEventProcess();
-
-			//инкремент с заворачиванием индекса
-			sound_point++;
-			sound_point &= Player::wav_buff_size - 1;
 			break;
 		}
 
 		case Player::PLAYER_LOADING_SONG:
 		{
 			timeCounter = 0;
-			sound_point = 0;
 			player.songInitiated();
 			break;
 		}
