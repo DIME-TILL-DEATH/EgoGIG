@@ -28,6 +28,9 @@ public:
 	void pause();
 	void jumpToPosition(uint32_t pos);
 
+	void starMetronome();
+	void stopMetronome();
+
 	void initSong();
 	void songInitiated();
 

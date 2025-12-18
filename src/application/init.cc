@@ -356,14 +356,16 @@ void i2s_dma_interrupt_disable()
 size_t sound_point = 0;
 
 volatile uint32_t metronom_int;
-uint16_t metronom_counter = 0;
-uint8_t metronom_fl = 0;
+
+
 uint8_t metronom_start = 0;
 uint16_t temp_counter = 0;
 uint32_t tap_temp;
 uint32_t tap_temp1;
 uint32_t tap_temp2;
 
+uint16_t metronom_counter = 0;
+uint8_t metronom_fl = 0;
 volatile uint32_t sample_pos = 0;
 uint32_t timeCounter = 0;
 extern "C" void DMA1_Stream4_IRQHandler()
@@ -381,7 +383,7 @@ extern "C" void DMA1_Stream4_IRQHandler()
 			break;
 		}
 
-		case Player::PLAYER_PLAYING:
+		[[likely]] case Player::PLAYER_PLAYING:
 		{
 			dac_sample[0].left = player.soundBuff[0][sound_point].left;
 			dac_sample[0].right = player.soundBuff[0][sound_point].right;
@@ -457,6 +459,7 @@ extern "C" void DMA1_Stream4_IRQHandler()
 						key_ind = key_return;
 						CSTask->Give();
 					}
+
 				if (play_point1 > play_point2)
 					if ((count_up * 4410) >= play_point1)
 					{
@@ -480,29 +483,30 @@ extern "C" void DMA1_Stream4_IRQHandler()
 			player.songInitiated();
 			break;
 		}
-	}
 
-	if(metronom_start)
-	{
-		if (metronom_fl)
+		case Player::METRONOME_PLAYING:
 		{
-			//dac_sample1.left = metronom_cod[metronom_counter];
-			dac_sample[1].right = metronom_cod[metronom_counter];
-			metronom_counter++;
-			if (metronom_counter == 3935)
+			if(metronom_fl)
 			{
-				metronom_fl = 0;
-				metronom_counter = 0;
+				//dac_sample1.left = metronomeData[metronom_counter];
+				dac_sample[1].right = metronomeData[metronom_counter];
+				metronom_counter++;
+				if (metronom_counter == 3935)
+				{
+					metronom_fl = 0;
+					metronom_counter = 0;
+				}
 			}
-		}
-		if (!temp_counter++)
-			metronom_fl = 1;
-		else
-		{
-			if (temp_counter == metronom_int)
+
+			if(temp_counter++ == 0)
+				metronom_fl = 1;
+			else if(temp_counter == metronom_int)
 				temp_counter = 0;
 		}
+
+		default: break;
 	}
+
 
 	if (tap_temp < 132300)
 		tap_temp++;

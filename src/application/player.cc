@@ -73,3 +73,13 @@ void Player::jumpToPosition(uint32_t pos)
 	memset(soundBuff, 0, Player::wav_buff_size * maxTrackCount);
 }
 
+void Player::starMetronome()
+{
+	m_state = METRONOME_PLAYING;
+}
+
+void Player::stopMetronome()
+{
+	m_state = PLAYER_IDLE;
+}
+

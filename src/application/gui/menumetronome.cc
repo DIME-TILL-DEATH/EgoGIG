@@ -7,6 +7,7 @@
 #include "leds.h"
 
 #include "parambase.h"
+#include "player.h"
 
 MenuMetronome::MenuMetronome(AbstractMenu* parent)
 {
@@ -42,9 +43,7 @@ void MenuMetronome::encoderPress()
 {
 	if(!metronom_start)
 	{
-		emb_string tmp = FsStreamTask->selectedSong.songName();
-//		FsStreamTask->sound_name(tmp);
-		oem2winstar(tmp);
+		player.stopMetronome();
 
 		m_parentMenu->returnFromChildMenu();
 	}
@@ -72,6 +71,7 @@ void MenuMetronome::keyStop()
 {
 	Leds::redOn();
 	Leds::greenOff();
+	player.stopMetronome();
 
 	metronom_start = 0;
 }
@@ -80,7 +80,8 @@ void MenuMetronome::keyStart()
 {
 	metronom_int = 44100.0f / (tempo / 60.0f) + 0.5f;
 	metronom_counter = temp_counter = 0;
-	metronom_start = 1;
+
+	player.starMetronome();
 
 	Leds::redOff();
 	Leds::greenOn();
@@ -112,6 +113,7 @@ uint8_t MenuMetronome::tap_temp_global(void)
 		}
 		else
 			tap_global = 132300;
+
 		a = 1;
 	}
 	tap_temp = 0;

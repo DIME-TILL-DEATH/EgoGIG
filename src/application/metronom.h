@@ -3,6 +3,6 @@
 
 #include "appdefs.h"
 
-extern unsigned short metronom_cod[];
+extern unsigned short metronomeData[];
 
 #endif
