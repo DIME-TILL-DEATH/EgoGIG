@@ -34,9 +34,6 @@ extern uint8_t ctrl_param[];
 extern uint8_t pc_param[];
 extern volatile uint8_t key_ind;
 extern volatile uint32_t metronom_int;
-extern uint16_t metronom_counter;
-extern uint8_t metronom_start;
-extern uint16_t temp_counter;
 extern uint32_t tap_temp;
 extern uint32_t tap_temp1;
 extern uint32_t tap_temp2;
@@ -45,9 +42,6 @@ extern uint8_t blink_en;
 
 extern volatile uint32_t play_point1;
 extern volatile uint32_t play_point2;
-
-extern volatile uint32_t count_down;
-extern volatile uint32_t count_up;
 
 extern uint16_t key_reg_in[2];
 extern uint16_t key_reg_out[2];

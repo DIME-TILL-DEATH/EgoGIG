@@ -38,9 +38,6 @@ uint8_t midi_pc = 0;
 uint8_t tim5_fl = 0;
 uint8_t blink_en = 0;
 
-//wav_sample_t sound_buff[Player::wav_buff_size];
-//wav_sample_t click_buff[Player::wav_buff_size];
-
 const target_t first_target =
 {
 	(char*) player.soundBuff[0],
@@ -54,12 +51,6 @@ const target_t second_target =
 	(char*) (player.soundBuff[1] + Player::wav_buff_size / 2),
 	Player::wav_buff_size / 2 * sizeof(wav_sample_t)
 };
-
-
-
-
-volatile uint32_t count_down;
-volatile uint32_t count_up;
 
 volatile uint32_t play_point1 = 0;
 volatile uint32_t play_point2 = 0;
@@ -354,11 +345,8 @@ void i2s_dma_interrupt_disable()
 }
 
 size_t sound_point = 0;
-
 volatile uint32_t metronom_int;
 
-
-uint8_t metronom_start = 0;
 uint16_t temp_counter = 0;
 uint32_t tap_temp;
 uint32_t tap_temp1;
@@ -380,6 +368,10 @@ extern "C" void DMA1_Stream4_IRQHandler()
 		case Player::PLAYER_IDLE:
 		{
 			timeCounter = 0;
+
+			metronom_fl = 0;
+			metronom_counter = 0;
+			temp_counter = 0;
 			break;
 		}
 
@@ -397,15 +389,11 @@ extern "C" void DMA1_Stream4_IRQHandler()
 			{
 				if(timeCounter % 4410 == 0) //100 msec
 				{
-					count_up++;
-					count_down--;
+					player.countUp++;
 
-					if (currentMenu->menuType() == MENU_PLAYER)
+					if(currentMenu->menuType() == MENU_PLAYER)
 					{
-						if (sys_param[direction_counter])
-							DisplayTask->Sec_Print(count_down);
-						else
-							DisplayTask->Sec_Print(count_up);
+						DisplayTask->Sec_Print(player.counterValue());
 					}
 				}
 
@@ -423,7 +411,7 @@ extern "C" void DMA1_Stream4_IRQHandler()
 			}
 			sample_pos = FsStreamTask->pos();
 
-			if (count_up >= FsStreamTask->selectedSong.songSize())
+			if (player.countUp >= FsStreamTask->selectedSong.songSize())
 			{
 				player.stopPlay();
 				if(FsStreamTask->selectedSong.playNext)
@@ -454,14 +442,14 @@ extern "C" void DMA1_Stream4_IRQHandler()
 			if (sys_param[loop_points] && menuPlayer->loopModeActive())
 			{
 				if (play_point2 > play_point1)
-					if ((count_up * 4410) >= play_point2)
+					if ((player.countUp * 4410) >= play_point2)
 					{
 						key_ind = key_return;
 						CSTask->Give();
 					}
 
 				if (play_point1 > play_point2)
-					if ((count_up * 4410) >= play_point1)
+					if ((player.countUp * 4410) >= play_point1)
 					{
 						key_ind = key_forward;
 						CSTask->Give();

@@ -137,10 +137,7 @@ void MenuPlayer::encoderPress()
 		if(FsStreamTask->selectedSong.playNext)
 			DisplayTask->StringOut(15, 1, (uint8_t*) SYMBOL_NEXT_MARK);
 
-		if (sys_param[direction_counter])
-			DisplayTask->Sec_Print(count_down);
-		else
-			DisplayTask->Sec_Print(count_up);
+		DisplayTask->Sec_Print(player.counterValue());
 	}
 	else
 	{
@@ -179,10 +176,7 @@ void MenuPlayer::encoderPress()
 
 		if(player.state() == Player::PLAYER_PAUSE)
 		{
-			if (sys_param[direction_counter])
-				DisplayTask->Sec_Print(count_down);
-			else
-				DisplayTask->Sec_Print(count_up);
+			DisplayTask->Sec_Print(player.counterValue());
 		}
 	}
 }
@@ -197,20 +191,20 @@ void MenuPlayer::encoderLongPress()
 
 void MenuPlayer::encoderClockwise()
 {
-	if(count_up < FsStreamTask->selectedSong.songSize())
-		count_up = ParamBase::encSpeedInc(count_up, FsStreamTask->selectedSong.songSize());
+	if(player.countUp < FsStreamTask->selectedSong.songSize())
+		player.countUp = ParamBase::encSpeedInc(player.countUp, FsStreamTask->selectedSong.songSize());
 
-	player.jumpToPosition(count_up * 4410);
+	player.jumpToPosition(player.countUp * 4410);
 
 	sound_point = 0;
 }
 
 void MenuPlayer::encoderCounterClockwise()
 {
-	if(count_up)
-		count_up = ParamBase::encSpeedDec(count_up, 0);
+	if(player.countUp)
+		player.countUp = ParamBase::encSpeedDec(player.countUp, 0);
 
-	player.jumpToPosition(count_up * 4410);
+	player.jumpToPosition(player.countUp * 4410);
 
 	sound_point = 0;
 }
@@ -227,9 +221,8 @@ void MenuPlayer::keyStop()
 
 	initSong();
 
-	count_down = FsStreamTask->selectedSong.songSize();
-	DisplayTask->Sec_Print(count_down);
-	count_up = 0;
+
+	DisplayTask->Sec_Print(player.counterValue());
 
 }
 
@@ -445,9 +438,8 @@ bool MenuPlayer::loadSong()
 		DisplayTask->Sec_Print(FsStreamTask->selectedSong.songSize());
 
 		initSong();
-		count_down = FsStreamTask->selectedSong.songSize();
+
 		play_point1 = play_point2 = playPoint1Selected = playPoint2Selected = 0;
-		count_up = 0;
 
 		return 0;
 	}

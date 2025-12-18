@@ -20,6 +20,7 @@ public:
 	static constexpr size_t wav_buff_size = sizeof(wav_sample_t) * 512;
 
 	wav_sample_t soundBuff[maxTrackCount][wav_buff_size];
+	uint32_t countUp{0};
 
 	State state() { return m_state; }
 
@@ -33,6 +34,8 @@ public:
 
 	void initSong();
 	void songInitiated();
+
+	uint32_t counterValue();
 
 private:
 	State m_state{PLAYER_IDLE};

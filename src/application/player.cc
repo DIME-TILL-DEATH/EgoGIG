@@ -11,6 +11,7 @@ void Player::initSong()
 	m_state = PLAYER_LOADING_SONG;
 
 	FsStreamTask->pos(0);
+	countUp = 0;
 
 	for(uint32_t a=0; a < maxTrackCount; a++)
 	{
@@ -62,13 +63,9 @@ void Player::pause()
 void Player::jumpToPosition(uint32_t pos)
 {
 	FsStreamTask->pos(pos);
-	count_up = pos / 4410.0f;
-	count_down = FsStreamTask->selectedSong.songSize() - count_up;
+	player.countUp = pos / 4410.0f;
 
-	if (sys_param[direction_counter])
-		DisplayTask->Sec_Print(count_down);
-	else
-		DisplayTask->Sec_Print(count_up);
+	DisplayTask->Sec_Print(player.counterValue());
 
 	memset(soundBuff, 0, Player::wav_buff_size * maxTrackCount);
 }
@@ -81,5 +78,20 @@ void Player::starMetronome()
 void Player::stopMetronome()
 {
 	m_state = PLAYER_IDLE;
+}
+
+uint32_t Player::counterValue()
+{
+	if(m_state == PLAYER_IDLE)
+	{
+		return FsStreamTask->selectedSong.songSize();
+	}
+	else
+	{
+		if(sys_param[direction_counter])
+			return FsStreamTask->selectedSong.songSize() - countUp;
+		else
+			return countUp;
+	}
 }
 

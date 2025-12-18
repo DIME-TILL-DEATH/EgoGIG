@@ -41,7 +41,7 @@ void MenuMetronome::task()
 
 void MenuMetronome::encoderPress()
 {
-	if(!metronom_start)
+	if(player.state() != Player::METRONOME_PLAYING)
 	{
 		player.stopMetronome();
 
@@ -72,14 +72,11 @@ void MenuMetronome::keyStop()
 	Leds::redOn();
 	Leds::greenOff();
 	player.stopMetronome();
-
-	metronom_start = 0;
 }
 
 void MenuMetronome::keyStart()
 {
 	metronom_int = 44100.0f / (tempo / 60.0f) + 0.5f;
-	metronom_counter = temp_counter = 0;
 
 	player.starMetronome();
 
