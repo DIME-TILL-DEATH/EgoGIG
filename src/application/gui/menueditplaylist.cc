@@ -82,15 +82,9 @@ void MenuEditPlaylist::encoderPress()
 			m_chosenTrackPath += "/" + m_chosenTrackName;
 
 			FsStreamTask->editingSong.trackPath[m_editingTrack] = m_chosenTrackPath;
-
-//			emb_string egoFilePath, playlistPath;
-//			FsStreamTask->play_list_folder(playlistPath);
-//			emb_printf::sprintf(egoFilePath, "%s/%1.ego", playlistPath.c_str(), m_numProgEdit);
 			FsStreamTask->action_notify(TFsStreamTask::action_param_t::save_song, m_numProgEdit);
-//			FsStreamTask->editingSong.save(egoFilePath);
 
-
-			led_blink_fl = 1;
+			Leds::requestBlinking();
 
 			DisplayTask->Clear();
 

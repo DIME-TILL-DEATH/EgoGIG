@@ -25,6 +25,9 @@ extern volatile uint8_t encoder_state;
 extern volatile uint8_t encoder_rotated;
 extern volatile uint8_t encoder_key;
 extern volatile uint8_t key_ind;
+extern volatile uint8_t key_val;
+
+extern volatile uint8_t led_blink_fl;
 
 class TENCTask: public TTask
 {

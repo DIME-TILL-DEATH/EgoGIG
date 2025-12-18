@@ -62,8 +62,8 @@ void AbstractMenu::taskDelay(uint32_t ticks)
 
 void AbstractMenu::tim7_start(uint8_t val)
 {
-	extern uint32_t led_blink_count3;
-	led_blink_count3 = 300000;
+	extern uint32_t led_blink_count;
+	led_blink_count = 300000;
 	tim5_fl = 1 - val;
 	//CSTask->Give();
 }

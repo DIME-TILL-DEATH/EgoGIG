@@ -3,6 +3,6 @@
 
 #include "appdefs.h"
 
-extern unsigned short metronomeData[];
+extern const uint16_t metronomeData[];
 
 #endif

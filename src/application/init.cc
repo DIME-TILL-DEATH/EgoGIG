@@ -22,26 +22,22 @@
 
 #include "player.h"
 
-MenuPlayer* menuPlayer;
+MenuPlayer* menuPlayer = nullptr;
 Player player;
 
 dac_sample_t dac_sample[2];
 
-uint8_t sys_param[64];
-uint8_t ctrl_param[32];
-uint8_t pc_param[256];
-
-uint8_t midi_pc = 0;
+uint8_t __CCM_BSS__ sys_param[64];
+uint8_t __CCM_BSS__ ctrl_param[32];
+uint8_t __CCM_BSS__ pc_param[256];
 
 uint8_t tim5_fl = 0;
-uint8_t blink_en = 0;
 
 volatile uint32_t play_point1 = 0;
 volatile uint32_t play_point2 = 0;
 
 uint16_t key_reg_in[2];
 uint16_t key_reg_out[2] = { 0, 0 };
-uint8_t key_val;
 
 //-----------------------------------------------------------------
 void init(void)
@@ -329,17 +325,16 @@ void i2s_dma_interrupt_disable()
 }
 
 
-volatile uint32_t metronom_int;
+volatile uint32_t  metronom_int;
 
 uint16_t temp_counter = 0;
-uint32_t tap_temp;
-uint32_t tap_temp1;
-uint32_t tap_temp2;
-
 uint16_t metronom_counter = 0;
 uint8_t metronom_fl = 0;
-volatile uint32_t sample_pos = 0;
 uint32_t timeCounter = 0;
+
+uint32_t __CCM_BSS__ tap_temp;
+uint32_t __CCM_BSS__ tap_temp1;
+uint32_t __CCM_BSS__ tap_temp2;
 extern "C" void DMA1_Stream4_IRQHandler()
 {
 	dma_clear_interrupt_flags(DMA1, DMA_STREAM4, DMA_TCIF);
@@ -385,10 +380,9 @@ extern "C" void DMA1_Stream4_IRQHandler()
 				}
 			}
 
-			for(uint8_t i=0; i < Player::maxTrackCount; i++)
-				dac_sample[i] = player.sample(i);
 
-			sample_pos = FsStreamTask->pos();
+			dac_sample[0] = player.sample(0);
+			dac_sample[1] = player.sample(1);
 
 			if(player.countUp >= FsStreamTask->selectedSong.songSize())
 			{

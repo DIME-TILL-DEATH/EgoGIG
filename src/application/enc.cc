@@ -14,23 +14,22 @@
 
 TENCTask *ENCTask;
 
-volatile uint8_t encoder_state, encoder_rotated, encoder_key, key_ind;
-extern uint8_t key_val;
-extern uint8_t blink_en;
-volatile uint8_t key_push_fl = 0;
-volatile uint8_t stp_push_fl = 0;
-volatile uint8_t ret_push_fl = 0;
-volatile uint8_t fwd_push_fl = 0;
-volatile uint8_t esc_push_fl = 0;
-volatile uint8_t esc_dub_fl = 0;
-volatile uint8_t enc_push_fl = 0;
-volatile uint8_t tim3_end_fl;
-volatile uint8_t led_blink_fl;
-volatile uint8_t lock_fl;
-volatile uint8_t lock_fl_old;
-uint32_t led_blink_count1 = 0;
-uint32_t led_blink_count2 = 0;
-uint32_t led_blink_count3 = 0;
+#define KEY_PUSHED 0x01
+#define STP_PUSHED 0x02
+#define RET_PUSHED 0x04
+#define FWD_PUSHED 0x08
+#define ESC_PUSHED 0x10
+#define ENC_PUSHED 0x20
+
+volatile uint8_t __CCM_BSS__ pushedButtons = 0;
+
+volatile uint8_t __CCM_BSS__ encoder_state, encoder_rotated, encoder_key, key_ind;
+volatile uint8_t __CCM_BSS__ key_val;
+volatile uint8_t __CCM_BSS__ tim3_end_fl;
+volatile uint8_t __CCM_BSS__ lock_fl;
+volatile uint8_t __CCM_BSS__ lock_fl_old;
+
+uint32_t __CCM_BSS__ led_blink_count = 0;
 
 void tim_start(uint16_t del)
 {
@@ -39,19 +38,50 @@ void tim_start(uint16_t del)
 	TIM3_CR1 |= TIM_CR1_CEN;
 }
 
+inline uint8_t drebezg(uint32_t line)
+{
+	uint8_t sss;
+	TIM9_CR1 &= ~TIM_CR1_CEN;
+	if ((EXTI_FTSR & line) != 0)
+	{
+		if (TIM9_SR &TIM_SR_UIF)
+		{
+			sss = 1;
+			EXTI_FTSR &= ~line;
+			EXTI_RTSR |= line;
+		}
+		else
+			sss = 0;
+	}
+	else
+	{
+		if (TIM9_SR &TIM_SR_UIF)
+		{
+			EXTI_RTSR &= ~line;
+			EXTI_FTSR |= line;
+			sss = 2;
+		}
+		else
+			sss = 0;
+	}
+	TIM9_CNT = 0;
+	TIM9_SR &= ~TIM_SR_UIF;
+	TIM9_CR1 |= TIM_CR1_CEN;
+	return sss;
+}
+
 void TENCTask::Code()
 {
 	TIM3_CR1 |= TIM_CR1_CEN;
 	while (1)
 	{
-		if ((key_val != 255) && !key_push_fl && !stp_push_fl && !ret_push_fl
-				&& !fwd_push_fl && !esc_push_fl && !enc_push_fl)
+		if(key_val != 255 && !pushedButtons)
 		{
 			tim_start(0xf7f0);
 			switch (key_val)
 			{
 			case 254:
-				stp_push_fl = 1;
+				pushedButtons |= STP_PUSHED;
 				if (!tim3_end_fl)
 				{
 					tim_start(55000);
@@ -62,7 +92,8 @@ void TENCTask::Code()
 				if (!lock_fl) // || (stop_fl1))
 				{
 					key_ind = key_start;
-					key_push_fl = 1;
+
+					pushedButtons |= KEY_PUSHED;
 					CSTask->Give();
 				}
 				break;   // start
@@ -74,7 +105,8 @@ void TENCTask::Code()
 						key_ind = key_left_up;
 					else
 						key_ind = key_left_down;
-					key_push_fl = 1;
+
+					pushedButtons |= KEY_PUSHED;
 					CSTask->Give();
 				}
 				break;  // left up
@@ -85,7 +117,8 @@ void TENCTask::Code()
 						key_ind = key_left_down;
 					else
 						key_ind = key_left_up;
-					key_push_fl = 1;
+
+					pushedButtons |= KEY_PUSHED;
 					CSTask->Give();
 				}
 				break;  // left down
@@ -96,7 +129,8 @@ void TENCTask::Code()
 						key_ind = key_right_up;
 					else
 						key_ind = key_right_down;
-					key_push_fl = 1;
+
+					pushedButtons |= KEY_PUSHED;
 					CSTask->Give();
 				}
 				break;  // right up
@@ -107,12 +141,13 @@ void TENCTask::Code()
 						key_ind = key_right_down;
 					else
 						key_ind = key_right_up;
-					key_push_fl = 1;
+
+					pushedButtons |= KEY_PUSHED;
 					CSTask->Give();
 				}
 				break; // right down
 			case 251:
-				ret_push_fl = 1;                      // return
+				pushedButtons |= RET_PUSHED;
 				if (!tim3_end_fl)
 				{
 					tim_start(55000);
@@ -120,7 +155,7 @@ void TENCTask::Code()
 				}
 				break;
 			case 253:
-				fwd_push_fl = 1;                      // forward
+				pushedButtons |= FWD_PUSHED;
 				if (!tim3_end_fl)
 				{
 					tim_start(55000);
@@ -131,12 +166,12 @@ void TENCTask::Code()
 				if (!lock_fl)
 				{
 					key_ind = key_esc;
-					key_push_fl = 1;
+					pushedButtons |= KEY_PUSHED;
 					CSTask->Give();
 				}
 				break;
 			case 2:
-				enc_push_fl = 1;                      // encoder key
+				pushedButtons |= ENC_PUSHED;
 				if (!tim3_end_fl)
 				{
 					tim_start(55000);
@@ -147,7 +182,7 @@ void TENCTask::Code()
 				if (!lock_fl && (GPIOA_IDR & GPIO10))
 				{
 					key_ind = key_stop;
-					key_push_fl = 1;
+					pushedButtons |= KEY_PUSHED;
 					CSTask->Give();
 				}
 				break;
@@ -155,29 +190,30 @@ void TENCTask::Code()
 				if ((!lock_fl) && (GPIOA_IDR & GPIO10)) //((!lock_fl || (stop_fl1)) && (GPIOA_IDR & GPIO10))
 				{
 					key_ind = key_start;
-					key_push_fl = 1;
+					pushedButtons |= KEY_PUSHED;
 					CSTask->Give();
 				}
 				break;
 			}
 		}
+
 		if (key_val == 255)
 		{
-			if (ret_push_fl)
+			if(pushedButtons & RET_PUSHED)// (ret_push_fl)
 			{
 				timer_disable_irq(TIM3, TIM_SR_UIF);
 				if (!tim3_end_fl)
 				{
 					if (!lock_fl)
 					{
-						key_ind = key_return;      // return
+						key_ind = key_return;
 						CSTask->Give();
 					}
 				}
 				tim_start(0xf700);
-				ret_push_fl = 0;
+				pushedButtons = 0;
 			}
-			if (fwd_push_fl)
+			if(pushedButtons & FWD_PUSHED) //(fwd_push_fl)
 			{
 				timer_disable_irq(TIM3, TIM_SR_UIF);
 				if (!tim3_end_fl)
@@ -189,9 +225,9 @@ void TENCTask::Code()
 					}
 				}
 				tim_start(0xf700);
-				fwd_push_fl = 0;
+				pushedButtons = 0;
 			}
-			if (enc_push_fl)
+			if(pushedButtons & ESC_PUSHED) //(enc_push_fl)
 			{
 				timer_disable_irq(TIM3, TIM_SR_UIF);
 				if (!tim3_end_fl)
@@ -200,9 +236,10 @@ void TENCTask::Code()
 					CSTask->Give();
 				}
 				tim_start(0xf700);
-				enc_push_fl = 0;
+				pushedButtons = 0;
 			}
-			if (stp_push_fl)
+
+			if(pushedButtons & STP_PUSHED) //(stp_push_fl)
 			{
 				timer_disable_irq(TIM3, TIM_SR_UIF);
 				if (!tim3_end_fl)
@@ -214,50 +251,36 @@ void TENCTask::Code()
 					}
 				}
 				tim_start(0xf700);
-				stp_push_fl = 0;
+				pushedButtons = 0;
 			}
 		}
-		if (timer_get_flag(TIM3, TIM_SR_UIF))
+
+		if(timer_get_flag(TIM3, TIM_SR_UIF))
 		{
 			if (key_val == 255)
-				key_push_fl = stp_push_fl = ret_push_fl = fwd_push_fl =
-						esc_push_fl = enc_push_fl = tim3_end_fl = 0;
+			{
+				tim3_end_fl = 0;
+				pushedButtons = 0;
+			}
 			else
 				tim_start(0xff00);
 		}
 //----------------------------------------------LED Blink--------------------------------------------------------------
-		if (led_blink_fl)
-		{
-			if (led_blink_count1 < 7)
-			{
-				if (!led_blink_count2)
-					key_reg_out[1] &= ~0x8080;
-				if (led_blink_count2 == 25000)
-					key_reg_out[1] |= 0x8080;
-				if (led_blink_count2++ > 50000)
-				{
-					led_blink_count2 = 0;
-					led_blink_count1++;
-				}
-			}
-			else
-			{
-				led_blink_count1 = led_blink_fl = 0;
-			}
-		}
+		Leds::processBlinking();
 //---------------------------------------------Play blink--------------------------------------------------------------
-		if (led_blink_count3++ > 300000)
+		if(led_blink_count++ > 300000)
 		{
-			led_blink_count3 = 0;
-			if (tim5_fl)
+			led_blink_count = 0;
+			if(tim5_fl)
 				tim5_fl = 0;
 			else
 				tim5_fl = 1;
-			if (blink_en)
+
+			if(menuPlayer) // Only after start CS Task
 				CSTask->Give();
 		}
 //---------------------------------------------Lock check-----------------------------------------------------------------
-		if (GPIOB_IDR &GPIO9)
+		if(GPIOB_IDR &GPIO9)
 		{
 			lock_fl = 1;
 			if (lock_fl_old != lock_fl)
@@ -277,15 +300,16 @@ void TENCTask::Code()
 		}
 	}
 }
+
 extern "C" void TIM3_IRQHandler()
 {
 	timer_clear_flag(TIM3, TIM_SR_UIF);
 	timer_disable_irq(TIM3, TIM_SR_UIF);
 	tim3_end_fl = 1;
 
-	if (ret_push_fl || fwd_push_fl || enc_push_fl || stp_push_fl)
+	if(pushedButtons & (RET_PUSHED | FWD_PUSHED | ENC_PUSHED | STP_PUSHED)) //(ret_push_fl || fwd_push_fl || enc_push_fl || stp_push_fl)
 	{
-		if(ret_push_fl)
+		if(pushedButtons & RET_PUSHED)//(ret_push_fl)
 		{
 			if(!lock_fl)
 			{
@@ -294,7 +318,7 @@ extern "C" void TIM3_IRQHandler()
 			}
 		}
 
-		if(fwd_push_fl)
+		if(pushedButtons & FWD_PUSHED)//(fwd_push_fl)
 		{
 			if(!lock_fl)
 			{
@@ -303,13 +327,13 @@ extern "C" void TIM3_IRQHandler()
 			}
 		}
 
-		if(enc_push_fl)
+		if(pushedButtons & ENC_PUSHED)//(enc_push_fl)
 		{
 			key_ind = key_encoder_long;
 			CSTask->Give();
 		}
 
-		if(stp_push_fl)
+		if(pushedButtons & STP_PUSHED)//(stp_push_fl)
 		{
 			key_ind = key_stop_long;
 			CSTask->Give();

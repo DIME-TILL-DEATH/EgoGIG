@@ -16,7 +16,7 @@ public:
 		METRONOME_PLAYING
 	};
 
-	static constexpr uint8_t maxTrackCount = 3;
+	static constexpr uint8_t maxTrackCount = 4;
 	static constexpr size_t wav_buff_size = sizeof(wav_sample_t) * 512;
 
 	wav_sample_t soundBuff[maxTrackCount][wav_buff_size];
@@ -44,7 +44,8 @@ public:
 private:
 	State m_state{PLAYER_IDLE};
 
-	size_t m_soundPoint = 0;
+	size_t m_buffPoint{0};
+	uint32_t m_songPoint{0};
 
 	const target_t first_target =
 	{

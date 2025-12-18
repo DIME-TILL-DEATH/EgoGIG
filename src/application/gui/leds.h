@@ -26,6 +26,9 @@ void menuRedOn();
 
 void digit(uint8_t num);
 
+
+void requestBlinking();
+void processBlinking();
 }
 
 

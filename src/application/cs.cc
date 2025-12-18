@@ -51,8 +51,6 @@ void TCSTask::Code()
 	MenuMidiControl::read_ctrl();
 	MenuMidiPc::read_map();
 
-	blink_en = 1;
-
 	menuPlayer = new MenuPlayer();
 	currentMenu = menuPlayer;
 	currentMenu->show();

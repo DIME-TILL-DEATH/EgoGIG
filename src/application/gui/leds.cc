@@ -66,3 +66,38 @@ void Leds::digit(uint8_t num)
 	uint8_t temp = num + 1;
 	key_reg_out[1] = (led_sym[temp / 10]) | ((led_sym[temp % 10]) << 8);
 }
+
+bool led_blink_fl = false;
+
+void Leds::requestBlinking()
+{
+	led_blink_fl = true;
+}
+
+uint32_t led_blink_count1 = 0;
+uint32_t led_blink_count2 = 0;
+void Leds::processBlinking()
+{
+	if(led_blink_fl)
+	{
+		if (led_blink_count1 < 7)
+		{
+			if (!led_blink_count2)
+				key_reg_out[1] &= ~0x8080;
+
+			if (led_blink_count2 == 25000)
+				key_reg_out[1] |= 0x8080;
+
+			if (led_blink_count2++ > 50000)
+			{
+				led_blink_count2 = 0;
+				led_blink_count1++;
+			}
+		}
+		else
+		{
+			led_blink_count1 = led_blink_fl = 0;
+		}
+	}
+}
+

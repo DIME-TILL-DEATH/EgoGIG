@@ -27,70 +27,29 @@ extern MenuPlayer* menuPlayer;
 extern Player player;
 
 extern uint16_t key_reg_out[];
-extern volatile uint8_t tim3_end_fl;
 
 extern uint8_t sys_param[];
 extern uint8_t ctrl_param[];
 extern uint8_t pc_param[];
 
-extern volatile uint8_t key_ind;
 extern volatile uint32_t metronom_int;
 extern uint32_t tap_temp;
 extern uint32_t tap_temp1;
 extern uint32_t tap_temp2;
-
-extern uint8_t blink_en;
 
 extern volatile uint32_t play_point1;
 extern volatile uint32_t play_point2;
 
 extern uint16_t key_reg_in[2];
 extern uint16_t key_reg_out[2];
-extern uint8_t key_val;
 
 extern uint8_t us_buf1;
-extern uint8_t sys_param[];
-extern uint8_t blink_en;
-extern volatile uint8_t led_blink_fl;
-
 extern uint8_t tim5_fl;
 
 void init(void);
 void i2s_dma_interrupt_enable();
 void i2s_dma_interrupt_disable();
 void tim_start(uint16_t del);
-
-inline uint8_t drebezg(uint32_t line)
-{
-	uint8_t sss;
-	TIM9_CR1 &= ~TIM_CR1_CEN;
-	if ((EXTI_FTSR & line) != 0)
-	{
-		if (TIM9_SR &TIM_SR_UIF)
-		{
-			sss = 1;
-			EXTI_FTSR &= ~line;
-			EXTI_RTSR |= line;
-		}
-		else
-			sss = 0;
-	}
-	else
-	{
-		if (TIM9_SR &TIM_SR_UIF)
-		{
-			EXTI_RTSR &= ~line;
-			EXTI_FTSR |= line;
-			sss = 2;
-		}
-		else
-			sss = 0;
-	}
-	TIM9_CNT = 0;
-	TIM9_SR &= ~TIM_SR_UIF;
-	TIM9_CR1 |= TIM_CR1_CEN;
-	return sss;
-}
 
 inline void __attribute__ ((always_inline)) dela(uint32_t p)
 {
