@@ -8,8 +8,8 @@ FIRMWARE_VER=1.04.00
 
 # set relocation offset for application code in flash aria
 # for support bootloader SunSet
-#FLASH_TEXT_SECTION_OFFSET=0x40000
-#FLASH_ORIGIN=0x08040000
+FLASH_TEXT_SECTION_OFFSET=0x40000
+FLASH_ORIGIN=0x08040000
 
 
 CPU_EXT_FLAGS=
