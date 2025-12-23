@@ -15,7 +15,7 @@
 struct midi_player_t
 {
 
-	inline midi_player_t()
+	midi_player_t()
 	{
 		rcc_periph_clock_enable(RCC_DMA2);
 		dma_stream_reset(DMA2, DMA_STREAM7);
@@ -33,7 +33,7 @@ struct midi_player_t
 		dma_channel_select(DMA2, DMA_STREAM7, DMA_SxCR_CHSEL_4);
 	}
 
-	inline void pos(size_t val)
+	void pos(size_t val)
 	{
 		sample_count = val;
 
@@ -46,7 +46,7 @@ struct midi_player_t
 		}
 	}
 
-	inline void process()
+	void process()
 	{
 
 		if (midi_stream.curr != midi_stream.items.end())
@@ -74,7 +74,7 @@ struct midi_player_t
 
 	}
 
-	inline void reset()
+	void reset()
 	{
 		midi_stream.reset();
 		sample_count = 0;
