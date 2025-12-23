@@ -1,86 +1,65 @@
-
 #ifndef __INIT_H__
 #define __INIT_H__
 
 #include "libopencm3/stm32/exti.h"
 #include "libopencm3/stm32/timer.h"
 
-extern const size_t wav_buff_size;
+#include "menuplayer.h"
+#include "player.h"
+
+enum
+{
+	auto_next_track = 0,
+	direction_counter,
+	direction_scrol_playlist,
+	loop_points,
+	metronome_out
+};
+
+enum MetronomeOut
+{
+	METRONOME_TO_OUT4 = 0,
+	METRONOME_TO_OUT3,
+	METRONOME_TO_OUT2,
+	METRONOME_TO_OUT1
+};
+
+enum
+{
+	ctrl1_t = 0, ctrl1,
+	ctrl2_t, ctrl2,
+	ctrl3_t, ctrl3,
+	jjj, chann
+};
+
+extern MenuPlayer* menuPlayer;
+extern Player player;
+
 extern uint16_t key_reg_out[];
-extern volatile uint8_t ret_dub_fl;
-extern volatile uint8_t fwd_dub_fl;
-extern volatile uint8_t esc_dub_fl;
-extern volatile uint8_t enc_dub_fl;
-extern volatile uint8_t stp_dub_fl;
-extern uint8_t  num_prog;
-extern uint8_t  num_prog_edit;
-extern const uint8_t led_sym[];
-extern uint8_t condish;
-extern volatile uint8_t stop_fl1;
-extern volatile uint8_t play_fl;
-extern uint8_t num_tr_fl;
-extern volatile uint8_t tim3_end_fl;
+
 extern uint8_t sys_param[];
 extern uint8_t ctrl_param[];
 extern uint8_t pc_param[];
-extern uint8_t cs_resum_fl;
-extern volatile uint32_t file_end_fl;
-extern volatile uint8_t lock_fl;
-extern volatile uint8_t key_ind;
+
 extern volatile uint32_t metronom_int;
-extern uint16_t metronom_counter;
-extern uint8_t metronom_start;
-extern uint16_t temp_counter;
 extern uint32_t tap_temp;
 extern uint32_t tap_temp1;
 extern uint32_t tap_temp2;
-extern volatile uint8_t play_fl2;
-extern volatile uint8_t stop_fl;
-extern volatile uint8_t stop_fl1;
-extern volatile uint8_t pause_fl;
+
+extern uint16_t key_reg_in[2];
+extern uint16_t key_reg_out[2];
+
+extern uint8_t us_buf1;
+extern uint8_t tim5_fl;
 
 void init(void);
 void i2s_dma_interrupt_enable();
 void i2s_dma_interrupt_disable();
 void tim_start(uint16_t del);
-void clean_fl(void);
-uint8_t load_prog(void);
 
-inline uint8_t drebezg (uint32_t line)
-    {
-      uint8_t sss;
-      TIM9_CR1 &= ~TIM_CR1_CEN;
-      if((EXTI_FTSR & line) != 0)
-        {
-          if(TIM9_SR & TIM_SR_UIF)
-            {
-              sss = 1;
-              EXTI_FTSR &= ~line;
-              EXTI_RTSR |= line;
-            }
-          else sss = 0;
-        }
-      else {
-         if(TIM9_SR & TIM_SR_UIF)
-          {
-             EXTI_RTSR &= ~line;
-             EXTI_FTSR |= line;
-             sss = 2;
-          }
-         else sss = 0;
-        }
-      TIM9_CNT = 0;
-      TIM9_SR &= ~TIM_SR_UIF;
-      TIM9_CR1 |= TIM_CR1_CEN;
-      return sss;
-    }
-inline void __attribute__ ((always_inline)) dela(uint32_t s)
+inline void __attribute__ ((always_inline)) dela(uint32_t p)
 {
-  for(uint32_t i = 0 ; i < s ; i++)NOP();
-}
-inline void load_led(uint8_t num)
-{
-  uint8_t temp = num + 1;
-  key_reg_out[1] = (led_sym[temp / 10]) |  ((led_sym[temp % 10]) << 8);
+	for (uint32_t i = 0; i < p; i++)
+		NOP();
 }
 #endif /*__INIT_H__*/

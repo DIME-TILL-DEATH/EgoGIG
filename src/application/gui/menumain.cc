@@ -1,0 +1,45 @@
+#include "menumain.h"
+
+#include "display.h"
+
+#include "parambase.h"
+#include "paramsubmenu.h"
+
+#include "menuselectplaylist.h"
+#include "menueditplaylist.h"
+#include "menusystem.h"
+#include "menumidicontrol.h"
+
+MenuMain::MenuMain(AbstractMenu* parent)
+	: MenuParamList(parent, MENU_MAIN)
+{
+	const uint8_t paramNum = 4;
+	ParamBase* params[paramNum];
+
+	params[0] = new ParamSubmenu("Select Playlist", &MenuMain::createSelectPlaylistMenu, nullptr);
+	params[1] = new ParamSubmenu("Edit Playlist", &MenuMain::createEditPlaylistMenu, nullptr);
+	params[2] = new ParamSubmenu("System", &MenuMain::createSystemMenu, nullptr);
+	params[3] = new ParamSubmenu("MIDI Ctrl", &MenuMain::createMidiMenu, nullptr);
+
+	setParams(params, paramNum);
+}
+
+AbstractMenu* MenuMain::createSelectPlaylistMenu(AbstractMenu* parent)
+{
+	return new MenuSelectPlaylist(parent);
+}
+
+AbstractMenu* MenuMain::createEditPlaylistMenu(AbstractMenu* parent)
+{
+	return new MenuEditPlaylist(parent);
+}
+
+AbstractMenu* MenuMain::createSystemMenu(AbstractMenu* parent)
+{
+	return new MenuSystem(parent);
+}
+
+AbstractMenu* MenuMain::createMidiMenu(AbstractMenu* parent)
+{
+	return new MenuMidiControl(parent);
+}
