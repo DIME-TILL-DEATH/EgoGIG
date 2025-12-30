@@ -3,8 +3,7 @@
 #include <assert.h>
 #include <math.h>
 
-#include "midi-parser.h"
-
+#include "midi_parser.h"
 const char* midi_file_format_name(int fmt)
 {
   switch (fmt) {

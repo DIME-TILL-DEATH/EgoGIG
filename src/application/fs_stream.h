@@ -8,10 +8,8 @@
 
 #include "lcd-hd44780.h"
 
-#include "midi_stream.h"
-#include "midi_player.h"
-
 #include "song.h"
+#include "init.h"
 
 class TFsStreamTask: public TTask
 {
@@ -122,7 +120,7 @@ public:
 		for(uint8_t i=0; i<Player::maxTrackCount; i++)
 			fr = f_lseek(&selectedSong.wavFile[i], val * sizeof(wav_sample_t) + selectedSong.soundDataOffset[i]);
 
-		midi_player.pos(val);
+		midiPlayer.pos(val);
 	}
 
 	inline void browser_name(emb_string &dst)
@@ -163,25 +161,7 @@ public:
 	}
 
 
-//	inline uint32_t sound_size()
-//	{
-//		uint32_t temp = selectedSong.trackSize[0] / 4 / 4410;
-//		return temp;
-//	}
-//
-//	inline uint32_t click_size()
-//	{
-//		uint32_t temp = selectedSong.trackSize[1] / 4;
-//		return temp;
-//	}
 	void enter_dir(const char *name, const char *high_level_node, bool begin);
-
-	inline void MidiEventProcess()
-	{
-		midi_player.process();
-	}
-
-	midi_player_t midi_player;
 
 protected:
 

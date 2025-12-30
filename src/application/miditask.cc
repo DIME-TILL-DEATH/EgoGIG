@@ -1,4 +1,3 @@
-#include "midi.h"
 #include "appdefs.h"
 #include "cs.h"
 #include "init.h"
@@ -9,6 +8,7 @@
 #include "leds.h"
 
 #include "menumidicontrol.h"
+#include "miditask.h"
 
 TMIDITask *MIDITask;
 

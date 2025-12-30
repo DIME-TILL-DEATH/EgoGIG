@@ -1,9 +1,9 @@
 #include "menuplayer.h"
 
+#include "../miditask.h"
 #include "init.h"
 #include "display.h"
 #include "fs_stream.h"
-#include "midi.h"
 #include "enc.h"
 
 #include "menumetronome.h"

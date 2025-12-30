@@ -1,5 +1,4 @@
 #include "cs.h"
-#include "midi.h"
 #include "appdefs.h"
 #include "init.h"
 #include "display.h"
@@ -14,6 +13,7 @@
 #include "menumidipc.h"
 
 #include "libopencm3/stm32/gpio.h"
+#include "miditask.h"
 
 TCSTask *CSTask;
 TSofwareTimer *DisplayBlinkTask;

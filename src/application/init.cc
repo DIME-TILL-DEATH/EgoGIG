@@ -18,12 +18,10 @@
 #include "fs_stream.h"
 
 #include "abstractmenu.h"
-#include "menuplayer.h"
-
-#include "player.h"
 
 MenuPlayer* menuPlayer = nullptr;
 Player player;
+MidiPlayer midiPlayer;
 
 dac_sample_t dac_sample[2];
 
@@ -405,7 +403,7 @@ extern "C" void DMA1_Stream4_IRQHandler()
 				player.processLoop();
 			}
 
-			FsStreamTask->MidiEventProcess();
+			midiPlayer.process(player.songPoint());
 			break;
 		}
 
