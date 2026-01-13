@@ -17,31 +17,33 @@ TFsStreamTask::TFsStreamTask(const char *name, const int stack_size, const int p
 
 void TFsStreamTask::Code()
 {
-	mount();
+//	mount();
+	FRESULT fr = f_mount(&fs, "SD", 1);
 
 	browser.play_list_folder = emb_string("/PLAYLIST/Default");
 
-	while (!FsStream_enable_fl)
-		;
+	while(!FsStream_enable_fl);
+
 	Delay(500);
 	DisplayTask->Clear();
 	DisplayTask->StringOut(0, 0, (uint8_t*) "Checking Folders");
 	Delay(500);
 
 	DIR dir;
-	if ((fr = f_opendir(&dir, "/PLAYLIST")) == FR_OK)
+	if((fr = f_opendir(&dir, "/PLAYLIST")) == FR_OK)
 	{
 		f_closedir(&dir);
 	}
 	else
 	{
-		while (1)
+		while(1)
 		{
 			if (f_mkdir("/PLAYLIST") == FR_OK)
 				break;
 		}
 	}
-	if ((fr = f_opendir(&dir, "/PLAYLIST/Default")) == FR_OK)
+
+	if((fr = f_opendir(&dir, "/PLAYLIST/Default")) == FR_OK)
 	{
 		f_closedir(&dir);
 	}
@@ -53,6 +55,7 @@ void TFsStreamTask::Code()
 				break;
 		}
 	}
+
 	if (f_opendir(&dir, "/SONGS") == FR_OK)
 	{
 		f_closedir(&dir);
@@ -84,6 +87,7 @@ void TFsStreamTask::Code()
 		memset(sys_param, 0, 64);
 		f_write(&fsys, sys_param, 64, &br);
 	}
+
 	f_close(&fsys);
 	if (f_open(&fsys, "/ctrl.ego", FA_READ) == FR_OK)
 	{
@@ -96,6 +100,7 @@ void TFsStreamTask::Code()
 		f_write(&fsys, ctrl_param, 32, &br);
 	}
 	f_close(&fsys);
+
 	if (f_open(&fsys, "/midi_map.ego", FA_READ) == FR_OK)
 	{
 		f_read(&fsys, pc_param, 256, &br);
@@ -110,14 +115,6 @@ void TFsStreamTask::Code()
 	}
 	f_close(&fsys);
 
-#if __STRETCH_DATA_FILE__
-  if(f_open(&fsys,"/stretch.ego",FA_READ) == FR_OK)
-    {
-	  f_read( &fsys , stretch , sizeof(stretch) , &br);
-    }
-  f_close(&fsys);
-#endif
-
 	while (1)
 	{
 		// ожидания уведомления о запросе данных
@@ -125,17 +122,17 @@ void TFsStreamTask::Code()
 		NotifyWait(0, 0, (uint32_t*) &qn, portMAX_DELAY);
 		switch (qn.notify)
 		{
-		case qn_data:
-			get();
+		case qn_wav_data:
+			getWavData();
+			break;
+		case qn_midi_events:
+			getMidiEvents();
 			break;
 		case qn_prev:
 			prev();
 			break;
 		case qn_next:
 			next();
-			break;
-		case qn_curr:
-			curr();
 			break;
 		case qn_action:
 			action(qn.action_param, qn.play_index);
@@ -149,10 +146,42 @@ void TFsStreamTask::Code()
 	}
 }
 
-//-------------------------------------------------------------------
-void TFsStreamTask::enter_dir(const char *name, const char *high_level_node,
-		bool begin = false)
+//---------------------------------------events----------------------
+void TFsStreamTask::getWavData()
 {
+	// чтение данных из файла wave и запись в буффер
+	size_t br = 0;
+
+	f_read(&selectedSong.wavFile[0], target->dest_sound, target->size, &br);
+	size_t zeros = target->size - br;
+
+	if(zeros)
+	{
+		memset(target->dest_sound + br, 0, zeros);
+	}
+
+	// чтение данных из файла click и запись в буффер
+	br = 0;
+
+	f_read(&selectedSong.wavFile[1], target->dest_click, target->size, &br);
+	zeros = target->size - br;
+	if(zeros)
+	{
+		memset(target->dest_click + br, 0, zeros);
+	}
+
+	selectedSong.read_chunk_count++;
+}
+
+void TFsStreamTask::getMidiEvents()
+{
+
+}
+//-------------------------------------------------------------------
+void TFsStreamTask::enter_dir(const char *name, const char *high_level_node, bool begin = false)
+{
+	FRESULT fr;
+
 	if (!begin)
 		if ((fr = f_closedir(&browser.dir)) != FR_OK)
 		{
@@ -200,9 +229,10 @@ bool TFsStreamTask::currentPathIsDirectory()
 	return browser.fno.fattrib & AM_DIR;
 }
 
-emb_string str1;
 void TFsStreamTask::action(action_param_t val, uint8_t play_index)
 {
+	FRESULT fr;
+
 	if(val == enter_directory)
 	{
 		if(browser.fno.fattrib & AM_DIR)
@@ -244,13 +274,10 @@ void TFsStreamTask::action(action_param_t val, uint8_t play_index)
 	}
 }
 
-void TFsStreamTask::curr()
-{
-	//rmsg( ConsoleTask->ReadLine(),"%s\n" , browser.fno.fname );
-}
-
 void TFsStreamTask::next()
 {
+	FRESULT fr;
+
 	DIR dir = browser.dir;
 	FILINFO fno = browser.fno;
 	if ((fr = f_readdir(&browser.dir, &browser.fno)) == FR_OK)
@@ -262,8 +289,11 @@ void TFsStreamTask::next()
 		}
 	}
 }
+
 void TFsStreamTask::prev()
 {
+	FRESULT fr;
+
 	browser.tmp = browser.fno.fname;
 	size_t index = 0;
 	// проход c вычисленем индекса текущего файла
@@ -285,5 +315,22 @@ void TFsStreamTask::prev()
 			}
 			return;
 		}
+	}
+}
+
+void TFsStreamTask::getWavName(emb_string &dir_path, emb_string &file_path, emb_string &mask)
+{
+	DIR dir; /* Directory search object */
+	FILINFO fno; /* File information */
+
+	FRESULT fr = f_findfirst(&dir, &fno, dir_path.c_str(), mask.c_str()); /* Start to search for photo files */
+	if (fr == FR_OK && fno.fname[0]) /* Repeat while an item is found */
+	{
+		file_path = dir_path + "/" + fno.fname;
+		f_closedir(&dir);
+	}
+	else
+	{
+		file_path.clear();
 	}
 }

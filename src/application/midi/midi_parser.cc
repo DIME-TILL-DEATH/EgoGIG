@@ -4,283 +4,275 @@
 #include <math.h>
 
 #include "midi_parser.h"
-const char* midi_file_format_name(int fmt)
-{
-  switch (fmt) {
-  case MIDI_FILE_FORMAT_SINGLE_TRACK:    return "single track";
-  case MIDI_FILE_FORMAT_MULTIPLE_TRACKS: return "multiple tracks";
-  case MIDI_FILE_FORMAT_MULTIPLE_SONGS:  return "multiple songs";
 
-  default: return "(unknown)";
-  }
+MidiParser::MidiParser()
+	:music_temp(1),
+	 m_state(MIDI_PARSER_INIT)
+{
 }
 
-const char* midi_status_name(int status)
+bool MidiParser::isIdValid(uint8_t id)
 {
-  switch (status) {
-  case MIDI_STATUS_NOTE_OFF: return "Note Off";
-  case MIDI_STATUS_NOTE_ON: return "Note On";
-  case MIDI_STATUS_NOTE_AT: return "Note Aftertouch";
-  case MIDI_STATUS_CC: return "CC";
-  case MIDI_STATUS_PGM_CHANGE: return "Program Change";
-  case MIDI_STATUS_CHANNEL_AT: return "Channel Aftertouch";
-  case MIDI_STATUS_PITCH_BEND: return "Pitch Bend";
-
-  default: return "(unknown)";
-  }
+	/* валидные старше полубайты
+	 8
+	 9
+	 a
+	 b
+	 c
+	 d
+	 e
+	 */
+	uint8_t tmp = id >> 4;
+	if ((tmp >= 0x8) && (tmp <= 0xe))
+		return true;
+	return false;
 }
 
-const char* midi_meta_name(int type)
+// вычисление размера события по id статуса(команды)
+uint8_t MidiParser::channelEventSize(uint8_t id)
 {
-  switch (type) {
-  case MIDI_META_SEQ_NUM: return "Sequence Number";
-  case MIDI_META_TEXT: return "Text";
-  case MIDI_META_COPYRIGHT: return "Copyright";
-  case MIDI_META_TRACK_NAME: return "Track Name";
-  case MIDI_META_INSTRUMENT_NAME: return "Instrument Name";
-  case MIDI_META_LYRICS: return "Lyrics";
-  case MIDI_META_MAKER: return "Maker";
-  case MIDI_META_CUE_POINT: return "Cue Point";
-  case MIDI_META_CHANNEL_PREFIX: return "Channel Prefix";
-  case MIDI_META_END_OF_TRACK: return "End of Track";
-  case MIDI_META_SET_TEMPO: return "Set Tempo";
-  case MIDI_META_SMPTE_OFFSET: return "SMPTE Offset";
-  case MIDI_META_TIME_SIGNATURE: return "Time Signature";
-  case MIDI_META_KEY_SIGNATURE: return "Key Signature";
-  case MIDI_META_SEQ_SPECIFIC: return "Sequencer Specific";
-
-  default: return "(unknown)";
-  }
+	const uint8_t chanal_event_size[8] =
+	{ 3,  //8 - старший полубайт статуса
+			3,  //9
+			3,  //a
+			3,  //b
+			2,  //c
+			2,  //d
+			3 //e
+			};
+	return chanal_event_size[(id >> 4) - 8];
 }
 
-static inline uint16_t midi_parse_be16(const uint8_t *in)
+uint16_t MidiParser::parse_be16(const uint8_t *data)
 {
-  return (in[0] << 8) | in[1];
+	return (data[0] << 8) | data[1];
 }
 
-static inline uint32_t midi_parse_be32(const uint8_t *in)
+uint32_t MidiParser::parse_be32(const uint8_t *data)
 {
-  return (in[0] << 24) | (in[1] << 16) | (in[2] << 8) | in[3];
+	return (data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3];
 }
 
-static inline uint64_t midi_parse_variable_length(struct midi_parser *parser, int32_t *offset)
+uint64_t MidiParser::parseVariableLength(int32_t *offset)
 {
-  uint64_t value = 0;
-  int32_t  i     = *offset;
+	uint64_t value = 0;
+	int32_t i = *offset;
 
-  for (; i < parser->size; ++i)
-    {
-      value = (value << 7) | (parser->in[i] & 0x7f);
-      if (!(parser->in[i] & 0x80))
-        break;
-    }
-  *offset = i + 1;
-  return value;
+	for (; i < size; ++i)
+	{
+		value = (value << 7) | (in[i] & 0x7f);
+		if (!(in[i] & 0x80))
+			break;
+	}
+	*offset = i + 1;
+	return value;
 }
 
-static inline enum midi_parser_status midi_parse_header(struct midi_parser *parser)
+midi_parser_status MidiParser::parseHeader()
 {
-  if (parser->size < 14)
-    return MIDI_PARSER_EOB;
+	if (size < 14)
+		return MIDI_PARSER_EOB;
 
-  if (memcmp(parser->in, "MThd", 4))
-    return MIDI_PARSER_ERROR;
+	if (memcmp(in, "MThd", 4))
+		return MIDI_PARSER_ERROR;
 
-  parser->header.size          = midi_parse_be32(parser->in + 4);
-  parser->header.format        = midi_parse_be16(parser->in + 8);
-  parser->header.tracks_count  = midi_parse_be16(parser->in + 10);
-  parser->header.time_division = midi_parse_be16(parser->in + 12);
+	header.size = parse_be32(in + 4);
+	header.format = parse_be16(in + 8);
+	header.tracks_count = parse_be16(in + 10);
+	header.time_division = parse_be16(in + 12);
 
-  parser->in   += 14;
-  parser->size -= 14;
-  parser->state = MIDI_PARSER_HEADER;
-  return MIDI_PARSER_HEADER;
+	in += 14;
+	size -= 14;
+	m_state = MIDI_PARSER_HEADER;
+
+	return MIDI_PARSER_HEADER;
 }
 
-static inline enum midi_parser_status midi_parse_track(struct midi_parser *parser)
+midi_parser_status MidiParser::parseTrack()
 {
-  if (parser->size < 8)
-    return MIDI_PARSER_EOB;
+	if(size < 8) return MIDI_PARSER_EOB;
 
-  parser->track.size  = midi_parse_be32(parser->in + 4);
-  parser->state       = MIDI_PARSER_TRACK;
-  parser->in         += 8;
-  parser->size       -= 8;
-  return MIDI_PARSER_TRACK;
+	track.size = parse_be32(in + 4);
+	m_state = MIDI_PARSER_TRACK;
+	in += 8;
+	size -= 8;
+
+	// Save pointer to track start in file, return to header
+	return MIDI_PARSER_TRACK;
 }
 
-static inline bool midi_parse_vtime(struct midi_parser *parser)
+bool MidiParser::parseVtime()
 {
-  uint8_t nbytes = 0;
-  uint8_t cont   = 1; // continue flag
+	uint8_t nbytes = 0;
+	uint8_t cont = 1; // continue flag
 
-  parser->vtime = 0;
-  while (cont) {
-    ++nbytes;
+	vtime = 0;
+	while(cont)
+	{
+		++nbytes;
 
-    if (parser->size < nbytes || parser->track.size < nbytes)
-      return false;
+		if (size < nbytes || track.size < nbytes)
+			return false;
 
-    uint8_t b = parser->in[nbytes - 1];
-    parser->vtime = (parser->vtime << 7) | (b & 0x7f);
+		uint8_t b = in[nbytes - 1];
+		vtime = (vtime << 7) | (b & 0x7f);
 
-    // The largest value allowed within a MIDI file is 0x0FFFFFFF. A lot of
-    // leading bytes with the highest bit set might overflow the nbytes counter
-    // and create an endless loop.
-    // If one would use 0x80 bytes for padding the check on parser->vtime would
-    // not terminate the endless loop. Since the maximum value can be encoded
-    // in 5 bytes or less, we can assume bad input if more bytes were used.
-    if (parser->vtime > 0x0fffffff || nbytes > 5)
-      return false;
+		// The largest value allowed within a MIDI file is 0x0FFFFFFF. A lot of
+		// leading bytes with the highest bit set might overflow the nbytes counter
+		// and create an endless loop.
+		// If one would use 0x80 bytes for padding the check on parser->vtime would
+		// not terminate the endless loop. Since the maximum value can be encoded
+		// in 5 bytes or less, we can assume bad input if more bytes were used.
+		if (vtime > 0x0fffffff || nbytes > 5)
+			return false;
 
-    cont = b & 0x80;
-  }
+		cont = b & 0x80;
+	}
 
-  parser->in += nbytes;
-  parser->size -= nbytes;
-  parser->track.size -= nbytes;
+	in += nbytes;
+	size -= nbytes;
+	track.size -= nbytes;
 
-  return true;
+	return true;
 }
 
-static inline enum midi_parser_status
-midi_parse_channel_event(struct midi_parser *parser )
+midi_parser_status MidiParser::parseChannelEvent()
 {
-  if (parser->size < 3)
-    return MIDI_PARSER_EOB;
+	if(size < 3) return MIDI_PARSER_EOB;
 
-  memcpy ( parser->buff , parser->in, 3) ;
-  parser->buff_size = 3 ;
+	memcpy(buff, in, 3);
+	buff_size = 3;
 
-  size_t param_index = 0 ;
-  parser->midi.size = 0 ;
-  static size_t event_size = 0 ;
-  static uint8_t id = 0 ;
+	size_t param_index = 0;
+	midi.size = 0;
+	static size_t event_size = 0;
+	static uint8_t id = 0;
 
-  // в случае если полубайт не соответствует таблице channal_event_size
-  // то это значит что после метки времени пеердается тотже статус что и в предыдущей команде а сам
-  // статус опущен и стразу идут данные, поэтому здесь на накой случай запоминается текущий статус
+	// в случае если полубайт не соответствует таблице channal_event_size
+	// то это значит что после метки времени пеердается тотже статус что и в предыдущей команде а сам
+	// статус опущен и стразу идут данные, поэтому здесь на такой случай запоминается текущий статус
 
+	if(isIdValid(in[0]))
+	{
+		id = midi.data[param_index++] = in[0];
+		midi.size += 1;
 
-  if ( parser->is_id_valid(parser->in[0]) )
-    {
-      id = parser->midi.data[param_index++] = parser->in[0] ;
-      parser->midi.size  += 1 ;
+		event_size = channelEventSize(in[0]);
 
-      event_size = parser->channal_event_size(parser->in[0]);
+		// статус передается
+		in += 1;
+		size -= 1;
+		track.size -= 1;
+	}
+	else
+	{
+		if (in[0] & 0x80)
+		{
+			midi.data[param_index++] = id;
+			midi.size += 1;
+			event_size = channelEventSize(id);
+		}
 
-      // статус передается
-      parser->in += 1;
-      parser->size       -= 1;
-      parser->track.size -= 1;
-    }
-  else
-    {
-         if ( parser->in[0] & 0x80)
-           {
-             parser->midi.data[param_index++] = id ;
-             parser->midi.size  += 1 ;
-             event_size = parser->channal_event_size(id);
-           }
+	}
 
-    }
+	if (event_size == 3)
+	{
 
-  if ( event_size == 3 )
-       {
+		midi.data[param_index++] = in[0];
+		midi.data[param_index++] = in[1];
+		midi.size += 2;
 
-         parser->midi.data[param_index++]  = parser->in[0];
-         parser->midi.data[param_index++]  = parser->in[1];
-         parser->midi.size    += 2 ;
+		in += 2;
+		size -= 2;
+		track.size -= 2;
 
-         parser->in         += 2;
-         parser->size       -= 2;
-         parser->track.size -= 2;
+		return MIDI_PARSER_TRACK_MIDI;
+	}
 
-         return MIDI_PARSER_TRACK_MIDI;
-       }
+	if (event_size == 2)
+	{
+		midi.data[param_index++] = in[0];
+		midi.size += 1;
 
-  if ( event_size == 2 )
-     {
-        parser->midi.data[param_index++]  = parser->in[0];
-        parser->midi.size    += 1 ;
+		in += 1;
+		size -= 1;
+		track.size -= 1;
+	}
 
-        parser->in         += 1;
-        parser->size       -= 1;
-        parser->track.size -= 1;
-     }
-
-    return MIDI_PARSER_TRACK_MIDI;
-
+	return MIDI_PARSER_TRACK_MIDI;
 }
 
-static inline enum midi_parser_status
-midi_parse_meta_event(struct midi_parser *parser)
+midi_parser_status MidiParser::parseMetaEvent()
 {
-  assert(parser->in[0] == 0xff);
+//	assert(in[0] == 0xff);
 
-  if (parser->size < 2)
-    return MIDI_PARSER_ERROR;
+	if (size < 2)
+		return MIDI_PARSER_ERROR;
 
-  parser->meta.type = parser->in[1];
-  int32_t offset   = 2;
-  parser->meta.length = midi_parse_variable_length(parser, &offset);
+	meta.type = in[1];
+	int32_t offset = 2;
+	meta.length = parseVariableLength(&offset);
 
-  // length should never be negative or more than the remaining size
-  if (parser->meta.length < 0 || parser->meta.length > parser->size)
-    return MIDI_PARSER_ERROR;
+	// length should never be negative or more than the remaining size
+	if (meta.length < 0 || meta.length > size)
+		return MIDI_PARSER_ERROR;
 
-  // check buffer size
-  if (parser->size < offset || parser->size - offset < parser->meta.length)
-    return MIDI_PARSER_ERROR;
+	// check buffer size
+	if (size < offset || size - offset < meta.length)
+		return MIDI_PARSER_ERROR;
 
-  memcpy ( parser->buff , parser->in, offset + parser->meta.length );
-  parser->buff_size = offset + parser->meta.length;
+	memcpy(buff, in, offset + meta.length);
+	buff_size = offset + meta.length;
 
-  offset += parser->meta.length;
-  parser->in += offset;
-  parser->size -= offset;
-  parser->track.size -= offset;
-  return MIDI_PARSER_TRACK_META;
+	offset += meta.length;
+	in += offset;
+	size -= offset;
+	track.size -= offset;
+
+	return MIDI_PARSER_TRACK_META;
 }
 
-static inline midi_parser_status midi_parse_event(struct midi_parser *parser)
+midi_parser_status MidiParser::parseEvent()
 {
-  if (!midi_parse_vtime(parser))
-    return MIDI_PARSER_EOB;
+	if (!parseVtime())
+		return MIDI_PARSER_EOB;
 
-  // Make sure the parser has not consumed the entire file or track, else
-  // `parser-in[0]` might access heap-memory after the allocated buffer.
-  if (parser->size <= 0 || parser->track.size <= 0)
-    return MIDI_PARSER_ERROR;
+	// Make sure the parser has not consumed the entire file or track, else
+	// `parser-in[0]` might access heap-memory after the allocated buffer.
+	if (size <= 0 || track.size <= 0)
+		return MIDI_PARSER_ERROR;
 
-  if (parser->in[0] < 0xf0)
-    return midi_parse_channel_event(parser);
-  if (parser->in[0] == 0xff)
-    return midi_parse_meta_event(parser);
-  return MIDI_PARSER_ERROR;
+	if (in[0] < 0xf0)
+		return parseChannelEvent();
+
+	if (in[0] == 0xff)
+		return parseMetaEvent();
+
+	return MIDI_PARSER_ERROR;
 }
 
-midi_parser_status midi_parse(struct midi_parser *parser)
+midi_parser_status MidiParser::parseData()
 {
-  if (!parser->in || parser->size < 1)
-    return MIDI_PARSER_EOB;
+	if(!in || size < 1) return MIDI_PARSER_EOB;
 
-  switch (parser->state) {
-  case MIDI_PARSER_INIT:
-    return midi_parse_header(parser);
+	switch(m_state)
+	{
+	case MIDI_PARSER_INIT:
+		return parseHeader();
 
-  case MIDI_PARSER_HEADER:
-    return midi_parse_track(parser);
+	case MIDI_PARSER_HEADER:
+		return parseTrack();
 
-  case MIDI_PARSER_TRACK:
-    if (parser->track.size == 0) {
-      // we reached the end of the track
-      parser->state = MIDI_PARSER_HEADER;
-      return midi_parse(parser);
-    }
-    return midi_parse_event(parser);
+	case MIDI_PARSER_TRACK:
+		if(track.size == 0)
+		{
+			// we reached the end of the track
+			m_state = MIDI_PARSER_HEADER;
+			return parseData();
+		}
+		return parseEvent();
 
-  default:
-    return MIDI_PARSER_ERROR;
-  }
+	default:
+		return MIDI_PARSER_ERROR;
+	}
 }

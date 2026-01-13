@@ -4,15 +4,9 @@
 #include "libopencm3/stm32/dma.h"
 #include "libopencm3/stm32/rcc.h"
 #include "libopencm3/stm32/usart.h"
-#include "midi_parser.h"
+
 
 FIL MidiPlayer::midiFile;
-size_t MidiPlayer::streamRead(uint8_t *buf, size_t size)
-{
-	size_t readed;
-	f_read(&midiFile, buf, size, &readed);
-	return readed;
-}
 
 MidiPlayer::MidiPlayer()
 {
@@ -61,18 +55,18 @@ void MidiPlayer::parseFile()
 	size_t readed;
 	f_read(&midiFile, mem, file_size, &readed);
 
-	struct midi_parser parser;
-	parser.state = MIDI_PARSER_INIT;
-	parser.size = file_size;
-	parser.in = mem;
-	parser.stream_read = streamRead;
+	if(parser) delete parser;
+	parser = new MidiParser;
+
+	parser->size = file_size;
+	parser->in = mem;
 
 	midi_parser_status status;
 
 	while (1)
 	{
-		status = midi_parse(&parser);
-		switch (status)
+		status = parser->parseData();
+		switch(status)
 		{
 		case MIDI_PARSER_EOB:
 			delete mem;
@@ -88,9 +82,8 @@ void MidiPlayer::parseFile()
 
 		case MIDI_PARSER_HEADER:
 		{
-			parser.sync_freq = ((uint64_t) parser.header.time_division
-					* 1000000) / parser.music_temp;
-
+			float sync_freq = ((uint64_t) parser->header.time_division * 1000000) / parser->music_temp;
+			systemTimeCoef = 44100 / sync_freq;
 			break;
 		}
 		case MIDI_PARSER_TRACK:
@@ -102,21 +95,19 @@ void MidiPlayer::parseFile()
 		}
 		case MIDI_PARSER_TRACK_MIDI:
 		{
-			time += parser.vtime;
+			time += parser->vtime;
 
-			float systemTimeCoef = 44100 / parser.sync_freq;
-			midi_stream.add(time * systemTimeCoef, parser.midi.size, parser.midi.bytes);
+			midi_stream.add(time * systemTimeCoef, parser->midi.size, parser->midi.bytes);
 
 			break;
 		}
 		case MIDI_PARSER_TRACK_META:
 		{
-			time += parser.vtime;
+			time += parser->vtime;
 
 			// метасобытия не добвляются в список, изза не надобности в выводе
-			//midi_stream.add(time, parser->buff_size,  parser->buff) ;
 
-			if ((*((uint32_t*) &parser.buff[0]) & 0xffffff) == 0x351ff)
+			if ((*((uint32_t*) &parser->buff[0]) & 0xffffff) == 0x351ff)
 			{
 				union
 				{
@@ -125,20 +116,21 @@ void MidiPlayer::parseFile()
 				} temp;
 
 				temp.bytes[3] = 0;
-				temp.bytes[2] = parser.buff[3];
-				temp.bytes[1] = parser.buff[4];
-				temp.bytes[0] = parser.buff[5];
+				temp.bytes[2] = parser->buff[3];
+				temp.bytes[1] = parser->buff[4];
+				temp.bytes[0] = parser->buff[5];
 
-				parser.music_temp = temp.val;
-				parser.sync_freq = ((uint64_t) parser.header.time_division
-						* 1000000) / parser.music_temp;
+				parser->music_temp = temp.val;
+
+				float sync_freq = ((uint64_t) parser->header.time_division * 1000000) / parser->music_temp;
+				systemTimeCoef = 44100 / sync_freq;
 
 			}
 
 			break;
 		}
 		case MIDI_PARSER_TRACK_SYSEX:
-			time += parser.vtime;
+			time += parser->vtime;
 
 			break;
 

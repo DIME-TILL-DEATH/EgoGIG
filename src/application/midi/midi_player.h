@@ -1,6 +1,8 @@
 #include "midi_stream.h"
 #include "ff.h"
 
+#include "midi_parser.h"
+
 class MidiPlayer
 {
 public:
@@ -11,6 +13,7 @@ public:
 	void reset();
 
 	void openMidiFile(const char* fileName);
+
 private:
 	MidiStream midi_stream;
 	static FIL midiFile;
@@ -18,8 +21,10 @@ private:
 	size_t track = 0;
 	uint32_t time;
 
-	void parseFile();
+	float systemTimeCoef;
 
-	static size_t streamRead(uint8_t *buf, size_t size);
+	MidiParser* parser{nullptr};
+
+	void parseFile();
 };
 

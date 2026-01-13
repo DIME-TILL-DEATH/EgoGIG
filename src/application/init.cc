@@ -410,7 +410,8 @@ extern "C" void DMA1_Stream4_IRQHandler()
 		case Player::PLAYER_LOADING_SONG:
 		{
 			timeCounter = 0;
-			player.songInitiated();
+			if(FsStreamTask->selectedSong.read_chunk_count) // first audio buffer loaded
+				player.songInitiated();
 			break;
 		}
 
