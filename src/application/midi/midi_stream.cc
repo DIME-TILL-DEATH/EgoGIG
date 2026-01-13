@@ -2,7 +2,7 @@
 
 MidiStream::MidiStream()
 {
-	reset();
+//	reset();
 }
 
 MidiStream::~MidiStream()
@@ -12,6 +12,8 @@ MidiStream::~MidiStream()
 void MidiStream::add(const uint64_t &timeTics, size_t size, uint8_t *data)
 {
 	EventItem eventItem;
+
+	if(size > 3) return; // SysEx not supported
 
 	eventItem.time_tics = timeTics;
 	eventItem.size = size;
@@ -28,9 +30,9 @@ void MidiStream::add(const uint64_t &timeTics, size_t size, uint8_t *data)
 
 void MidiStream::clear()
 {
-	for(auto &v : items)
+	for(auto &event : items)
 	{
-		delete[] v.data;
+		delete[] event.data;
 	}
 	items.clear();
 }
@@ -78,7 +80,7 @@ void MidiStream::sortAndMerge()
 	}
 }
 
-void MidiStream::reset()
-{
-	curr = items.begin();
-}
+//void MidiStream::reset()
+//{
+//	curr = items.begin();
+//}

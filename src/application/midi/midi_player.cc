@@ -1,10 +1,15 @@
 #include "midi_player.h"
+
 #include "sdk.h"
 #include "arch.h"
 #include "libopencm3/stm32/dma.h"
+#include <libopencm3/cm3/nvic.h>
 #include "libopencm3/stm32/rcc.h"
 #include "libopencm3/stm32/usart.h"
 
+#include "init.h"
+#include "fs_stream.h"
+#include "player.h"
 
 FIL MidiPlayer::midiFile;
 
@@ -17,13 +22,17 @@ MidiPlayer::MidiPlayer()
 	dma_set_peripheral_size(DMA2, DMA_STREAM7, DMA_SxCR_PSIZE_8BIT);
 	dma_enable_memory_increment_mode(DMA2, DMA_STREAM7);
 	dma_disable_peripheral_increment_mode(DMA2, DMA_STREAM7);
-	dma_set_transfer_mode(DMA2, DMA_STREAM7,
-			DMA_SxCR_DIR_MEM_TO_PERIPHERAL);
+	dma_set_transfer_mode(DMA2, DMA_STREAM7, DMA_SxCR_DIR_MEM_TO_PERIPHERAL);
 	dma_set_peripheral_address(DMA2, DMA_STREAM7, (uint32_t) &USART1_DR);
 	dma_set_memory_address(DMA2, DMA_STREAM7, (uint32_t) 0);
 	//dma_enable_circular_mode(DMA2, DMA_STREAM7);
 	dma_set_number_of_data(DMA2, DMA_STREAM7, 0);
 	dma_channel_select(DMA2, DMA_STREAM7, DMA_SxCR_CHSEL_4);
+
+	nvic_enable_irq (NVIC_DMA2_STREAM7_IRQ);
+	nvic_set_priority(NVIC_DMA2_STREAM7_IRQ, configMAX_SYSCALL_INTERRUPT_PRIORITY + 16);
+
+	dma_enable_transfer_complete_interrupt(DMA2, DMA_STREAM7);
 }
 
 void MidiPlayer::openMidiFile(const char* fileName)
@@ -39,7 +48,7 @@ void MidiPlayer::openMidiFile(const char* fileName)
 			f_close(&midiFile);
 
 			midi_stream.sortAndMerge();
-			reset();
+//			midi_stream.reset();
 		}
 		else
 			f_close(&midiFile);
@@ -68,16 +77,11 @@ void MidiPlayer::parseFile()
 		status = parser->parseData();
 		switch(status)
 		{
-		case MIDI_PARSER_EOB:
-			delete mem;
-			return;
+		case MIDI_PARSER_EOB: goto ending;
 
-		case MIDI_PARSER_ERROR:
-			delete mem;
-			return;
+		case MIDI_PARSER_ERROR: goto ending;
 
 		case MIDI_PARSER_INIT:
-
 			break;
 
 		case MIDI_PARSER_HEADER:
@@ -90,15 +94,12 @@ void MidiPlayer::parseFile()
 		{
 			track++;
 			time = 0;
-
 			break;
 		}
 		case MIDI_PARSER_TRACK_MIDI:
 		{
 			time += parser->vtime;
-
 			midi_stream.add(time * systemTimeCoef, parser->midi.size, parser->midi.bytes);
-
 			break;
 		}
 		case MIDI_PARSER_TRACK_META:
@@ -134,49 +135,69 @@ void MidiPlayer::parseFile()
 
 			break;
 
-		default:
-			delete mem;
-			return;
+		default: goto ending;
 		}
 	}
 
-
+ending:
+	delete mem;
 }
 
 void MidiPlayer::pos(size_t val)
 {
-	midi_stream.curr = midi_stream.items.begin();
+//	midi_stream.curr = midi_stream.items.begin();
+//
+//	while (midi_stream.curr->time_tics < val
+//			&& midi_stream.curr != midi_stream.items.end())
+//	{
+//		midi_stream.curr++;
+//	}
+}
 
-	while (midi_stream.curr->time_tics < val
-			&& midi_stream.curr != midi_stream.items.end())
+volatile uint8_t dma_busy;
+void MidiPlayer::process(const uint64_t& songPos)
+{
+	m_songPos = songPos;
+	if(midi_stream.items.size() != 0 && !dma_busy)
 	{
-		midi_stream.curr++;
+		processEvents();
+	}
+
+	uint16_t bufferTimeInterval = Player::wav_buff_size * 4;
+	if(m_songPos % bufferTimeInterval == 0)
+	{
+		FsStreamTask->midi_notify(m_songPos + bufferTimeInterval, m_songPos + bufferTimeInterval * 2);
 	}
 }
 
-void MidiPlayer::process(const uint64_t& sample_pos)
+void MidiPlayer::processEvents()
 {
-	if(midi_stream.curr != midi_stream.items.end())
+	std::vector<MidiStream::EventItem>::const_iterator currentEvent = midi_stream.items.begin();
+	if(currentEvent->time_tics < m_songPos)
 	{
-		while(midi_stream.curr->time_tics < sample_pos)
+		if(!(DMA_SCR(DMA2, DMA_STREAM7) & DMA_SxCR_EN))
 		{
-			if(!(DMA_SCR(DMA2, DMA_STREAM7) & DMA_SxCR_EN))
-			{
-				DMA_HIFCR (DMA2) = 0xffffffff;
+			DMA_HIFCR (DMA2) = 0xffffffff;
 
-				dma_set_number_of_data(DMA2, DMA_STREAM7, midi_stream.curr->size);
-				dma_set_memory_address(DMA2, DMA_STREAM7, (uint32_t) midi_stream.curr->data);
-				dma_enable_stream(DMA2, DMA_STREAM7);
-			}
+			dma_set_number_of_data(DMA2, DMA_STREAM7, currentEvent->size);
+			dma_set_memory_address(DMA2, DMA_STREAM7, (uint32_t) currentEvent->data);
+			dma_enable_stream(DMA2, DMA_STREAM7);
 
-			midi_stream.curr++;
-			if (midi_stream.curr == midi_stream.items.end())
-				break;
+			dma_busy = 1;
 		}
 	}
 }
 
-void MidiPlayer::reset()
+extern "C" void DMA2_Stream7_IRQHandler()
 {
-	midi_stream.reset();
+	dma_clear_interrupt_flags(DMA2, DMA_STREAM7, DMA_TCIF);
+
+	dma_busy = 0;
+	if(midiPlayer.midi_stream.items.size() != 0)
+	{
+		std::vector<MidiStream::EventItem>::const_iterator currentEvent = midiPlayer.midi_stream.items.begin();
+		delete[] currentEvent->data;
+		midiPlayer.midi_stream.items.erase(currentEvent);
+		midiPlayer.processEvents();
+	}
 }

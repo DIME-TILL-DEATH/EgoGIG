@@ -30,8 +30,6 @@ public:
 
 	};
 
-	TFsStreamTask(const char *name, const int stack_size, const int priority);
-
 	enum notify_t
 	{
 		qn_wav_data = 0,
@@ -43,7 +41,8 @@ public:
 
 	enum action_param_t
 	{
-		enter_directory, save_song
+		enter_directory,
+		save_song
 	};
 
 	struct query_notify_t
@@ -59,25 +58,41 @@ public:
 		} __attribute__((packed));
 	} __attribute__((packed));
 
+	TFsStreamTask(const char *name, const int stack_size, const int priority);
+
 	inline void data_notify(const target_t *val)
 	{
 		target = val;
+
 		query_notify_t qn =
 		{ .notify = qn_wav_data };
 		notify(qn);
 	}
+
+	inline void midi_notify(const uint64_t& start, const uint64_t& stop)
+	{
+		midiStartInterval = start;
+		midiStopInterval = stop;
+
+		query_notify_t qn =
+		{ .notify = qn_midi_events };
+		notify(qn);
+	}
+
 	inline void next_notify()
 	{
 		query_notify_t qn =
 		{ .notify = qn_next };
 		notify(qn);
 	}
+
 	inline void prev_notify()
 	{
 		query_notify_t qn =
 		{ .notify = qn_prev };
 		notify(qn);
 	}
+
 	inline void action_notify(action_param_t val, uint8_t play_index)
 	{
 		query_notify_t qn;
@@ -86,8 +101,6 @@ public:
 		qn.play_index = play_index;
 		notify(qn);
 	}
-
-	bool currentPathIsDirectory();
 
 	inline error_t delete_track(size_t index)
 	{
@@ -141,6 +154,7 @@ public:
 		return false;
 	}
 
+	bool currentPathIsDirectory();
 	void enter_dir(const char *name, const char *high_level_node, bool begin);
 	inline void play_list_folder(emb_string &val) const
 	{
@@ -153,6 +167,8 @@ public:
 
 private:
 	const target_t *target;
+	uint64_t midiStartInterval;
+	uint64_t midiStopInterval;
 
 	FATFS fs; // дескриптор раздела
 	UINT *fw;

@@ -54,10 +54,8 @@ void init(void)
 	rcc_periph_clock_enable (RCC_TIM9);
 	rcc_periph_clock_enable (RCC_USART1);
 
-	gpio_mode_setup(GPIOA, GPIO_MODE_AF, GPIO_PUPD_NONE,
-			GPIO5 | GPIO7 | GPIO15);     // SPI1 CLK | MOSI | I2S3 WS
-	gpio_set_output_options(GPIOA, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ,
-			GPIO5 | GPIO7 | GPIO15);
+	gpio_mode_setup(GPIOA, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO5 | GPIO7 | GPIO15);     // SPI1 CLK | MOSI | I2S3 WS
+	gpio_set_output_options(GPIOA, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ, GPIO5 | GPIO7 | GPIO15);
 	gpio_set_af(GPIOA, GPIO_AF5, GPIO5 | GPIO7);
 	gpio_set_af(GPIOA, GPIO_AF6, GPIO15);
 
@@ -105,8 +103,7 @@ void init(void)
 	exti_enable_request (EXTI8);
 
 	nvic_enable_irq (NVIC_EXTI4_IRQ);
-	nvic_set_priority(NVIC_EXTI4_IRQ,
-			configMAX_SYSCALL_INTERRUPT_PRIORITY + 16);
+	nvic_set_priority(NVIC_EXTI4_IRQ, configMAX_SYSCALL_INTERRUPT_PRIORITY + 16);
 
 	timer_reset (RST_TIM9);
 	TIM9_CR1 = TIM_CR1_ARPE | TIM_CR1_OPM;
@@ -172,8 +169,7 @@ void init(void)
 	SPI3_I2SCFGR |= SPI_I2SCFGR_I2SE;
 
 	nvic_enable_irq (NVIC_DMA1_STREAM4_IRQ);
-	nvic_set_priority(NVIC_DMA1_STREAM4_IRQ,
-			configMAX_SYSCALL_INTERRUPT_PRIORITY + 16);
+	nvic_set_priority(NVIC_DMA1_STREAM4_IRQ, configMAX_SYSCALL_INTERRUPT_PRIORITY + 16);
 
 	dma_stream_reset(DMA1, DMA_STREAM4);
 	dma_set_priority(DMA1, DMA_STREAM4, DMA_SxCR_PL_HIGH);
@@ -207,8 +203,7 @@ void init(void)
 		NOP();
 
 	nvic_enable_irq (NVIC_DMA2_STREAM0_IRQ);
-	nvic_set_priority(NVIC_DMA2_STREAM0_IRQ,
-			configMAX_SYSCALL_INTERRUPT_PRIORITY + 16);
+	nvic_set_priority(NVIC_DMA2_STREAM0_IRQ, configMAX_SYSCALL_INTERRUPT_PRIORITY + 16);
 
 	spi_reset (SPI1);
 	spi_init_master(SPI1, SPI_CR1_BAUDRATE_FPCLK_DIV_256,
@@ -287,8 +282,7 @@ void init(void)
 			/ (2 * baudrate_midi));
 	usart_enable_rx_interrupt (USART1);
 	nvic_enable_irq (NVIC_USART1_IRQ);
-	nvic_set_priority(NVIC_USART1_IRQ,
-			configMAX_SYSCALL_INTERRUPT_PRIORITY + 16);
+	nvic_set_priority(NVIC_USART1_IRQ, configMAX_SYSCALL_INTERRUPT_PRIORITY + 16);
 	usart_enable_tx_dma(USART1);
 	usart_enable(USART1);
 
@@ -359,7 +353,7 @@ extern "C" void DMA1_Stream4_IRQHandler()
 			else
 				timeCounter++;
 
-			if(timeCounter)
+			if(timeCounter > 0)
 			{
 				if(timeCounter % 4410 == 0) //100 msec
 				{
@@ -371,6 +365,7 @@ extern "C" void DMA1_Stream4_IRQHandler()
 					}
 				}
 
+				// !!! Time stretching for correct 44100 playback !!!
 				// 44100/(44100 - 25000000/567) = 5320 is 82,89 samples, 5113 is 83 samples
 				if(timeCounter % 5320 == 0)
 				{
