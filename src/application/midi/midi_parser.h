@@ -20,9 +20,10 @@ enum midi_parser_status
 	MIDI_PARSER_INIT = 0,
 	MIDI_PARSER_HEADER = 1,
 	MIDI_PARSER_TRACK = 2,
-	MIDI_PARSER_TRACK_MIDI = 3,
-	MIDI_PARSER_TRACK_META = 4,
-	MIDI_PARSER_TRACK_SYSEX = 5,
+	MIDI_PARSER_TRACK_VTIME = 3,
+	MIDI_PARSER_TRACK_EVENT = 4,
+	MIDI_PARSER_TRACK_META = 5,
+	MIDI_PARSER_TRACK_SYSEX = 6,
 };
 
 struct midi_header
@@ -36,6 +37,7 @@ struct midi_header
 struct midi_track
 {
 	int32_t size;
+	uint32_t posInFile;
 };
 
 enum midi_status
@@ -103,6 +105,7 @@ public:
 	/* input buffer */
 	const uint8_t *in;
 	int32_t size;
+	uint8_t buffer[1024];
 
 	/* result */
 	int64_t vtime;
@@ -127,7 +130,7 @@ private:
 
 	midi_parser_status parseHeader();
 	midi_parser_status parseTrack();
-	bool parseVtime();
+	midi_parser_status parseVtime();
 	midi_parser_status parseChannelEvent();
 	midi_parser_status parseMetaEvent();
 	midi_parser_status parseEvent();

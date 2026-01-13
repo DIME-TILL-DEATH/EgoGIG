@@ -31,8 +31,8 @@ bool MidiParser::isIdValid(uint8_t id)
 // вычисление размера события по id статуса(команды)
 uint8_t MidiParser::channelEventSize(uint8_t id)
 {
-	const uint8_t chanal_event_size[8] =
-	{ 3,  //8 - старший полубайт статуса
+	const uint8_t channel_event_size[8] =
+	{ 		3,  //8 - старший полубайт статуса
 			3,  //9
 			3,  //a
 			3,  //b
@@ -40,7 +40,8 @@ uint8_t MidiParser::channelEventSize(uint8_t id)
 			2,  //d
 			3 //e
 			};
-	return chanal_event_size[(id >> 4) - 8];
+
+	return channel_event_size[(id >> 4) - 8];
 }
 
 uint16_t MidiParser::parse_be16(const uint8_t *data)
@@ -70,11 +71,9 @@ uint64_t MidiParser::parseVariableLength(int32_t *offset)
 
 midi_parser_status MidiParser::parseHeader()
 {
-	if (size < 14)
-		return MIDI_PARSER_EOB;
+	if(size < 14) return MIDI_PARSER_EOB;
 
-	if (memcmp(in, "MThd", 4))
-		return MIDI_PARSER_ERROR;
+	if(memcmp(in, "MThd", 4)) return MIDI_PARSER_ERROR;
 
 	header.size = parse_be32(in + 4);
 	header.format = parse_be16(in + 8);
@@ -83,7 +82,7 @@ midi_parser_status MidiParser::parseHeader()
 
 	in += 14;
 	size -= 14;
-	m_state = MIDI_PARSER_HEADER;
+	m_state = MIDI_PARSER_TRACK;
 
 	return MIDI_PARSER_HEADER;
 }
@@ -93,15 +92,15 @@ midi_parser_status MidiParser::parseTrack()
 	if(size < 8) return MIDI_PARSER_EOB;
 
 	track.size = parse_be32(in + 4);
-	m_state = MIDI_PARSER_TRACK;
+
 	in += 8;
 	size -= 8;
+	m_state = MIDI_PARSER_TRACK_VTIME;
 
-	// Save pointer to track start in file, return to header
 	return MIDI_PARSER_TRACK;
 }
 
-bool MidiParser::parseVtime()
+midi_parser_status MidiParser::parseVtime()
 {
 	uint8_t nbytes = 0;
 	uint8_t cont = 1; // continue flag
@@ -112,7 +111,7 @@ bool MidiParser::parseVtime()
 		++nbytes;
 
 		if (size < nbytes || track.size < nbytes)
-			return false;
+			return MIDI_PARSER_EOB;
 
 		uint8_t b = in[nbytes - 1];
 		vtime = (vtime << 7) | (b & 0x7f);
@@ -124,7 +123,7 @@ bool MidiParser::parseVtime()
 		// not terminate the endless loop. Since the maximum value can be encoded
 		// in 5 bytes or less, we can assume bad input if more bytes were used.
 		if (vtime > 0x0fffffff || nbytes > 5)
-			return false;
+			return MIDI_PARSER_ERROR;
 
 		cont = b & 0x80;
 	}
@@ -132,8 +131,9 @@ bool MidiParser::parseVtime()
 	in += nbytes;
 	size -= nbytes;
 	track.size -= nbytes;
+	m_state = MIDI_PARSER_TRACK_EVENT;
 
-	return true;
+	return MIDI_PARSER_TRACK_VTIME;
 }
 
 midi_parser_status MidiParser::parseChannelEvent()
@@ -142,6 +142,8 @@ midi_parser_status MidiParser::parseChannelEvent()
 
 	memcpy(buff, in, 3);
 	buff_size = 3;
+
+	m_state = MIDI_PARSER_TRACK_VTIME;
 
 	size_t param_index = 0;
 	midi.size = 0;
@@ -186,7 +188,7 @@ midi_parser_status MidiParser::parseChannelEvent()
 		size -= 2;
 		track.size -= 2;
 
-		return MIDI_PARSER_TRACK_MIDI;
+		return MIDI_PARSER_TRACK_EVENT;
 	}
 
 	if (event_size == 2)
@@ -199,27 +201,24 @@ midi_parser_status MidiParser::parseChannelEvent()
 		track.size -= 1;
 	}
 
-	return MIDI_PARSER_TRACK_MIDI;
+	return MIDI_PARSER_TRACK_EVENT;
 }
 
 midi_parser_status MidiParser::parseMetaEvent()
 {
-//	assert(in[0] == 0xff);
-
-	if (size < 2)
-		return MIDI_PARSER_ERROR;
+	if(size < 2) return MIDI_PARSER_EOB;
 
 	meta.type = in[1];
 	int32_t offset = 2;
 	meta.length = parseVariableLength(&offset);
 
 	// length should never be negative or more than the remaining size
-	if (meta.length < 0 || meta.length > size)
-		return MIDI_PARSER_ERROR;
+	if(meta.length < 0) return MIDI_PARSER_ERROR;
+
+	if(meta.length > size) return MIDI_PARSER_EOB;
 
 	// check buffer size
-	if (size < offset || size - offset < meta.length)
-		return MIDI_PARSER_ERROR;
+	if(size < offset || size - offset < meta.length) return MIDI_PARSER_EOB;
 
 	memcpy(buff, in, offset + meta.length);
 	buff_size = offset + meta.length;
@@ -229,24 +228,16 @@ midi_parser_status MidiParser::parseMetaEvent()
 	size -= offset;
 	track.size -= offset;
 
+	m_state = MIDI_PARSER_TRACK_VTIME;
+
 	return MIDI_PARSER_TRACK_META;
 }
 
 midi_parser_status MidiParser::parseEvent()
 {
-	if (!parseVtime())
-		return MIDI_PARSER_EOB;
+	if (in[0] < 0xf0) return parseChannelEvent();
 
-	// Make sure the parser has not consumed the entire file or track, else
-	// `parser-in[0]` might access heap-memory after the allocated buffer.
-	if (size <= 0 || track.size <= 0)
-		return MIDI_PARSER_ERROR;
-
-	if (in[0] < 0xf0)
-		return parseChannelEvent();
-
-	if (in[0] == 0xff)
-		return parseMetaEvent();
+	if (in[0] == 0xff) return parseMetaEvent();
 
 	return MIDI_PARSER_ERROR;
 }
@@ -260,16 +251,19 @@ midi_parser_status MidiParser::parseData()
 	case MIDI_PARSER_INIT:
 		return parseHeader();
 
-	case MIDI_PARSER_HEADER:
+	case MIDI_PARSER_TRACK:
 		return parseTrack();
 
-	case MIDI_PARSER_TRACK:
+	case MIDI_PARSER_TRACK_VTIME:
 		if(track.size == 0)
 		{
 			// we reached the end of the track
-			m_state = MIDI_PARSER_HEADER;
+			m_state = MIDI_PARSER_TRACK;
 			return parseData();
 		}
+		return parseVtime();
+
+	case MIDI_PARSER_TRACK_EVENT:
 		return parseEvent();
 
 	default:

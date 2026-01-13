@@ -21,17 +21,14 @@ public:
 	MidiStream midi_stream;
 
 private:
-	static FIL midiFile;
-
-
-	MidiParser* parser{nullptr};
-
-	size_t track = 0;
-	uint32_t time;
+	static FIL m_midiFile;
+	MidiParser* m_parser{nullptr};
 
 	uint64_t m_songPos;
+	std::vector<midi_track> m_midiTracks;
+	midi_header m_currentHeader;
 
-	float systemTimeCoef;
+	float m_systemTimeCoef;
 
 	void parseFile();
 };
