@@ -18,7 +18,6 @@
 TCSTask *CSTask;
 TSofwareTimer *DisplayBlinkTask;
 
-
 void TCSTask::Code()
 {
 	Delay(500);

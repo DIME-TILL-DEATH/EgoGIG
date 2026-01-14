@@ -45,15 +45,13 @@ void MidiPlayer::openMidiFile(const char* fileName)
 	if(f_open(&m_midiFile, fileName, FA_READ) == FR_OK)
 	{
 		parseFile();
-		f_close(&m_midiFile);
-
 		midi_stream.sortAndMerge();
 	}
 }
 
 void MidiPlayer::parseFile()
 {
-//	m_midiTracks.clear();
+	m_midiTracks.clear();
 
 	MidiParser parser;
 
@@ -64,7 +62,9 @@ void MidiPlayer::parseFile()
 
 	size_t trackNum = 0;
 	uint32_t time;
+	uint32_t dataOffset = 0;
 	midi_parser_state status;
+
 
 	while (1)
 	{
@@ -98,11 +98,25 @@ void MidiPlayer::parseFile()
 
 			float sync_freq = ((uint64_t) m_currentHeader.time_division * 1000000);
 			m_systemTimeCoef = 44100 / sync_freq;
+
+			dataOffset += 14;
 			break;
 		}
 
 		case MIDI_PARSER_TRACK:
 		{
+			MidiTrack track;
+
+			dataOffset += 8;
+
+			track.num = trackNum;
+			track.startPosition = dataOffset;
+			track.currentPosition = track.startPosition;
+			track.size = parser.result.track.size;
+			m_midiTracks.push_back(track);
+
+			dataOffset += track.size;
+
 			trackNum++;
 			time = 0;
 			break;
@@ -164,6 +178,16 @@ void MidiPlayer::parseFile()
 	}
 }
 
+void MidiPlayer::readEvents(const uint64_t& start, const uint64_t& stop)
+{
+	while(DMA_SCR(DMA2, DMA_STREAM7) & DMA_SxCR_EN) {}
+
+	for(auto track_it = m_midiTracks.begin(); track_it != m_midiTracks.end(); ++track_it)
+	{
+
+	}
+}
+
 void MidiPlayer::pos(size_t val)
 {
 //	midi_stream.curr = midi_stream.items.begin();
@@ -175,11 +199,10 @@ void MidiPlayer::pos(size_t val)
 //	}
 }
 
-volatile uint8_t dma_busy;
 void MidiPlayer::process(const uint64_t& songPos)
 {
 	m_songPos = songPos;
-	if(midi_stream.items.size() != 0 && !dma_busy)
+	if(midi_stream.items.size() != 0)
 	{
 		processEvents();
 	}
@@ -193,18 +216,19 @@ void MidiPlayer::process(const uint64_t& songPos)
 
 void MidiPlayer::processEvents()
 {
-	std::vector<MidiStream::EventItem>::const_iterator currentEvent = midi_stream.items.begin();
+	std::list<MidiStream::EventItem>::iterator currentEvent = midi_stream.items.begin();
+	if(currentEvent->played) return;
+
 	if(currentEvent->time_tics < m_songPos)
 	{
 		if(!(DMA_SCR(DMA2, DMA_STREAM7) & DMA_SxCR_EN))
 		{
 			DMA_HIFCR (DMA2) = 0xffffffff;
 
+			currentEvent->played = 1;
 			dma_set_number_of_data(DMA2, DMA_STREAM7, currentEvent->size);
 			dma_set_memory_address(DMA2, DMA_STREAM7, (uint32_t) currentEvent->data);
 			dma_enable_stream(DMA2, DMA_STREAM7);
-
-			dma_busy = 1;
 		}
 	}
 }
@@ -213,12 +237,10 @@ extern "C" void DMA2_Stream7_IRQHandler()
 {
 	dma_clear_interrupt_flags(DMA2, DMA_STREAM7, DMA_TCIF);
 
-	dma_busy = 0;
 	if(midiPlayer.midi_stream.items.size() != 0)
 	{
-		std::vector<MidiStream::EventItem>::const_iterator currentEvent = midiPlayer.midi_stream.items.begin();
+		std::list<MidiStream::EventItem>::const_iterator currentEvent = midiPlayer.midi_stream.items.begin();
 		delete[] currentEvent->data;
-		midiPlayer.midi_stream.items.erase(currentEvent);
-		midiPlayer.processEvents();
+		midiPlayer.midi_stream.items.pop_front();
 	}
 }

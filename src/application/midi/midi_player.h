@@ -7,6 +7,14 @@
 #include "midi_stream.h"
 #include "midi_parser.h"
 
+struct MidiTrack
+{
+	uint8_t num;
+	uint32_t size;
+	uint32_t startPosition;
+	uint32_t currentPosition;
+};
+
 class MidiPlayer
 {
 public:
@@ -17,6 +25,7 @@ public:
 	void processEvents();
 
 	void openMidiFile(const char* fileName);
+	void readEvents(const uint64_t& start, const uint64_t& stop);
 
 	MidiStream midi_stream;
 
@@ -24,7 +33,7 @@ private:
 	static FIL m_midiFile;
 
 	uint64_t m_songPos;
-//	std::vector<MidiTrack> m_midiTracks;
+	std::vector<MidiTrack> m_midiTracks;
 	midi_header m_currentHeader;
 
 	float m_systemTimeCoef;

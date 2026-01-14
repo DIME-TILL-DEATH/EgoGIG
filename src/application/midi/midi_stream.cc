@@ -18,6 +18,7 @@ void MidiStream::add(const uint64_t &timeTics, size_t size, uint8_t *data)
 	eventItem.time_tics = timeTics;
 	eventItem.size = size;
 	eventItem.data = new uint8_t[size];
+	eventItem.played = 0;
 
 	if (!eventItem.data)
 		return;
@@ -39,19 +40,15 @@ void MidiStream::clear()
 
 void MidiStream::sortAndMerge()
 {
-
-	std::sort(items.begin(), items.end(),
-			[](EventItem const &a, EventItem const &b) -> bool
-			{
-				return a.time_tics < b.time_tics;
-			});
+	items.sort([](EventItem const &a, EventItem const &b) -> bool
+			{ return a.time_tics < b.time_tics; });
 
 	// слияние
 	if(items.size() < 2)
 		return;
 
-	std::vector<EventItem>::iterator prev = items.begin();
-	std::vector<EventItem>::iterator curr = std::next(prev);
+	std::list<EventItem>::iterator prev = items.begin();
+	std::list<EventItem>::iterator curr = std::next(prev);
 
 	while(curr != items.end())
 	{

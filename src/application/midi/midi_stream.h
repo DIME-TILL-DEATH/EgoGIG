@@ -13,19 +13,18 @@ public:
 	{
 		uint64_t time_tics;
 		size_t size;
+		uint8_t played;
 		uint8_t *data;
 	};
 
 	MidiStream();
 	~MidiStream();
 
-//	std::vector<EventItem>::const_iterator curr;
-	std::vector<EventItem> items;
+	std::list<EventItem> items;
 
 	void add(const uint64_t &time_tics, size_t size, uint8_t *data);
 	void clear();
 	void sortAndMerge();
-//	void reset();
 
 private:
 
