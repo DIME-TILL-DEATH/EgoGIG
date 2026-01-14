@@ -6,9 +6,9 @@
 #include "midi_parser.h"
 
 MidiParser::MidiParser()
-	:music_temp(1),
-	 m_state(MIDI_PARSER_INIT)
+	: m_state(MIDI_PARSER_INIT)
 {
+
 }
 
 bool MidiParser::isIdValid(uint8_t id)
@@ -69,16 +69,16 @@ uint64_t MidiParser::parseVariableLength(int32_t *offset)
 	return value;
 }
 
-midi_parser_status MidiParser::parseHeader()
+midi_parser_state MidiParser::parseHeader()
 {
 	if(size < 14) return MIDI_PARSER_EOB;
 
 	if(memcmp(in, "MThd", 4)) return MIDI_PARSER_ERROR;
 
-	header.size = parse_be32(in + 4);
-	header.format = parse_be16(in + 8);
-	header.tracks_count = parse_be16(in + 10);
-	header.time_division = parse_be16(in + 12);
+	result.header.size = parse_be32(in + 4);
+	result.header.format = parse_be16(in + 8);
+	result.header.tracks_count = parse_be16(in + 10);
+	result.header.time_division = parse_be16(in + 12);
 
 	in += 14;
 	size -= 14;
@@ -87,11 +87,11 @@ midi_parser_status MidiParser::parseHeader()
 	return MIDI_PARSER_HEADER;
 }
 
-midi_parser_status MidiParser::parseTrack()
+midi_parser_state MidiParser::parseTrack()
 {
 	if(size < 8) return MIDI_PARSER_EOB;
 
-	track.size = parse_be32(in + 4);
+	result.track.size = parse_be32(in + 4);
 
 	in += 8;
 	size -= 8;
@@ -100,21 +100,21 @@ midi_parser_status MidiParser::parseTrack()
 	return MIDI_PARSER_TRACK;
 }
 
-midi_parser_status MidiParser::parseVtime()
+midi_parser_state MidiParser::parseVtime()
 {
 	uint8_t nbytes = 0;
 	uint8_t cont = 1; // continue flag
 
-	vtime = 0;
+	result.vtime = 0;
 	while(cont)
 	{
 		++nbytes;
 
-		if (size < nbytes || track.size < nbytes)
+		if (size < nbytes)
 			return MIDI_PARSER_EOB;
 
 		uint8_t b = in[nbytes - 1];
-		vtime = (vtime << 7) | (b & 0x7f);
+		result.vtime = (result.vtime << 7) | (b & 0x7f);
 
 		// The largest value allowed within a MIDI file is 0x0FFFFFFF. A lot of
 		// leading bytes with the highest bit set might overflow the nbytes counter
@@ -122,7 +122,7 @@ midi_parser_status MidiParser::parseVtime()
 		// If one would use 0x80 bytes for padding the check on parser->vtime would
 		// not terminate the endless loop. Since the maximum value can be encoded
 		// in 5 bytes or less, we can assume bad input if more bytes were used.
-		if (vtime > 0x0fffffff || nbytes > 5)
+		if (result.vtime > 0x0fffffff || nbytes > 5)
 			return MIDI_PARSER_ERROR;
 
 		cont = b & 0x80;
@@ -130,13 +130,12 @@ midi_parser_status MidiParser::parseVtime()
 
 	in += nbytes;
 	size -= nbytes;
-	track.size -= nbytes;
 	m_state = MIDI_PARSER_TRACK_EVENT;
 
 	return MIDI_PARSER_TRACK_VTIME;
 }
 
-midi_parser_status MidiParser::parseChannelEvent()
+midi_parser_state MidiParser::parseChannelEvent()
 {
 	if(size < 3) return MIDI_PARSER_EOB;
 
@@ -146,7 +145,7 @@ midi_parser_status MidiParser::parseChannelEvent()
 	m_state = MIDI_PARSER_TRACK_VTIME;
 
 	size_t param_index = 0;
-	midi.size = 0;
+	result.midi.length = 0;
 	static size_t event_size = 0;
 	static uint8_t id = 0;
 
@@ -156,22 +155,21 @@ midi_parser_status MidiParser::parseChannelEvent()
 
 	if(isIdValid(in[0]))
 	{
-		id = midi.data[param_index++] = in[0];
-		midi.size += 1;
+		id = result.midi.data[param_index++] = in[0];
+		result.midi.length += 1;
 
 		event_size = channelEventSize(in[0]);
 
 		// статус передается
 		in += 1;
 		size -= 1;
-		track.size -= 1;
 	}
 	else
 	{
 		if (in[0] & 0x80)
 		{
-			midi.data[param_index++] = id;
-			midi.size += 1;
+			result.midi.data[param_index++] = id;
+			result.midi.length += 1;
 			event_size = channelEventSize(id);
 		}
 
@@ -180,60 +178,62 @@ midi_parser_status MidiParser::parseChannelEvent()
 	if (event_size == 3)
 	{
 
-		midi.data[param_index++] = in[0];
-		midi.data[param_index++] = in[1];
-		midi.size += 2;
+		result.midi.data[param_index++] = in[0];
+		result.midi.data[param_index++] = in[1];
+		result.midi.length += 2;
 
 		in += 2;
 		size -= 2;
-		track.size -= 2;
 
 		return MIDI_PARSER_TRACK_EVENT;
 	}
 
 	if (event_size == 2)
 	{
-		midi.data[param_index++] = in[0];
-		midi.size += 1;
+		result.midi.data[param_index++] = in[0];
+		result.midi.length += 1;
 
 		in += 1;
 		size -= 1;
-		track.size -= 1;
 	}
 
 	return MIDI_PARSER_TRACK_EVENT;
 }
 
-midi_parser_status MidiParser::parseMetaEvent()
+midi_parser_state MidiParser::parseMetaEvent()
 {
 	if(size < 2) return MIDI_PARSER_EOB;
 
-	meta.type = in[1];
+	result.meta.type = in[1];
 	int32_t offset = 2;
-	meta.length = parseVariableLength(&offset);
+	result.meta.length = parseVariableLength(&offset);
 
 	// length should never be negative or more than the remaining size
-	if(meta.length < 0) return MIDI_PARSER_ERROR;
+	if(result.meta.length < 0) return MIDI_PARSER_ERROR;
 
-	if(meta.length > size) return MIDI_PARSER_EOB;
+	if(result.meta.length > size) return MIDI_PARSER_EOB;
 
 	// check buffer size
-	if(size < offset || size - offset < meta.length) return MIDI_PARSER_EOB;
+	if(size < offset || size - offset < result.meta.length) return MIDI_PARSER_EOB;
 
-	memcpy(buff, in, offset + meta.length);
-	buff_size = offset + meta.length;
+	uint8_t resultMetaLength;
+	if(result.meta.length > bufferSize) resultMetaLength = bufferSize - 2;
+	else resultMetaLength = result.meta.length;
 
-	offset += meta.length;
+	memcpy(buff, in, offset + resultMetaLength);
+	buff_size = offset + resultMetaLength;
+	result.meta.bytes = buff;
+
+	offset += result.meta.length;
 	in += offset;
 	size -= offset;
-	track.size -= offset;
 
 	m_state = MIDI_PARSER_TRACK_VTIME;
 
 	return MIDI_PARSER_TRACK_META;
 }
 
-midi_parser_status MidiParser::parseEvent()
+midi_parser_state MidiParser::parseEvent()
 {
 	if (in[0] < 0xf0) return parseChannelEvent();
 
@@ -242,7 +242,7 @@ midi_parser_status MidiParser::parseEvent()
 	return MIDI_PARSER_ERROR;
 }
 
-midi_parser_status MidiParser::parseData()
+midi_parser_state MidiParser::parseData()
 {
 	if(!in || size < 1) return MIDI_PARSER_EOB;
 
@@ -255,12 +255,12 @@ midi_parser_status MidiParser::parseData()
 		return parseTrack();
 
 	case MIDI_PARSER_TRACK_VTIME:
-		if(track.size == 0)
-		{
-			// we reached the end of the track
-			m_state = MIDI_PARSER_TRACK;
-			return parseData();
-		}
+//		if(result.track.size == 0)
+//		{
+//			// we reached the end of the track
+//			m_state = MIDI_PARSER_TRACK;
+//			return parseData();
+//		}
 		return parseVtime();
 
 	case MIDI_PARSER_TRACK_EVENT:

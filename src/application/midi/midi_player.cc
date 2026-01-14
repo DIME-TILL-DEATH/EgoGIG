@@ -44,56 +44,45 @@ void MidiPlayer::openMidiFile(const char* fileName)
 
 	if(f_open(&m_midiFile, fileName, FA_READ) == FR_OK)
 	{
-		if(f_size(&m_midiFile) < 4096)
-		{
-			parseFile();
-			f_close(&m_midiFile);
+		parseFile();
+		f_close(&m_midiFile);
 
-			midi_stream.sortAndMerge();
-		}
-		else
-			f_close(&m_midiFile);
+		midi_stream.sortAndMerge();
 	}
 }
 
 void MidiPlayer::parseFile()
 {
-	m_midiTracks.clear();
+//	m_midiTracks.clear();
 
-	if(m_parser) delete m_parser;
-		m_parser = new MidiParser;
-
-//	size_t file_size = f_size(&m_midiFile);
-//
-//	uint8_t *mem = new uint8_t[file_size];
-		memset(m_parser->buffer, 0, 1024);
+	MidiParser parser;
 
 	size_t readed;
-	f_read(&m_midiFile, m_parser->buffer, 64, &readed);
-	m_parser->size = readed;
-	m_parser->in = m_parser->buffer;
+	f_read(&m_midiFile, m_parserBuffer, 512, &readed);
+	parser.size = readed;
+	parser.in = m_parserBuffer;
 
-	size_t track = 0;
+	size_t trackNum = 0;
 	uint32_t time;
-	midi_parser_status status;
+	midi_parser_state status;
 
 	while (1)
 	{
-		status = m_parser->parseData();
+		status = parser.parseData();
 		switch(status)
 		{
 		case MIDI_PARSER_EOB:
 		{
-			memmove(m_parser->buffer, m_parser->in, m_parser->size);
-			f_read(&m_midiFile, m_parser->buffer, 64, &readed);
+			memmove(m_parserBuffer, parser.in, parser.size);
+			f_read(&m_midiFile, m_parserBuffer, 512, &readed);
 
 			if(readed == 0) // error, incorrect file ending
 			{
 				midi_stream.clear();
 				return;
 			}
-			m_parser->size = readed;
-			m_parser->in = m_parser->buffer;
+			parser.size = readed;
+			parser.in = m_parserBuffer;
 			break;
 		}
 		case MIDI_PARSER_ERROR:
@@ -105,42 +94,35 @@ void MidiPlayer::parseFile()
 
 		case MIDI_PARSER_HEADER:
 		{
-			m_currentHeader = m_parser->header;
+			m_currentHeader = parser.result.header;
 
-			float sync_freq = ((uint64_t) m_parser->header.time_division * 1000000) / m_parser->music_temp;
+			float sync_freq = ((uint64_t) m_currentHeader.time_division * 1000000);
 			m_systemTimeCoef = 44100 / sync_freq;
 			break;
 		}
 
 		case MIDI_PARSER_TRACK:
 		{
-			track++;
+			trackNum++;
 			time = 0;
 			break;
 		}
 
 		case MIDI_PARSER_TRACK_VTIME:
 		{
-			time += m_parser->vtime;
+			time += parser.result.vtime;
 			break;
 		}
 
 		case MIDI_PARSER_TRACK_EVENT:
 		{
-//			time += m_parser->vtime;
-			midi_stream.add(time * m_systemTimeCoef, m_parser->midi.size, m_parser->midi.bytes);
+			midi_stream.add(time * m_systemTimeCoef, parser.result.midi.length, parser.result.midi.data);
 			break;
 		}
 
 		case MIDI_PARSER_TRACK_META:
 		{
-//			time += m_parser->vtime;
-
-			// метасобытия не добвляются в список, изза не надобности в выводе
-
-//			if ((*((uint32_t*) &m_parser->buff[0]) & 0xffffff) == 0x0351ff)
-//			{
-			switch(m_parser->buff[1])
+			switch(parser.result.meta.type)
 			{
 				case MIDI_META_SET_TEMPO:
 				{
@@ -151,21 +133,24 @@ void MidiPlayer::parseFile()
 					} temp;
 
 					temp.bytes[3] = 0;
-					temp.bytes[2] = m_parser->buff[3];
-					temp.bytes[1] = m_parser->buff[4];
-					temp.bytes[0] = m_parser->buff[5];
+					temp.bytes[2] = parser.result.meta.bytes[3];
+					temp.bytes[1] = parser.result.meta.bytes[4];
+					temp.bytes[0] = parser.result.meta.bytes[5];
 
-					m_parser->music_temp = temp.val;
+					uint32_t music_temp = temp.val;
 
-					float sync_freq = ((uint64_t) m_parser->header.time_division * 1000000) / m_parser->music_temp;
+					float sync_freq = ((uint64_t) m_currentHeader.time_division * 1000000) / music_temp;
 					m_systemTimeCoef = 44100 / sync_freq;
 					break;
 				}
 
 				case MIDI_META_END_OF_TRACK:
 				{
-					if(track == m_currentHeader.tracks_count) return;
-
+					if(trackNum != m_currentHeader.tracks_count)
+					{
+						parser.setState(MIDI_PARSER_TRACK);
+					}
+					else return;
 					break;
 				}
 			}

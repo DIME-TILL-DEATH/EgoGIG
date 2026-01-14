@@ -13,7 +13,7 @@
 #include <stdint.h>
 #include <string.h>
 
-enum midi_parser_status
+enum midi_parser_state
 {
 	MIDI_PARSER_EOB = -2,
 	MIDI_PARSER_ERROR = -1,
@@ -24,20 +24,6 @@ enum midi_parser_status
 	MIDI_PARSER_TRACK_EVENT = 4,
 	MIDI_PARSER_TRACK_META = 5,
 	MIDI_PARSER_TRACK_SYSEX = 6,
-};
-
-struct midi_header
-{
-	int32_t size;
-	uint16_t format;
-	int16_t tracks_count;
-	int16_t time_division;
-};
-
-struct midi_track
-{
-	int32_t size;
-	uint32_t posInFile;
 };
 
 enum midi_status
@@ -70,14 +56,23 @@ enum midi_meta
 	MIDI_META_SEQ_SPECIFIC = 0x7F,
 };
 
-union midi_midi_event
+struct midi_header
 {
-	struct
-	{
-		uint8_t data[128];
-		uint8_t size;
-	};
-	uint8_t bytes[130];
+	int32_t size;
+	uint16_t format;
+	int16_t tracks_count;
+	int16_t time_division;
+};
+
+struct midi_track
+{
+	int32_t size;
+};
+
+struct midi_midi_event
+{
+	uint8_t data[4];
+	uint8_t length;
 };
 
 struct midi_meta_event
@@ -87,53 +82,46 @@ struct midi_meta_event
 	const uint8_t *bytes;  // reference to the input buffer
 };
 
-struct midi_sysex_event
-{
-	uint8_t sysex;
-	uint8_t type;
-	int32_t length;
-	const uint8_t *bytes;  // reference to the input buffer
-};
 
 class MidiParser
 {
 public:
 	MidiParser();
 
-	midi_parser_status parseData();
+	midi_parser_state parseData();
+	void setState(midi_parser_state state) { m_state = state; }
 
 	/* input buffer */
 	const uint8_t *in;
 	int32_t size;
-	uint8_t buffer[1024];
 
-	/* result */
-	int64_t vtime;
-	struct midi_header header;
-	struct midi_track track;
 
-	union midi_midi_event midi;
-	struct midi_meta_event meta;
-	struct midi_sysex_event sysex;
 
-	uint8_t buff[64];
-	size_t buff_size;
-
-	uint32_t music_temp;
+	union
+	{
+		int64_t vtime;
+		midi_header header;
+		midi_track track;
+		midi_midi_event midi;
+		midi_meta_event meta;
+	}result;
 
 private:
-	midi_parser_status m_state;
+	midi_parser_state m_state;
+	static constexpr uint8_t bufferSize = 8;
+	uint8_t buff[bufferSize];
+	size_t buff_size;
 
 	uint16_t parse_be16(const uint8_t *in);
 	uint32_t parse_be32(const uint8_t *in);
 	uint64_t parseVariableLength(int32_t *offset);
 
-	midi_parser_status parseHeader();
-	midi_parser_status parseTrack();
-	midi_parser_status parseVtime();
-	midi_parser_status parseChannelEvent();
-	midi_parser_status parseMetaEvent();
-	midi_parser_status parseEvent();
+	midi_parser_state parseHeader();
+	midi_parser_state parseTrack();
+	midi_parser_state parseVtime();
+	midi_parser_state parseChannelEvent();
+	midi_parser_state parseMetaEvent();
+	midi_parser_state parseEvent();
 
 	// проверка статуса на вадтдность
 	// (необходимо для выяснения ситуации когда данные идут сразу за меткой времени)
