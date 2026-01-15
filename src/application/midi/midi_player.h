@@ -13,6 +13,7 @@ struct MidiTrack
 	uint32_t size;
 	uint32_t startPosition;
 	uint32_t currentPosition;
+	uint64_t lastEventTime;
 };
 
 class MidiPlayer
@@ -23,6 +24,8 @@ public:
 	void pos(size_t val);
 	void process(const uint64_t& songPos);
 	void processEvents();
+
+	void startPlay();
 
 	void openMidiFile(const char* fileName);
 	void readEvents(const uint64_t& start, const uint64_t& stop);

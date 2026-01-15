@@ -89,13 +89,12 @@ public:
 	MidiParser();
 
 	midi_parser_state parseData();
+	midi_parser_state state() { return m_state; }
 	void setState(midi_parser_state state) { m_state = state; }
 
 	/* input buffer */
 	const uint8_t *in;
 	int32_t size;
-
-
 
 	union
 	{

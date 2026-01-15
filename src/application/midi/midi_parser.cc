@@ -255,12 +255,6 @@ midi_parser_state MidiParser::parseData()
 		return parseTrack();
 
 	case MIDI_PARSER_TRACK_VTIME:
-//		if(result.track.size == 0)
-//		{
-//			// we reached the end of the track
-//			m_state = MIDI_PARSER_TRACK;
-//			return parseData();
-//		}
 		return parseVtime();
 
 	case MIDI_PARSER_TRACK_EVENT:

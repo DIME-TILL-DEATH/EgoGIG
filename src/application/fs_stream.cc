@@ -175,7 +175,7 @@ void TFsStreamTask::getWavData()
 
 void TFsStreamTask::getMidiEvents()
 {
-
+	midiPlayer.readEvents(midiStartInterval, midiStopInterval);
 }
 //-------------------------------------------------------------------
 void TFsStreamTask::enter_dir(const char *name, const char *high_level_node, bool begin = false)

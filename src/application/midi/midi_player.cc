@@ -61,14 +61,11 @@ void MidiPlayer::parseFile()
 	parser.in = m_parserBuffer;
 
 	size_t trackNum = 0;
-	uint32_t time;
 	uint32_t dataOffset = 0;
-	midi_parser_state status;
-
 
 	while (1)
 	{
-		status = parser.parseData();
+		midi_parser_state status = parser.parseData();
 		switch(status)
 		{
 		case MIDI_PARSER_EOB:
@@ -113,24 +110,12 @@ void MidiPlayer::parseFile()
 			track.startPosition = dataOffset;
 			track.currentPosition = track.startPosition;
 			track.size = parser.result.track.size;
+			track.lastEventTime = 0;
 			m_midiTracks.push_back(track);
 
 			dataOffset += track.size;
 
 			trackNum++;
-			time = 0;
-			break;
-		}
-
-		case MIDI_PARSER_TRACK_VTIME:
-		{
-			time += parser.result.vtime;
-			break;
-		}
-
-		case MIDI_PARSER_TRACK_EVENT:
-		{
-			midi_stream.add(time * m_systemTimeCoef, parser.result.midi.length, parser.result.midi.data);
 			break;
 		}
 
@@ -171,20 +156,118 @@ void MidiPlayer::parseFile()
 			break;
 		}
 
-		default:
-			midi_stream.clear();
-			return;
+		default: break;
 		}
 	}
 }
 
-void MidiPlayer::readEvents(const uint64_t& start, const uint64_t& stop)
+void MidiPlayer::readEvents(const uint64_t& startTime, const uint64_t& stopTime)
 {
-	while(DMA_SCR(DMA2, DMA_STREAM7) & DMA_SxCR_EN) {}
-
 	for(auto track_it = m_midiTracks.begin(); track_it != m_midiTracks.end(); ++track_it)
 	{
+		if(track_it->currentPosition - track_it->startPosition >= track_it->size) continue;
 
+		MidiParser parser;
+		MidiStream stream;
+		parser.setState(MIDI_PARSER_TRACK_VTIME);
+
+		uint64_t time = track_it->lastEventTime;
+
+		size_t readed;
+		f_lseek(&m_midiFile, track_it->currentPosition);
+		f_read(&m_midiFile, m_parserBuffer, 512, &readed);
+		if(readed == 0) return;
+
+		parser.in = m_parserBuffer;
+		parser.size = readed;
+
+		uint8_t processingFlag = 1;
+		while(processingFlag)
+		{
+			midi_parser_state status = parser.parseData();
+			switch(status)
+			{
+				case MIDI_PARSER_EOB:
+				{
+					memmove(m_parserBuffer, parser.in, parser.size);
+					f_read(&m_midiFile, m_parserBuffer, 512, &readed);
+
+					if(readed == 0) return; // error, incorrect file ending
+
+					parser.in = m_parserBuffer;
+					parser.size = readed;
+					break;
+				}
+
+				case MIDI_PARSER_TRACK_VTIME:
+				{
+					time += parser.result.vtime * m_systemTimeCoef;
+					if(time >= stopTime)
+					{
+						stream.sortAndMerge();
+						midi_stream.items.splice(midi_stream.items.end(), stream.items);
+						processingFlag = 0;
+					}
+					else
+					{
+						track_it->lastEventTime = time;
+						track_it->currentPosition = f_tell(&m_midiFile) - parser.size;
+					}
+					break;
+				}
+
+				case MIDI_PARSER_TRACK_EVENT:
+				{
+					if(time >= startTime && time < stopTime)
+					{
+						track_it->currentPosition = f_tell(&m_midiFile) - parser.size;
+						stream.add(time , parser.result.midi.length, parser.result.midi.data);
+					}
+					break;
+				}
+
+				case MIDI_PARSER_TRACK_META:
+				{
+					track_it->currentPosition = f_tell(&m_midiFile) - parser.size;
+					switch(parser.result.meta.type)
+					{
+						case MIDI_META_SET_TEMPO:
+						{
+							union
+							{
+								uint32_t val;
+								uint8_t bytes[4];
+							} temp;
+
+							temp.bytes[3] = 0;
+							temp.bytes[2] = parser.result.meta.bytes[3];
+							temp.bytes[1] = parser.result.meta.bytes[4];
+							temp.bytes[0] = parser.result.meta.bytes[5];
+
+							uint32_t music_temp = temp.val;
+
+							float sync_freq = ((uint64_t) m_currentHeader.time_division * 1000000) / music_temp;
+							m_systemTimeCoef = 44100 / sync_freq;
+							break;
+						}
+
+						case MIDI_META_END_OF_TRACK: processingFlag = 0;
+					}
+					break;
+				}
+
+				default: break;
+			}
+		}
+	}
+}
+
+void MidiPlayer::startPlay()
+{
+	for(auto track_it = m_midiTracks.begin(); track_it != m_midiTracks.end(); ++track_it)
+	{
+		track_it->currentPosition = track_it->startPosition;
+		track_it->lastEventTime = 0;
 	}
 }
 
