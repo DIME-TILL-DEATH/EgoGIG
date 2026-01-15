@@ -107,9 +107,9 @@ public:
 
 private:
 	midi_parser_state m_state;
-	static constexpr uint8_t bufferSize = 8;
-	uint8_t buff[bufferSize];
-	size_t buff_size;
+	static constexpr uint8_t maxbufferSize = 8;
+	uint8_t buff[maxbufferSize];
+	size_t buffDataLen;
 
 	uint16_t parse_be16(const uint8_t *in);
 	uint32_t parse_be32(const uint8_t *in);

@@ -270,6 +270,11 @@ void MidiPlayer::readEvents(const uint64_t& startTime, const uint64_t& stopTime)
 
 void MidiPlayer::startPlay()
 {
+	jumpToPos(0);
+}
+
+void MidiPlayer::jumpToPos(size_t val)
+{
 	midi_stream.clear();
 
 	for(auto track_it = m_midiTracks.begin(); track_it != m_midiTracks.end(); ++track_it)
@@ -278,18 +283,8 @@ void MidiPlayer::startPlay()
 		track_it->lastEventTime = 0;
 	}
 
-	FsStreamTask->midi_notify(0, bufferTimeInterval);
-}
-
-void MidiPlayer::pos(size_t val)
-{
-//	midi_stream.curr = midi_stream.items.begin();
-//
-//	while (midi_stream.curr->time_tics < val
-//			&& midi_stream.curr != midi_stream.items.end())
-//	{
-//		midi_stream.curr++;
-//	}
+	uint64_t startTime = val - val % bufferTimeInterval + bufferTimeInterval;
+	FsStreamTask->midi_notify(startTime, startTime + bufferTimeInterval);
 }
 
 void MidiPlayer::process(const uint64_t& songPos)

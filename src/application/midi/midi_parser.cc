@@ -140,7 +140,7 @@ midi_parser_state MidiParser::parseChannelEvent()
 	if(size < 3) return MIDI_PARSER_EOB;
 
 	memcpy(buff, in, 3);
-	buff_size = 3;
+	buffDataLen = 3;
 
 	m_state = MIDI_PARSER_TRACK_VTIME;
 
@@ -217,11 +217,11 @@ midi_parser_state MidiParser::parseMetaEvent()
 	if(size < offset || size - offset < result.meta.length) return MIDI_PARSER_EOB;
 
 	uint8_t resultMetaLength;
-	if(result.meta.length > bufferSize) resultMetaLength = bufferSize - 2;
+	if(result.meta.length > maxbufferSize) resultMetaLength = maxbufferSize - 2;
 	else resultMetaLength = result.meta.length;
 
 	memcpy(buff, in, offset + resultMetaLength);
-	buff_size = offset + resultMetaLength;
+	buffDataLen = offset + resultMetaLength;
 	result.meta.bytes = buff;
 
 	offset += result.meta.length;

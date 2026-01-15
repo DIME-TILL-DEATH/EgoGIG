@@ -21,7 +21,7 @@ class MidiPlayer
 public:
 	MidiPlayer();
 
-	void pos(size_t val);
+	void jumpToPos(size_t val);
 	void process(const uint64_t& songPos);
 	void processEvents();
 

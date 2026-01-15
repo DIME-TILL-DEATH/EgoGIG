@@ -136,13 +136,13 @@ void Player::setLoopPoint2()
 void Player::jumpToLp1()
 {
 	jumpToPosition(m_loopPoint1);
-	midiPlayer.pos(m_loopPoint1);
+	midiPlayer.jumpToPos(m_loopPoint1);
 }
 
 void Player::jumpToLp2()
 {
 	jumpToPosition(m_loopPoint2);
-	midiPlayer.pos(m_loopPoint2);
+	midiPlayer.jumpToPos(m_loopPoint2);
 }
 
 void Player::jumpToPosition(uint32_t pos)

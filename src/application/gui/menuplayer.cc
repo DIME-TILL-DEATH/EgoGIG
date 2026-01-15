@@ -193,7 +193,7 @@ void MenuPlayer::encoderClockwise()
 		player.countUp = ParamBase::encSpeedInc(player.countUp, FsStreamTask->selectedSong.songSize());
 
 	player.jumpToPosition(player.countUp * 4410);
-	midiPlayer.pos(player.countUp * 4410);
+	midiPlayer.jumpToPos(player.countUp * 4410);
 }
 
 void MenuPlayer::encoderCounterClockwise()
@@ -202,7 +202,7 @@ void MenuPlayer::encoderCounterClockwise()
 		player.countUp = ParamBase::encSpeedDec(player.countUp, 0);
 
 	player.jumpToPosition(player.countUp * 4410);
-	midiPlayer.pos(player.countUp * 4410);
+	midiPlayer.jumpToPos(player.countUp * 4410);
 }
 
 void MenuPlayer::keyStop()
