@@ -251,7 +251,13 @@ void MidiPlayer::readEvents(const uint64_t& startTime, const uint64_t& stopTime)
 							break;
 						}
 
-						case MIDI_META_END_OF_TRACK: processingFlag = 0;
+						case MIDI_META_END_OF_TRACK:
+						{
+							processingFlag = 0;
+							stream.sortAndMerge();
+							midi_stream.items.splice(midi_stream.items.end(), stream.items);
+							break;
+						}
 					}
 					break;
 				}
@@ -264,11 +270,15 @@ void MidiPlayer::readEvents(const uint64_t& startTime, const uint64_t& stopTime)
 
 void MidiPlayer::startPlay()
 {
+	midi_stream.clear();
+
 	for(auto track_it = m_midiTracks.begin(); track_it != m_midiTracks.end(); ++track_it)
 	{
 		track_it->currentPosition = track_it->startPosition;
 		track_it->lastEventTime = 0;
 	}
+
+	FsStreamTask->midi_notify(0, bufferTimeInterval);
 }
 
 void MidiPlayer::pos(size_t val)
@@ -290,7 +300,6 @@ void MidiPlayer::process(const uint64_t& songPos)
 		processEvents();
 	}
 
-	uint16_t bufferTimeInterval = Player::wav_buff_size * 4;
 	if(m_songPos % bufferTimeInterval == 0)
 	{
 		FsStreamTask->midi_notify(m_songPos + bufferTimeInterval, m_songPos + bufferTimeInterval * 2);

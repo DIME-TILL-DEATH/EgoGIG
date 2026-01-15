@@ -1,7 +1,7 @@
 #ifndef __MIDI_PLAYER_H__
 #define __MIDI_PLAYER_H__
 
-
+#include "player.h"
 #include "ff.h"
 
 #include "midi_stream.h"
@@ -42,6 +42,8 @@ private:
 	float m_systemTimeCoef;
 
 	uint8_t m_parserBuffer[1024];
+
+	static constexpr uint16_t bufferTimeInterval = Player::wav_buff_size * 4;
 
 	void parseFile();
 };

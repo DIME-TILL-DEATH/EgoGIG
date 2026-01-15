@@ -106,7 +106,6 @@ void MenuPlayer::processPlayNext()
 		taskDelay(100);
 
 		player.startPlay();
-		midiPlayer.startPlay();
 
 		us_buf1 = 0xfa;
 		MIDITask->Give();
@@ -194,6 +193,7 @@ void MenuPlayer::encoderClockwise()
 		player.countUp = ParamBase::encSpeedInc(player.countUp, FsStreamTask->selectedSong.songSize());
 
 	player.jumpToPosition(player.countUp * 4410);
+	midiPlayer.pos(player.countUp * 4410);
 }
 
 void MenuPlayer::encoderCounterClockwise()
@@ -202,6 +202,7 @@ void MenuPlayer::encoderCounterClockwise()
 		player.countUp = ParamBase::encSpeedDec(player.countUp, 0);
 
 	player.jumpToPosition(player.countUp * 4410);
+	midiPlayer.pos(player.countUp * 4410);
 }
 
 void MenuPlayer::keyStop()
@@ -256,7 +257,6 @@ void MenuPlayer::keyStart()
 			usart_wait_send_ready(USART1);
 
 			player.startPlay();
-			midiPlayer.startPlay();
 			break;
 		}
 		case Player::PLAYER_PLAYING:

@@ -1,5 +1,3 @@
-#include "player.h"
-
 #include "init.h"
 #include "cs.h"
 #include "enc.h"
@@ -92,6 +90,8 @@ void Player::startPlay()
 	m_state = PLAYER_PLAYING;
 	m_songPoint = 0;
 
+	midiPlayer.startPlay();
+
 	Leds::greenOn();
 	Leds::redOff();
 }
@@ -136,11 +136,13 @@ void Player::setLoopPoint2()
 void Player::jumpToLp1()
 {
 	jumpToPosition(m_loopPoint1);
+	midiPlayer.pos(m_loopPoint1);
 }
 
 void Player::jumpToLp2()
 {
 	jumpToPosition(m_loopPoint2);
+	midiPlayer.pos(m_loopPoint2);
 }
 
 void Player::jumpToPosition(uint32_t pos)

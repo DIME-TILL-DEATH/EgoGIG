@@ -125,8 +125,6 @@ public:
 	{
 		for(uint8_t i=0; i<Player::maxTrackCount; i++)
 			f_lseek(&selectedSong.wavFile[i], val * sizeof(wav_sample_t) + selectedSong.soundDataOffset[i]);
-
-		midiPlayer.pos(val);
 	}
 
 	inline void browser_name(emb_string &dst)
