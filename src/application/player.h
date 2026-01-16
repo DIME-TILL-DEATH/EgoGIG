@@ -58,6 +58,8 @@ private:
 	uint32_t m_loopPoint1{0};
 	uint32_t m_loopPoint2{0};
 
+	uint8_t pendingDecrement{0};
+
 	const target_t first_target =
 	{
 		(char*) soundBuff[0],

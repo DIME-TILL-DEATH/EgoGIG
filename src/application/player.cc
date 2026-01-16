@@ -16,25 +16,27 @@ const wav_sample_t& Player::sample(uint8_t trackNum)
 
 void Player::incrementSoundPos()
 {
-	if (m_buffPoint == 0)
-		FsStreamTask->data_notify(&second_target);
+	if(!pendingDecrement)
+	{
+		if(m_buffPoint == 0)
+				FsStreamTask->data_notify(&second_target);
 
-	if (m_buffPoint == wav_buff_size / 2)
-		FsStreamTask->data_notify(&first_target);
+			if(m_buffPoint == wav_buff_size / 2)
+				FsStreamTask->data_notify(&first_target);
 
-
-	m_songPoint++;
-	m_buffPoint++;
-	m_buffPoint &= wav_buff_size - 1;
+		m_songPoint++;
+		m_buffPoint++;
+		m_buffPoint &= wav_buff_size - 1;
+	}
+	else
+	{
+		pendingDecrement = 0;
+	}
 }
 
 void Player::decrementSoundPos()
 {
-	if(m_buffPoint > 0)
-	{
-		m_buffPoint--;
-		m_songPoint--;
-	}
+	pendingDecrement = 1;
 }
 
 void Player::processLoop()

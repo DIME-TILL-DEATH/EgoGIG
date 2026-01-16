@@ -348,12 +348,12 @@ extern "C" void DMA1_Stream4_IRQHandler()
 			dac_sample[0] = player.sample(0);
 			dac_sample[1] = player.sample(1);
 
-			if(timeCounter == 44100 * 10) // 10 Sec
+			if(timeCounter == 44100 * 100) // 100 Sec
 				timeCounter =0;
 			else
 				timeCounter++;
 
-			if(timeCounter > 0)
+			if(timeCounter)
 			{
 				if(timeCounter % 4410 == 0) //100 msec
 				{
@@ -366,8 +366,10 @@ extern "C" void DMA1_Stream4_IRQHandler()
 				}
 
 				// !!! Time stretching for correct 44100 playback !!!
-				// 44100/(44100 - 25000000/567) = 5320 is 82,89 samples, 5113 is 83 samples
-				if(timeCounter % 5320 == 0)
+				// 44100/(44100 - 25000000/567) = 5320 is 8,289 samples, 5113 is 8,3 samples
+				// but in real life measures shows 14-16 samples
+				int16_t correstionSamples = 2170;
+				if(timeCounter % (5320 - correstionSamples) == 0)
 				{
 					player.decrementSoundPos();
 				}
