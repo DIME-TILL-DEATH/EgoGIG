@@ -1,9 +1,9 @@
 #include "menuplayer.h"
 
+#include "../miditask.h"
 #include "init.h"
 #include "display.h"
 #include "fs_stream.h"
-#include "midi.h"
 #include "enc.h"
 
 #include "menumetronome.h"
@@ -193,6 +193,7 @@ void MenuPlayer::encoderClockwise()
 		player.countUp = ParamBase::encSpeedInc(player.countUp, FsStreamTask->selectedSong.songSize());
 
 	player.jumpToPosition(player.countUp * 4410);
+	midiPlayer.jumpToPos(player.countUp * 4410);
 }
 
 void MenuPlayer::encoderCounterClockwise()
@@ -201,6 +202,7 @@ void MenuPlayer::encoderCounterClockwise()
 		player.countUp = ParamBase::encSpeedDec(player.countUp, 0);
 
 	player.jumpToPosition(player.countUp * 4410);
+	midiPlayer.jumpToPos(player.countUp * 4410);
 }
 
 void MenuPlayer::keyStop()

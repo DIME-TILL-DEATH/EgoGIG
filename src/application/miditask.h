@@ -3,6 +3,10 @@
 
 #include "appdefs.h"
 
+#include "libopencm3/stm32/dma.h"
+#include "libopencm3/stm32/rcc.h"
+#include "libopencm3/stm32/usart.h"
+
 class TMIDITask: public TTask
 {
 public:

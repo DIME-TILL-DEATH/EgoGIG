@@ -1,5 +1,3 @@
-#include "player.h"
-
 #include "init.h"
 #include "cs.h"
 #include "enc.h"
@@ -18,25 +16,27 @@ const wav_sample_t& Player::sample(uint8_t trackNum)
 
 void Player::incrementSoundPos()
 {
-	if (m_buffPoint == 0)
-		FsStreamTask->data_notify(&second_target);
+	if(!pendingDecrement)
+	{
+		if(m_buffPoint == 0)
+				FsStreamTask->data_notify(&second_target);
 
-	if (m_buffPoint == wav_buff_size / 2)
-		FsStreamTask->data_notify(&first_target);
+			if(m_buffPoint == wav_buff_size / 2)
+				FsStreamTask->data_notify(&first_target);
 
-
-	m_songPoint++;
-	m_buffPoint++;
-	m_buffPoint &= wav_buff_size - 1;
+		m_songPoint++;
+		m_buffPoint++;
+		m_buffPoint &= wav_buff_size - 1;
+	}
+	else
+	{
+		pendingDecrement = 0;
+	}
 }
 
 void Player::decrementSoundPos()
 {
-	if(m_buffPoint > 0)
-	{
-		m_buffPoint--;
-		m_songPoint--;
-	}
+	pendingDecrement = 1;
 }
 
 void Player::processLoop()
@@ -64,6 +64,8 @@ void Player::initSong()
 	m_state = PLAYER_LOADING_SONG;
 
 	FsStreamTask->pos(0);
+	FsStreamTask->data_notify(&first_target);
+
 	countUp = 0;
 	m_songPoint = 0;
 	m_loopPoint1 = 0;
@@ -89,6 +91,8 @@ void Player::startPlay()
 {
 	m_state = PLAYER_PLAYING;
 	m_songPoint = 0;
+
+	midiPlayer.startPlay();
 
 	Leds::greenOn();
 	Leds::redOff();
@@ -134,11 +138,13 @@ void Player::setLoopPoint2()
 void Player::jumpToLp1()
 {
 	jumpToPosition(m_loopPoint1);
+	midiPlayer.jumpToPos(m_loopPoint1);
 }
 
 void Player::jumpToLp2()
 {
 	jumpToPosition(m_loopPoint2);
+	midiPlayer.jumpToPos(m_loopPoint2);
 }
 
 void Player::jumpToPosition(uint32_t pos)

@@ -47,15 +47,18 @@ public:
 	void songInitiated();
 
 	uint32_t counterValue();
+	uint64_t songPoint() {return m_songPoint;}
 
 private:
 	State m_state{PLAYER_IDLE};
 
 	size_t m_buffPoint{0};
-	uint32_t m_songPoint{0};
+	uint64_t m_songPoint{0};
 
 	uint32_t m_loopPoint1{0};
 	uint32_t m_loopPoint2{0};
+
+	uint8_t pendingDecrement{0};
 
 	const target_t first_target =
 	{

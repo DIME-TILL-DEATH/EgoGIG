@@ -20,8 +20,6 @@ LIB_FLAGS=	-I./ \
             -I$(LED_SRC_DIR) \
             -I$(HASH_SRC_DIR) \
             -I$(FATFS_SRC_DIR) \
-            -I$(SRC_DIR)/libstorage \
-            -I$(SRC_DIR)/libmidi \
             -I$(SRC_DIR)/application/dsp\
             -I$(SRC_DIR)/application/gui\
             -I$(SRC_DIR)/application/midi\

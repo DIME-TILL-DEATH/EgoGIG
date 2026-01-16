@@ -6,6 +6,7 @@
 
 #include "menuplayer.h"
 #include "player.h"
+#include "midi_player.h"
 
 enum
 {
@@ -34,6 +35,7 @@ enum
 
 extern MenuPlayer* menuPlayer;
 extern Player player;
+extern MidiPlayer midiPlayer;
 
 extern uint16_t key_reg_out[];
 

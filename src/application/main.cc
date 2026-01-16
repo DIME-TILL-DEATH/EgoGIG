@@ -8,10 +8,9 @@
 #include "console.h"
 #include "init.h"
 #include "display.h"
-#include "midi.h"
-
 #include "libopencm3/stm32/rcc.h"
 #include "libopencm3/stm32/gpio.h"
+#include "miditask.h"
 
 int main(void)
 {
