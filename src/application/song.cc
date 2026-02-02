@@ -43,6 +43,8 @@ Song::FsError Song::load(const emb_string& songPath)
 
 	for(uint8_t i=0; i<Player::maxTrackCount; i++)
 	{
+		trackName[i].clear();
+
 		if (!trackPath[i].empty())
 		{
 			if ((fr = f_open(&wavFile[i], trackPath[i].c_str(), FA_READ)) != FR_OK)
@@ -74,6 +76,14 @@ Song::FsError Song::load(const emb_string& songPath)
 
 	// MAX FROM TRACKS
 	m_songSize = trackSize[0] / 4 / 4410;
+	for(uint8_t i=1; i < Player::maxTrackCount; i++)
+	{
+		uint32_t currentTrackSize = trackSize[i] / 4 / 4410;
+		if(currentTrackSize > m_songSize) m_songSize = currentTrackSize;
+	}
+
+	if(!trackName[0].empty()) m_songName = trackName[0];
+	else m_songName = "T2: " + trackName[1];
 
 	temp_mid = trackPath[0];
 	temp_mid = temp_mid.substr(0, trackPath[0].find(".wav"));
@@ -103,7 +113,7 @@ Song::FsError Song::save(const emb_string& songPath)
 
 	for(uint8_t i=0; i<Player::maxTrackCount; i++)
 	{
-		if(trackPath[i].empty()) continue;
+//		if(trackPath[i].empty()) continue;
 
 		emb_string finalString;
 		emb_printf::sprintf(finalString, "%s\n", trackPath[i].c_str());
@@ -223,5 +233,5 @@ bool Song::isValidWave(FIL *file, uint8_t num)
 
 emb_string Song::songName()
 {
-	return trackName[0];
+	return m_songName;
 }
