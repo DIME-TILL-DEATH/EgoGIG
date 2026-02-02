@@ -85,6 +85,10 @@ void MenuPlayer::processPlayNext()
 {
 	if(m_requestPlayNext)
 	{
+		keyStop();
+
+		bool startNextSong = FsStreamTask->selectedSong.playNext;
+
 		m_requestPlayNext = false;
 
 		while(player.state() == Player::PLAYER_LOADING_SONG)
@@ -105,7 +109,8 @@ void MenuPlayer::processPlayNext()
 
 		taskDelay(100);
 
-		player.startPlay();
+		if(startNextSong && sys_param[auto_next_track])
+			player.startPlay();
 
 		us_buf1 = 0xfa;
 		MIDITask->Give();

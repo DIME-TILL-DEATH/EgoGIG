@@ -378,20 +378,10 @@ extern "C" void DMA1_Stream4_IRQHandler()
 			if(player.countUp >= FsStreamTask->selectedSong.songSize())
 			{
 				player.stopPlay();
-				if(FsStreamTask->selectedSong.playNext)
-				{
-					if(currentMenu)
-					{
-						menuPlayer->requestPlayNext();
-					}
-				}
-				else
-				{
-					if (!sys_param[auto_next_track])
-						key_ind = key_stop;// request stop from ISR, not menuPlayer->keyStop();
-					else
-						menuPlayer->requestPlayNext();
-				}
+
+				if(currentMenu)
+					menuPlayer->requestPlayNext();
+
 				CSTask->Give();
 			}
 			else

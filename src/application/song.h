@@ -52,8 +52,9 @@ public:
 private:
 	static char buf[FF_MAX_LFN + 4];
 
-	char m_songName[16];
-	char m_songComment[32];
+	emb_string m_songName;
+//	char m_songName[16];
+//	char m_songComment[32];
 
 	uint32_t m_songSize;
 };
