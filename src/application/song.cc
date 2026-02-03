@@ -142,7 +142,9 @@ bool Song::isValidWave(emb_string filePath)
 	fr = f_open(&songFile, filePath.c_str(), FA_READ);
 	if (fr != FR_OK) return false;
 
-	return isValidWave(&songFile, 0);
+	bool result =  isValidWave(&songFile, 0);
+	f_close(&songFile);
+	return result;
 }
 
 bool Song::isValidWave(FIL *file, uint8_t num)
