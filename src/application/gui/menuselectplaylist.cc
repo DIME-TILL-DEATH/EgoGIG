@@ -2,6 +2,7 @@
 
 #include "init.h"
 #include "display.h"
+#include "leds.h"
 #include "fs_stream.h"
 
 MenuSelectPlaylist::MenuSelectPlaylist(AbstractMenu* parent)
@@ -60,9 +61,13 @@ void MenuSelectPlaylist::encoderLongPress()
 	}
 	else
 	{
+		menuPlayer->num_prog = 0;
+		Leds::digit(menuPlayer->num_prog);
+
 		DisplayTask->Clear();
 		DisplayTask->StringOut(3, 0, (uint8_t*) "Select Ok!");
 		taskDelay(1000);
+
 		emb_string tmp;
 		FsStreamTask->browser_name(tmp);
 		DisplayTask->Clear();
