@@ -110,10 +110,16 @@ void MenuPlayer::processPlayNext()
 		taskDelay(100);
 
 		if(startNextSong && sys_param[auto_next_track])
+		{
 			player.startPlay();
-
-		us_buf1 = 0xfa;
-		MIDITask->Give();
+			us_buf1 = 0xfa;
+			MIDITask->Give();
+		}
+		else
+		{
+			player.startPlay();
+			player.pause();
+		}
 	}
 }
 
