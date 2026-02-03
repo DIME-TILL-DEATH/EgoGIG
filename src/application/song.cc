@@ -43,6 +43,7 @@ Song::FsError Song::load(const emb_string& songPath)
 
 	for(uint8_t i=0; i<Player::maxTrackCount; i++)
 	{
+		trackSize[i] = 0;
 		trackName[i].clear();
 
 		if (!trackPath[i].empty())
