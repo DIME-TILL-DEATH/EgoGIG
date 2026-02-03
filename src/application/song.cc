@@ -12,7 +12,7 @@ Song::FsError Song::load(const emb_string& songPath)
 	read_chunk_count = 0;
 
 	close();
-	emb_string temp_mid;
+//	emb_string temp_mid;
 
 	FIL songFile;
 	fr = f_open(&songFile, songPath.c_str(), FA_READ);
@@ -43,6 +43,7 @@ Song::FsError Song::load(const emb_string& songPath)
 
 	for(uint8_t i=0; i<Player::maxTrackCount; i++)
 	{
+		trackSize[i] = 0;
 		trackName[i].clear();
 
 		if (!trackPath[i].empty())
@@ -85,11 +86,11 @@ Song::FsError Song::load(const emb_string& songPath)
 	if(!trackName[0].empty()) m_songName = trackName[0];
 	else m_songName = "T2: " + trackName[1];
 
-	temp_mid = trackPath[0];
-	temp_mid = temp_mid.substr(0, trackPath[0].find(".wav"));
-	temp_mid.append(".mid");
-
-	midiPlayer.openMidiFile(temp_mid.c_str());
+//	temp_mid = trackPath[0];
+//	temp_mid = temp_mid.substr(0, trackPath[0].find(".wav"));
+//	temp_mid.append(".mid");
+//
+//	midiPlayer.openMidiFile(temp_mid.c_str());
 
 	return eOk;
 }
@@ -141,7 +142,9 @@ bool Song::isValidWave(emb_string filePath)
 	fr = f_open(&songFile, filePath.c_str(), FA_READ);
 	if (fr != FR_OK) return false;
 
-	return isValidWave(&songFile, 0);
+	bool result =  isValidWave(&songFile, 0);
+	f_close(&songFile);
+	return result;
 }
 
 bool Song::isValidWave(FIL *file, uint8_t num)

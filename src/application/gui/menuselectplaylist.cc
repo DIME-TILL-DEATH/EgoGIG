@@ -2,6 +2,7 @@
 
 #include "init.h"
 #include "display.h"
+#include "leds.h"
 #include "fs_stream.h"
 
 MenuSelectPlaylist::MenuSelectPlaylist(AbstractMenu* parent)
@@ -19,9 +20,7 @@ void MenuSelectPlaylist::show(TShowMode showMode)
 	DisplayTask->StringOut(0, 0, (uint8_t*) "Select playlist ");
 	DisplayTask->StringOut(0, 1, (uint8_t*) "    folder      ");
 
-
 	taskDelay(1000);
-	DisplayTask->Clear();
 
 	emb_string tmp;
 	FsStreamTask->browser_name(tmp);
@@ -57,12 +56,24 @@ void MenuSelectPlaylist::encoderLongPress()
 	{
 		DisplayTask->Clear();
 		DisplayTask->StringOut(2, 0, (uint8_t*) "Not Folder!");
+		taskDelay(1000);
+
+		emb_string tmp;
+		FsStreamTask->browser_name(tmp);
+		DisplayTask->Clear();
+
+		oem2winstar(tmp);
+		DisplayTask->StringOut(0, 0, (uint8_t*) tmp.c_str());
 	}
 	else
 	{
+		menuPlayer->num_prog = 0;
+		Leds::digit(menuPlayer->num_prog);
+
 		DisplayTask->Clear();
 		DisplayTask->StringOut(3, 0, (uint8_t*) "Select Ok!");
 		taskDelay(1000);
+
 		emb_string tmp;
 		FsStreamTask->browser_name(tmp);
 		DisplayTask->Clear();
@@ -74,27 +85,43 @@ void MenuSelectPlaylist::encoderLongPress()
 void MenuSelectPlaylist::encoderClockwise()
 {
 	FsStreamTask->next_notify();
-	emb_string tmp;
-	FsStreamTask->browser_name(tmp);
+	emb_string selectedPath;
+	FsStreamTask->browser_name(selectedPath);
+
+	while(selectedPath.find_first_of('.') == 0)
+	{
+		FsStreamTask->next_notify();
+		FsStreamTask->browser_name(selectedPath);
+	}
+
 	DisplayTask->Clear();
-	oem2winstar(tmp);
-	DisplayTask->StringOut(0, 0, (uint8_t*) tmp.c_str());
+	oem2winstar(selectedPath);
+	DisplayTask->StringOut(0, 0, (uint8_t*) selectedPath.c_str());
 }
 
 void MenuSelectPlaylist::encoderCounterClockwise()
 {
 	FsStreamTask->prev_notify();
-	emb_string tmp;
+	emb_string selectedPath;
 	emb_string tmp1;
-	FsStreamTask->browser_name(tmp1);
-	FsStreamTask->curr_path(tmp);
-	if (!tmp.compare("/PLAYLIST") && !tmp1.compare(".."))
-		FsStreamTask->next_notify();
+	FsStreamTask->browser_name(selectedPath);
+	FsStreamTask->curr_path(tmp1);
+
+	if (!tmp1.compare("/PLAYLIST") && selectedPath.compare("..") == 0)
+	{
+		encoderClockwise();//FsStreamTask->next_notify();
+	}
 	else
 	{
+		while(selectedPath.find_first_of('.') == 0 && selectedPath.compare("..") != 0)
+		{
+			FsStreamTask->prev_notify();
+			FsStreamTask->browser_name(selectedPath);
+		}
+
 		DisplayTask->Clear();
-		oem2winstar(tmp1);
-		DisplayTask->StringOut(0, 0, (uint8_t*) tmp1.c_str());
+		oem2winstar(selectedPath);
+		DisplayTask->StringOut(0, 0, (uint8_t*) selectedPath.c_str());
 	}
 }
 

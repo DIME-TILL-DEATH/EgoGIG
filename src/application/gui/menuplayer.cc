@@ -110,10 +110,16 @@ void MenuPlayer::processPlayNext()
 		taskDelay(100);
 
 		if(startNextSong && sys_param[auto_next_track])
+		{
 			player.startPlay();
-
-		us_buf1 = 0xfa;
-		MIDITask->Give();
+			us_buf1 = 0xfa;
+			MIDITask->Give();
+		}
+		else
+		{
+			player.startPlay();
+			player.pause();
+		}
 	}
 }
 
@@ -136,9 +142,10 @@ void MenuPlayer::encoderPress()
 		runningNamePos = 0;
 		printRunningName(m_currentSongName);
 
-
+		if(midiPlayer.midiFileValid())
+			DisplayTask->SymbolOut(14, 1, (uint8_t)'M');
 		if(FsStreamTask->selectedSong.playNext)
-			DisplayTask->StringOut(15, 1, (uint8_t*) SYMBOL_NEXT_MARK);
+			DisplayTask->SymbolOut(15, 1, SYMBOL_NEXT_MARK);
 
 		DisplayTask->Sec_Print(player.counterValue());
 	}
@@ -174,8 +181,10 @@ void MenuPlayer::encoderPress()
 		runningNamePos = 0;
 		printRunningName(m_currentSongName);
 
+		if(midiPlayer.midiFileValid())
+			DisplayTask->SymbolOut(14, 1, (uint8_t)'M');
 		if (FsStreamTask->selectedSong.playNext)
-			DisplayTask->StringOut(15, 1, (uint8_t*) SYMBOL_NEXT_MARK);
+			DisplayTask->SymbolOut(15, 1, SYMBOL_NEXT_MARK);
 
 		if(player.state() == Player::PLAYER_PAUSE)
 		{
@@ -421,6 +430,8 @@ bool MenuPlayer::loadSong()
 	}
 	else
 	{
+		midiPlayer.loadSong(songPath);
+
 		DisplayTask->Clear();
 
 		emb_string path_old = "/SONGS";
@@ -432,6 +443,7 @@ bool MenuPlayer::loadSong()
 		runningNamePos = 0;
 		printRunningName(m_currentSongName);
 
+		if(midiPlayer.midiFileValid()) DisplayTask->SymbolOut(14, 1, (uint8_t)'M');
 		if(FsStreamTask->selectedSong.playNext) DisplayTask->SymbolOut(15, 1, SYMBOL_NEXT_MARK);
 		DisplayTask->Sec_Print(FsStreamTask->selectedSong.songSize());
 

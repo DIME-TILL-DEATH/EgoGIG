@@ -15,6 +15,8 @@ FIL MidiPlayer::m_midiFile;
 
 MidiPlayer::MidiPlayer()
 {
+	m_midiFileValid = false;
+
 	memset(&m_currentHeader, 0, sizeof(midi_header));
 
 	rcc_periph_clock_enable(RCC_DMA2);
@@ -37,13 +39,26 @@ MidiPlayer::MidiPlayer()
 	dma_enable_transfer_complete_interrupt(DMA2, DMA_STREAM7);
 }
 
+void MidiPlayer::loadSong(const emb_string& songPath)
+{
+	emb_string temp_mid;
+
+	temp_mid = FsStreamTask->selectedSong.trackPath[0];
+	temp_mid = temp_mid.substr(0, FsStreamTask->selectedSong.trackPath[0].find(".wav"));
+	temp_mid.append(".mid");
+
+	openMidiFile(temp_mid.c_str());
+}
+
 void MidiPlayer::openMidiFile(const char* fileName)
 {
 	midi_stream.clear();
+	m_midiFileValid = false;
 	f_close(&m_midiFile);
 
 	if(f_open(&m_midiFile, fileName, FA_READ) == FR_OK)
 	{
+		m_midiFileValid = true;
 		parseFile();
 		midi_stream.sortAndMerge();
 	}
@@ -84,6 +99,7 @@ void MidiPlayer::parseFile()
 		}
 		case MIDI_PARSER_ERROR:
 			midi_stream.clear();
+			m_midiFileValid = false;
 			return;
 
 		case MIDI_PARSER_INIT:

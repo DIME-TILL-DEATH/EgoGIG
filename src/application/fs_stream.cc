@@ -183,23 +183,28 @@ void TFsStreamTask::enter_dir(const char *name, const char *high_level_node, boo
 	FRESULT fr;
 
 	if (!begin)
+	{
 		if ((fr = f_closedir(&browser.dir)) != FR_OK)
 		{
 			////rmsg( ConsoleTask->ReadLine(),"error :%s\n" , f_err2str(fr));
 			enter_dir("/", "", true);
 		}
+	}
+
 	if ((fr = f_opendir(&browser.dir, name)) != FR_OK)
 	{
 		//rmsg( ConsoleTask->ReadLine(),"error :%s\ngo to IMPULSE" , f_err2str(fr));
 		enter_dir("/", "", true);
 		return;
 	}
+
 	if ((fr = f_chdir(name)) != FR_OK)
 	{
 		//rmsg( ConsoleTask->ReadLine(),"error :%s\n" , f_err2str(fr));
 		enter_dir("/", "", true);
 		return;
 	}
+
 	fr = f_getcwd(browser.buf, FF_MAX_LFN);
 	if (name[0] == '.' && name[1] == '.' && name[2] == 0)
 	{

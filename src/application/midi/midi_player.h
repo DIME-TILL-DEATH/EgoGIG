@@ -27,14 +27,17 @@ public:
 
 	void startPlay();
 
-	void openMidiFile(const char* fileName);
+	void loadSong(const emb_string& songPath);
+
 	void readEvents(const uint64_t& start, const uint64_t& stop);
 
+	bool midiFileValid() { return m_midiFileValid; }
 	MidiStream midi_stream;
 
 private:
 	static FIL m_midiFile;
 
+	bool m_midiFileValid;
 	uint64_t m_songPos;
 	std::vector<MidiTrack> m_midiTracks;
 	midi_header m_currentHeader;
@@ -45,6 +48,7 @@ private:
 
 	static constexpr uint16_t bufferTimeInterval = Player::wav_buff_size * 4;
 
+	void openMidiFile(const char* fileName);
 	void parseFile();
 };
 
