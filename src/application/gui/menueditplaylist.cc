@@ -102,6 +102,7 @@ void MenuEditPlaylist::encoderLongPress()
 {
 	FsStreamTask->editingSong.playNext = !FsStreamTask->editingSong.playNext;
 	printPlayNextMark();
+	FsStreamTask->action_notify(TFsStreamTask::action_param_t::save_song, m_numProgEdit);
 }
 
 void MenuEditPlaylist::encoderClockwise()
