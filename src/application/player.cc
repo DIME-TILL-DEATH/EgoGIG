@@ -68,8 +68,6 @@ void Player::initSong()
 
 	countUp = 0;
 	m_songPoint = 0;
-	m_loopPoint1 = 0;
-	m_loopPoint2 = 0;
 
 	for(uint32_t a=0; a < maxTrackCount; a++)
 	{
@@ -79,6 +77,15 @@ void Player::initSong()
 			soundBuff[a][i].right = 0;
 		}
 	}
+}
+
+void Player::resetLoopPoints()
+{
+	m_loopPoint1 = 0;
+	m_loopPoint2 = FsStreamTask->selectedSong.songSize() * 4410;;
+
+	Leds::digitPoint1Off();
+	Leds::digitPoint2Off();
 }
 
 void Player::songInitiated()

@@ -16,13 +16,13 @@ MenuMidiControl::MenuMidiControl(AbstractMenu* parent)
 	ParamBase** params = new ParamBase*[paramsCount];
 	SubParamLinks* subParamLinks = new SubParamLinks[paramsCount];
 
-	params[0] = new ParamStringList("Play ", &ctrl_param[ctrl1_t], { "PC  ", "CC  ", "Note" }, 5);
+	params[0] = new ParamStringList("Play ", &ctrl_param[MCTRL_START_TYPE], { "PC  ", "CC  ", "Note" }, 5);
 	subParamLinks[0].count = params[0]->maxValue() + 1;
 	subParamLinks[0].link = new ParamBase*[subParamLinks[0].count];
-	subParamLinks[0].link[0] = new ParamBase(ParamBase::GUI_PARAMETER_NUM, "PC  ", &ctrl_param[ctrl1]);
+	subParamLinks[0].link[0] = new ParamBase(ParamBase::GUI_PARAMETER_NUM, "PC  ", &ctrl_param[MCTRL_START_VALUE]);
 	subParamLinks[0].link[0]->setScaling(1, 1);
-	subParamLinks[0].link[1] = new ParamBase(ParamBase::GUI_PARAMETER_NUM, "CC  ", &ctrl_param[ctrl1]);
-	subParamLinks[0].link[2] = new ParamBase(ParamBase::GUI_PARAMETER_NOTE, "Note", &ctrl_param[ctrl1]);
+	subParamLinks[0].link[1] = new ParamBase(ParamBase::GUI_PARAMETER_NUM, "CC  ", &ctrl_param[MCTRL_START_VALUE]);
+	subParamLinks[0].link[2] = new ParamBase(ParamBase::GUI_PARAMETER_NOTE, "Note", &ctrl_param[MCTRL_START_VALUE]);
 
 	params[1] = new ParamStringList("Pause ", &ctrl_param[ctrl2_t], { "PC  ", "CC  ", "Note" }, 5);
 	subParamLinks[1].count = params[1]->maxValue() + 1;
@@ -43,7 +43,7 @@ MenuMidiControl::MenuMidiControl(AbstractMenu* parent)
 	params[3] = new ParamBase(ParamBase::GUI_PARAMETER_NUM, "Channel", nullptr);
 	subParamLinks[3].count = 1;
 	subParamLinks[3].link = new ParamBase*[subParamLinks[3].count];
-	subParamLinks[3].link[0] = new ParamBase(ParamBase::GUI_PARAMETER_NUM, "Num", &ctrl_param[chann]);
+	subParamLinks[3].link[0] = new ParamBase(ParamBase::GUI_PARAMETER_NUM, "Num", &ctrl_param[MCHANNEL]);
 	subParamLinks[3].link[0]->setScaling(1, 1);
 	subParamLinks[3].link[0]->setBounds(0, 15);
 

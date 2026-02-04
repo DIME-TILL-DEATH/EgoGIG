@@ -33,6 +33,7 @@ public:
 	void stopPlay();
 	void pause();
 
+	void resetLoopPoints();
 	void setLoopPoint1();
 	void setLoopPoint2();
 
