@@ -88,12 +88,6 @@ void MenuSelectPlaylist::encoderClockwise()
 	emb_string selectedPath;
 	FsStreamTask->get_browser_name(selectedPath);
 
-	while(selectedPath.find_first_of('.') == 0)
-	{
-		FsStreamTask->next_notify();
-		FsStreamTask->get_browser_name(selectedPath);
-	}
-
 	DisplayTask->Clear();
 	oem2winstar(selectedPath);
 	DisplayTask->StringOut(0, 0, (uint8_t*) selectedPath.c_str());
@@ -113,11 +107,11 @@ void MenuSelectPlaylist::encoderCounterClockwise()
 	}
 	else
 	{
-		while(selectedPath.find_first_of('.') == 0 && selectedPath.compare("..") != 0)
-		{
-			FsStreamTask->prev_notify();
-			FsStreamTask->get_browser_name(selectedPath);
-		}
+//		while(selectedPath.find_first_of('.') == 0 && selectedPath.compare("..") != 0)
+//		{
+//			FsStreamTask->prev_notify();
+//			FsStreamTask->get_browser_name(selectedPath);
+//		}
 
 		DisplayTask->Clear();
 		oem2winstar(selectedPath);

@@ -186,6 +186,8 @@ private:
 	void writeSongContent(emb_string& songPath, emb_string& path1, emb_string& path2);
 	//------------------------------------------------------------------------
 
+	void selectAnyFindedPlaylist();
+
 	inline void notify(const query_notify_t &val)
 	{
 		if (cortex_isr_num())
