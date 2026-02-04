@@ -28,6 +28,8 @@ void digit(uint8_t num);
 
 
 void requestBlinking();
+void requestLed1Blinking();
+void requestLed2Blinking();
 void processBlinking();
 }
 

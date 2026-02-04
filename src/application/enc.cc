@@ -89,13 +89,13 @@ void TENCTask::Code()
 				}
 				break;   // stop
 			case 247:
-				if (!lock_fl) // || (stop_fl1))
-				{
-					key_ind = key_start;
+				if(currentMenu->menuType() != MENU_PLAYER && lock_fl) break;
 
-					pushedButtons |= KEY_PUSHED;
-					CSTask->Give();
-				}
+				key_ind = key_start;
+
+				pushedButtons |= KEY_PUSHED;
+				CSTask->Give();
+
 				break;   // start
 
 			case 239:
@@ -123,28 +123,28 @@ void TENCTask::Code()
 				}
 				break;  // left down
 			case 127:
-				if (!lock_fl)
-				{
-					if (!sys_param[direction_scrol_playlist])
-						key_ind = key_right_up;
-					else
-						key_ind = key_right_down;
+				if(currentMenu->menuType() != MENU_PLAYER && lock_fl) break;
 
-					pushedButtons |= KEY_PUSHED;
-					CSTask->Give();
-				}
+				if (!sys_param[direction_scrol_playlist])
+					key_ind = key_right_up;
+				else
+					key_ind = key_right_down;
+
+				pushedButtons |= KEY_PUSHED;
+				CSTask->Give();
+
 				break;  // right up
 			case 191:
-				if (!lock_fl)
-				{
-					if (!sys_param[direction_scrol_playlist])
-						key_ind = key_right_down;
-					else
-						key_ind = key_right_up;
+				if(currentMenu->menuType() != MENU_PLAYER && lock_fl) break;
 
-					pushedButtons |= KEY_PUSHED;
-					CSTask->Give();
-				}
+				if (!sys_param[direction_scrol_playlist])
+					key_ind = key_right_down;
+				else
+					key_ind = key_right_up;
+
+				pushedButtons |= KEY_PUSHED;
+				CSTask->Give();
+
 				break; // right down
 			case 251:
 				pushedButtons |= RET_PUSHED;
@@ -187,7 +187,9 @@ void TENCTask::Code()
 				}
 				break;
 			case 4:
-				if ((!lock_fl) && (GPIOA_IDR & GPIO10)) //((!lock_fl || (stop_fl1)) && (GPIOA_IDR & GPIO10))
+				if(currentMenu->menuType() != MENU_PLAYER && lock_fl) break;
+
+				if ((GPIOA_IDR & GPIO10)) //((!lock_fl || (stop_fl1)) && (GPIOA_IDR & GPIO10))
 				{
 					key_ind = key_start;
 					pushedButtons |= KEY_PUSHED;

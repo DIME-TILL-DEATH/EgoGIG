@@ -18,6 +18,7 @@
 MenuPlayer::MenuPlayer()
 {
 	m_menuType = MENU_PLAYER;
+	m_loopModeActive = true;
 	test_file();
 }
 
@@ -375,7 +376,8 @@ void MenuPlayer::keyReturn()
 {
 	if(no_file) return;
 
-	player.jumpToLp1();
+	if(m_loopModeActive)
+		player.jumpToLp1();
 }
 
 void MenuPlayer::keyReturnLong()
@@ -386,13 +388,15 @@ void MenuPlayer::keyReturnLong()
 	player.setLoopPoint1();
 
 	Leds::digitPoint1On();
+	Leds::requestLed1Blinking();
 }
 
 void MenuPlayer::keyForward()
 {
 	if(no_file) return;
 
-	player.jumpToLp2();
+	if(m_loopModeActive)
+		player.jumpToLp2();
 }
 
 void MenuPlayer::keyForwardLong()
@@ -403,6 +407,7 @@ void MenuPlayer::keyForwardLong()
 	player.setLoopPoint2();
 
 	Leds::digitPoint2On();
+	Leds::requestLed2Blinking();
 }
 
 void MenuPlayer::keyEsc()
@@ -483,5 +488,7 @@ void MenuPlayer::initSong(void)
 {
 	while(player.state() == Player::PLAYER_LOADING_SONG);
 
+	Leds::digitPoint1Off();
+	Leds::digitPoint2Off();
 	player.initSong();
 }
