@@ -33,10 +33,10 @@ void MenuPlayer::show(TShowMode showMode)
 
 	emb_string path_old = "/SONGS";
 
-	if (player.state() == Player::PLAYER_IDLE) // && !type) // type - function parameter
+	if(player.state() == Player::PLAYER_IDLE) // && !type) // type - function parameter
 	{
 		if (!test_file())
-			if (m_currentSongNum < 99)
+			if (m_currentSongNum < 99 && FsStreamTask->selectedSong.songSize() > 0)
 				DisplayTask->Sec_Print(FsStreamTask->selectedSong.songSize());
 	}
 	else
@@ -81,60 +81,6 @@ void MenuPlayer::task()
 
 	if(tim5_fl) printRunningName(m_currentSongName);
 }
-
-//void MenuPlayer::processStopSong()
-//{
-//	if(m_requestStopSong)
-//	{
-//		m_requestStopSong = false;
-//		player.stopPlay();
-//		player.initSong();
-//		DisplayTask->Sec_Print(player.counterValue());
-//	}
-//}
-
-//void MenuPlayer::processPlayNext()
-//{
-//	if(m_requestPlayNext)
-//	{
-//		m_requestPlayNext = false;
-//
-//		keyStop();
-//
-//		bool startNextSong = FsStreamTask->selectedSong.playNext;
-//
-//		while(player.state() == Player::PLAYER_LOADING_SONG)
-//
-//		player.initSong();
-//		player.resetLoopPoints();
-//
-//		uint8_t currentSongNum = (menuPlayer->songNum() + 1) % 99;
-//
-//		while (1)
-//		{
-//			if (menuPlayer->loadSong(currentSongNum))
-//				currentSongNum = (currentSongNum + 1) % 99;
-//			else
-//				break;
-//		}
-//
-//		menuPlayer->setSongNum(currentSongNum);
-//
-//		taskDelay(100);
-//
-//		if(startNextSong && sys_param[auto_next_track])
-//		{
-//			player.startPlay();
-//			us_buf1 = 0xfa;
-//			MIDITask->Give();
-//		}
-//		else
-//		{
-//			player.startPlay();
-//			player.pause();
-//		}
-//	}
-//}
 
 void MenuPlayer::encoderPress()
 {
@@ -306,16 +252,21 @@ void MenuPlayer::keyLeftUp()
 	{
 		dela(0xfffff);
 		m_currentSongNum = (m_currentSongNum + 10) % 99;
-
-		while (1)
+		uint8_t retryCount = 0;
+		while(retryCount<100)
 		{
-			if (loadSong(m_currentSongNum))
+			if(loadSong(m_currentSongNum))
+			{
+				retryCount++;
 				m_currentSongNum = (m_currentSongNum + 1) % 99;
+			}
 			else
+			{
+				Leds::digit(m_currentSongNum);
 				break;
-		}
-		Leds::digit(m_currentSongNum);
+			}
 
+		}
 		keyStop();
 	}
 }
@@ -325,23 +276,24 @@ void MenuPlayer::keyLeftDown()
 	if(player.state() == Player::PLAYER_IDLE)
 	{
 		dela(0xfffff);
-
 		m_currentSongNum = (m_currentSongNum - 10) % 99;
-
-		while (1)
+		uint8_t retryCount = 0;
+		while(retryCount<100)
 		{
-			if (loadSong(m_currentSongNum))
+			if(loadSong(m_currentSongNum))
 			{
+				retryCount++;
 				if (m_currentSongNum)
 					m_currentSongNum--;
 				else
 					m_currentSongNum = 100;
 			}
 			else
+			{
+				Leds::digit(m_currentSongNum);
 				break;
+			}
 		}
-		Leds::digit(m_currentSongNum);
-
 		keyStop();
 	}
 }
@@ -352,15 +304,20 @@ void MenuPlayer::keyRightUp()
 	{
 		dela(0xfffff);
 		m_currentSongNum = (m_currentSongNum - 1) % 99;
-		while (1)
+		uint8_t retryCount = 0;
+		while(retryCount<100)
 		{
-			if (loadSong(m_currentSongNum))
+			if(loadSong(m_currentSongNum))
+			{
+				retryCount++;
 				m_currentSongNum = (m_currentSongNum - 1) % 99;
+			}
 			else
+			{
 				break;
+				Leds::digit(m_currentSongNum);
+			}
 		}
-		Leds::digit(m_currentSongNum);
-
 		keyStop();
 	}
 }
@@ -371,17 +328,22 @@ void MenuPlayer::keyRightDown()
 	{
 		dela(0xfffff);
 		m_currentSongNum = (m_currentSongNum + 1) % 99;
-		while (1)
+		uint8_t retryCount = 0;
+		while(retryCount<100)
 		{
-			if (loadSong(m_currentSongNum))
+			if(loadSong(m_currentSongNum))
+			{
+				retryCount++;
 				m_currentSongNum = (m_currentSongNum + 1) % 99;
+			}
 			else
+			{
+				Leds::digit(m_currentSongNum);
 				break;
+			}
 		}
-		Leds::digit(m_currentSongNum);
 		keyStop();
 	}
-
 }
 
 void MenuPlayer::keyReturn()
@@ -504,6 +466,7 @@ bool MenuPlayer::test_file()
 	if (m_currentSongNum > 98)
 	{
 		m_currentSongNum = 0;
+		m_currentSongName.clear();
 		temp = 1;
 		no_file = 1;
 		DisplayTask->Clear();

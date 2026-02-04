@@ -23,7 +23,7 @@ void MenuSelectPlaylist::show(TShowMode showMode)
 	taskDelay(1000);
 
 	emb_string tmp;
-	FsStreamTask->browser_name(tmp);
+	FsStreamTask->get_browser_name(tmp);
 	DisplayTask->Clear();
 
 	oem2winstar(tmp);
@@ -44,7 +44,7 @@ void MenuSelectPlaylist::encoderPress()
 {
 	FsStreamTask->action_notify(TFsStreamTask::action_param_t::enter_directory, 0);
 	emb_string tmp;
-	FsStreamTask->browser_name(tmp);
+	FsStreamTask->get_browser_name(tmp);
 	DisplayTask->Clear();
 	oem2winstar(tmp);
 	DisplayTask->StringOut(0, 0, (uint8_t*) tmp.c_str());
@@ -56,10 +56,11 @@ void MenuSelectPlaylist::encoderLongPress()
 	{
 		DisplayTask->Clear();
 		DisplayTask->StringOut(2, 0, (uint8_t*) "Not Folder!");
+
 		taskDelay(1000);
 
 		emb_string tmp;
-		FsStreamTask->browser_name(tmp);
+		FsStreamTask->get_browser_name(tmp);
 		DisplayTask->Clear();
 
 		oem2winstar(tmp);
@@ -74,7 +75,7 @@ void MenuSelectPlaylist::encoderLongPress()
 		taskDelay(1000);
 
 		emb_string tmp;
-		FsStreamTask->browser_name(tmp);
+		FsStreamTask->get_browser_name(tmp);
 		DisplayTask->Clear();
 		oem2winstar(tmp);
 		DisplayTask->StringOut(0, 0, (uint8_t*) tmp.c_str());
@@ -85,12 +86,12 @@ void MenuSelectPlaylist::encoderClockwise()
 {
 	FsStreamTask->next_notify();
 	emb_string selectedPath;
-	FsStreamTask->browser_name(selectedPath);
+	FsStreamTask->get_browser_name(selectedPath);
 
 	while(selectedPath.find_first_of('.') == 0)
 	{
 		FsStreamTask->next_notify();
-		FsStreamTask->browser_name(selectedPath);
+		FsStreamTask->get_browser_name(selectedPath);
 	}
 
 	DisplayTask->Clear();
@@ -103,7 +104,7 @@ void MenuSelectPlaylist::encoderCounterClockwise()
 	FsStreamTask->prev_notify();
 	emb_string selectedPath;
 	emb_string tmp1;
-	FsStreamTask->browser_name(selectedPath);
+	FsStreamTask->get_browser_name(selectedPath);
 	FsStreamTask->curr_path(tmp1);
 
 	if (!tmp1.compare("/PLAYLIST") && selectedPath.compare("..") == 0)
@@ -115,7 +116,7 @@ void MenuSelectPlaylist::encoderCounterClockwise()
 		while(selectedPath.find_first_of('.') == 0 && selectedPath.compare("..") != 0)
 		{
 			FsStreamTask->prev_notify();
-			FsStreamTask->browser_name(selectedPath);
+			FsStreamTask->get_browser_name(selectedPath);
 		}
 
 		DisplayTask->Clear();

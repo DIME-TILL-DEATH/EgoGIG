@@ -35,7 +35,7 @@ void MenuEditPlaylist::refresh()
 	DisplayTask->Clear_str(7, 0, 8);
 
 	emb_string currentPath;
-	FsStreamTask->browser_name(currentPath);
+	FsStreamTask->get_browser_name(currentPath);
 
 	if(m_state == EDITING)
 	{
@@ -68,7 +68,7 @@ void MenuEditPlaylist::encoderPress()
 	if(FsStreamTask->currentPathIsDirectory())
 	{
 		FsStreamTask->action_notify(TFsStreamTask::action_param_t::enter_directory, m_numProgEdit);
-		FsStreamTask->browser_name(m_chosenTrackName);
+		FsStreamTask->get_browser_name(m_chosenTrackName);
 		FsStreamTask->curr_path(m_chosenTrackPath);
 		m_chosenTrackPath += "/" + m_chosenTrackName;
 		refresh();
@@ -77,7 +77,7 @@ void MenuEditPlaylist::encoderPress()
 	{
 		if(FsStreamTask->editingSong.isValidWave(m_chosenTrackPath))
 		{
-			FsStreamTask->browser_name(m_chosenTrackName);
+			FsStreamTask->get_browser_name(m_chosenTrackName);
 			FsStreamTask->curr_path(m_chosenTrackPath);
 			m_chosenTrackPath += "/" + m_chosenTrackName;
 
@@ -108,7 +108,7 @@ void MenuEditPlaylist::encoderLongPress()
 void MenuEditPlaylist::encoderClockwise()
 {
 	FsStreamTask->next_notify();
-	FsStreamTask->browser_name(m_chosenTrackName);
+	FsStreamTask->get_browser_name(m_chosenTrackName);
 	m_chosenTrackPath = m_chosenTrackName;
 
 	m_state = EDITING;
@@ -120,7 +120,7 @@ void MenuEditPlaylist::encoderCounterClockwise()
 {
 	FsStreamTask->prev_notify();
 	emb_string tmp;
-	FsStreamTask->browser_name(m_chosenTrackName);
+	FsStreamTask->get_browser_name(m_chosenTrackName);
 	FsStreamTask->curr_path(tmp);
 
 	if (!tmp.compare("/SONGS") && !m_chosenTrackName.compare(".."))
@@ -128,7 +128,7 @@ void MenuEditPlaylist::encoderCounterClockwise()
 		FsStreamTask->next_notify();
 	}
 
-	FsStreamTask->browser_name(m_chosenTrackName);
+	FsStreamTask->get_browser_name(m_chosenTrackName);
 	m_chosenTrackPath = m_chosenTrackName;
 
 	m_state = EDITING;

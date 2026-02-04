@@ -77,7 +77,9 @@ void TFsStreamTask::Code()
 		f_read(&fsys, sys_param, 64, &br);
 		f_lseek(&fsys, 64);
 		f_gets(browser.buf, FF_MAX_SS, &fsys);
+
 		selectedSong.trackPath[0] = browser.buf;
+
 		if (!selectedSong.trackPath[0].empty())
 			browser.play_list_folder = selectedSong.trackPath[0].c_str();
 	}
