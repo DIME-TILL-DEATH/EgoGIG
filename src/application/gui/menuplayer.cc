@@ -248,6 +248,7 @@ void MenuPlayer::keyStopLong()
 	else
 	{
 		m_loopModeActive = true;
+
 		if (playPoint1Selected)
 			Leds::digitPoint1On();
 		if (playPoint2Selected)
@@ -391,7 +392,7 @@ void MenuPlayer::keyForward()
 {
 	if(no_file) return;
 
-	player.jumpToLp1();
+	player.jumpToLp2();
 }
 
 void MenuPlayer::keyForwardLong()
