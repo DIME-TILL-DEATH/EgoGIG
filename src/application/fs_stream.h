@@ -127,7 +127,7 @@ public:
 			f_lseek(&selectedSong.wavFile[i], val * sizeof(wav_sample_t) + selectedSong.soundDataOffset[i]);
 	}
 
-	inline void browser_name(emb_string &dst)
+	inline void get_browser_name(emb_string &dst)
 	{
 		dst = browser.fno.fname;
 	}
@@ -185,6 +185,8 @@ private:
 	void prev();
 	void writeSongContent(emb_string& songPath, emb_string& path1, emb_string& path2);
 	//------------------------------------------------------------------------
+
+	void selectAnyFindedPlaylist();
 
 	inline void notify(const query_notify_t &val)
 	{

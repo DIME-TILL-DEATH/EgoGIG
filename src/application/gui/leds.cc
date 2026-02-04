@@ -67,26 +67,43 @@ void Leds::digit(uint8_t num)
 	key_reg_out[1] = (led_sym[temp / 10]) | ((led_sym[temp % 10]) << 8);
 }
 
-bool led_blink_fl = false;
+bool led1_blink_fl = false;
+bool led2_blink_fl = false;
+bool led1_prev_state = false;
+bool led2_prev_state = false;
+void Leds::requestLed1Blinking()
+{
+	led1_blink_fl = true;
+	led1_prev_state = ~key_reg_out[1] & (1<<7);
+	led2_prev_state = ~key_reg_out[1] & (1<<15);
+}
+
+void Leds::requestLed2Blinking()
+{
+	led2_blink_fl = true;
+	led1_prev_state = ~key_reg_out[1] & (1<<7);
+	led2_prev_state = ~key_reg_out[1] & (1<<15);
+}
 
 void Leds::requestBlinking()
 {
-	led_blink_fl = true;
+	requestLed1Blinking();
+	requestLed2Blinking();
 }
 
 uint32_t led_blink_count1 = 0;
 uint32_t led_blink_count2 = 0;
 void Leds::processBlinking()
 {
-	if(led_blink_fl)
+	if(led1_blink_fl | led2_blink_fl)
 	{
 		if (led_blink_count1 < 7)
 		{
 			if (!led_blink_count2)
-				key_reg_out[1] &= ~0x8080;
+				key_reg_out[1] &= ~((led1_blink_fl << 7) | (led2_blink_fl << 15)); //~0x8080;
 
 			if (led_blink_count2 == 25000)
-				key_reg_out[1] |= 0x8080;
+				key_reg_out[1] |= ((led1_blink_fl << 7) | (led2_blink_fl << 15)); //0x8080;
 
 			if (led_blink_count2++ > 50000)
 			{
@@ -96,7 +113,8 @@ void Leds::processBlinking()
 		}
 		else
 		{
-			led_blink_count1 = led_blink_fl = 0;
+			led_blink_count1 = led1_blink_fl = led2_blink_fl = 0;
+			key_reg_out[1] &= ~((led1_prev_state << 7) | (led2_prev_state << 15));
 		}
 	}
 }

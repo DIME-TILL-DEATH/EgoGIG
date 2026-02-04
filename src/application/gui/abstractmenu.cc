@@ -72,6 +72,8 @@ void AbstractMenu::printRunningName(emb_string name, uint8_t xPos, uint8_t yPos,
 {
 	runningNameLength = name.size();
 
+	if(!runningNameLength) return;
+
 	uint8_t stringSize = 16;
 	if(strSize == STRING_DOUBLE) stringSize = 32;
 

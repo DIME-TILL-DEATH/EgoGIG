@@ -95,7 +95,70 @@ void TCSTask::Code()
 			encoder_rotated = encoder_key = key_ind = 0;
 		}
 
-		menuPlayer->processPlayNext();
+
+		query_notify_t qn;
+		if(NotifyWait(0, 0, (uint32_t*) &qn, 0))
+		{
+			switch(qn.notify)
+			{
+			case qn_stop_song:
+			{
+				player.stopPlay();
+				player.initSong();
+				DisplayTask->Sec_Print(player.counterValue());
+				break;
+			}
+
+			case qn_next_song:
+			{
+				menuPlayer->keyStop();
+
+				bool startNextSong = FsStreamTask->selectedSong.playNext;
+
+				while(player.state() == Player::PLAYER_LOADING_SONG)
+
+				player.initSong();
+				player.resetLoopPoints();
+
+				uint8_t currentSongNum = (menuPlayer->songNum() + 1) % 99;
+
+				while (1)
+				{
+					if (menuPlayer->loadSong(currentSongNum))
+						currentSongNum = (currentSongNum + 1) % 99;
+					else
+						break;
+				}
+
+				menuPlayer->setSongNum(currentSongNum);
+
+				Delay(100);
+
+				if(startNextSong && sys_param[auto_next_track])
+				{
+					player.startPlay();
+					us_buf1 = 0xfa;
+					MIDITask->Give();
+				}
+				else
+				{
+					player.startPlay();
+					player.pause();
+				}
+				break;
+			}
+
+			case qn_load_song:
+			{
+				uint8_t requestedSongNum = qn.songNum;
+				bool loadErr = menuPlayer->loadSong(requestedSongNum);
+				if(!loadErr)
+				{
+					menuPlayer->setSongNum(requestedSongNum);
+				}
+			}
+			}
+		}
 	}
 }
 

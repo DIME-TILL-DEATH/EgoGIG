@@ -27,10 +27,12 @@ enum MetronomeOut
 
 enum
 {
-	ctrl1_t = 0, ctrl1,
+	MCTRL_START_TYPE = 0, MCTRL_START_VALUE,
 	ctrl2_t, ctrl2,
 	ctrl3_t, ctrl3,
-	jjj, chann
+	jjj, MCHANNEL,
+	MCTRL_NEXT_SONG_TYPE, MCTRL_NEXT_SONG_VALUE,
+	MCTRL_PREV_SONG_TYPE, MCTRL_PREV_SONG_VALUE
 };
 
 extern MenuPlayer* menuPlayer;

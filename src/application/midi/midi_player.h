@@ -28,6 +28,7 @@ public:
 	void startPlay();
 
 	void loadSong(const emb_string& songPath);
+	static bool checkMidiAvaliable(const emb_string& songPath);
 
 	void readEvents(const uint64_t& start, const uint64_t& stop);
 

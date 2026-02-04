@@ -42,7 +42,7 @@ public:
 	FIL wavFile[Player::maxTrackCount];
 	FIL midiFile;
 
-	uint64_t read_chunk_count;
+	uint64_t read_chunk_count{0};
 
 	bool isValidWave(FIL *file, uint8_t num);
 	bool isValidWave(emb_string filePath);
@@ -56,7 +56,7 @@ private:
 //	char m_songName[16];
 //	char m_songComment[32];
 
-	uint32_t m_songSize;
+	uint32_t m_songSize{0};
 };
 
 

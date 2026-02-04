@@ -17,7 +17,12 @@ Song::FsError Song::load(const emb_string& songPath)
 	FIL songFile;
 	fr = f_open(&songFile, songPath.c_str(), FA_READ);
 	if (fr != FR_OK)
+	{
+		trackCount = 0;
+		m_songSize = 0;
+		m_songName.clear();
 		return eSongFileNotFound;
+	}
 
 	uint8_t temp;
 	f_read(&songFile, &temp, 1, fw);
