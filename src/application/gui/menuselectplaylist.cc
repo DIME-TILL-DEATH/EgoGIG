@@ -67,8 +67,7 @@ void MenuSelectPlaylist::encoderLongPress()
 	}
 	else
 	{
-		menuPlayer->num_prog = 0;
-		Leds::digit(menuPlayer->num_prog);
+		menuPlayer->setSongNum(0);
 
 		DisplayTask->Clear();
 		DisplayTask->StringOut(3, 0, (uint8_t*) "Select Ok!");

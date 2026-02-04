@@ -30,10 +30,68 @@ public:
 			sem->Give();
 	}
 
+	enum notify_t
+	{
+		qn_stop_song = 0,
+		qn_load_song,
+		qn_next_song
+	};
+
+	struct query_notify_t
+	{
+		notify_t notify :8;
+		union
+		{
+			uint8_t songNum;
+			uint8_t data[3];
+		} __attribute__((packed));
+	};
+
+	void next_song_notify()
+	{
+		query_notify_t qn = {
+			.notify = qn_next_song
+		};
+		notify(qn);
+	}
+
+	void stop_song_notify()
+	{
+		query_notify_t qn = {
+			.notify = qn_stop_song
+		};
+		notify(qn);
+	}
+
+	void load_song_notify(uint8_t reqSongNum)
+	{
+		query_notify_t qn ={
+			.notify = qn_load_song,
+			.songNum = reqSongNum
+		};
+		notify(qn);
+	}
+
 private:
 	void Code();
 	TSemaphore *sem;
 
+	void notify(const query_notify_t &val)
+	{
+		if (cortex_isr_num())
+		{
+			// send comand from ISR
+			BaseType_t xHigherPriorityTaskWoken;
+			NotifyFromISR(*((uint32_t*) &val), eSetValueWithOverwrite,
+					&xHigherPriorityTaskWoken);
+			portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+		}
+		else
+		{
+			// thread mode
+			Notify(*((uint32_t*) &val), eSetValueWithOverwrite);
+		}
+	}
 };
 
 extern TCSTask *CSTask;

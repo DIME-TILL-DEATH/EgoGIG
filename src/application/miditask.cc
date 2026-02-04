@@ -9,12 +9,11 @@
 
 #include "menumidicontrol.h"
 #include "miditask.h"
+#include "display.h"
 
 TMIDITask *MIDITask;
 
-uint8_t us_buf;
 uint8_t us_buf1;
-uint8_t irq_fl = 0;
 void TMIDITask::Code()
 {
 	while (1)
@@ -25,12 +24,10 @@ void TMIDITask::Code()
 }
 
 uint8_t midi_buf = 0;
-uint8_t midi_ev = 0;
-
 extern "C" void USART1_IRQHandler()
 {
 	USART1_SR &= ~USART_SR_RXNE;
-	us_buf = USART1_DR;
+	uint8_t us_buf = USART1_DR;
 	switch (midi_buf)
 	{
 	case 0:
@@ -39,26 +36,33 @@ extern "C" void USART1_IRQHandler()
 			player.startPlay();
 			midi_buf = 0;
 		}
+
 		if (us_buf == 0xfb)
 		{
 			player.pause();
 			midi_buf = 0;
 		}
+
 		if (us_buf == 0xfc)
 		{
-			key_ind = key_stop;
-			CSTask->Give();
+			CSTask->stop_song_notify();
 			midi_buf = 0;
 		}
-		if (us_buf == (0xb0 | ctrl_param[chann]))
+
+		if(us_buf == 0xf3) // song select
+		{
+			midi_buf = 0xf3;
+		}
+
+		if (us_buf == (0xb0 | ctrl_param[MCHANNEL]))
 			midi_buf = 0xb0;
-		if (us_buf == (0x90 | ctrl_param[chann]))
+		if (us_buf == (0x90 | ctrl_param[MCHANNEL]))
 			midi_buf = 0x90;
-		if (us_buf == (0xc0 | ctrl_param[chann]))
+		if (us_buf == (0xc0 | ctrl_param[MCHANNEL]))
 			midi_buf = 0xc0;
 		break;
 	case 0xb0: //CC
-		if (ctrl_param[ctrl1_t] == MenuMidiControl::MIDI_IN_CC  && ctrl_param[ctrl1] == us_buf)
+		if (ctrl_param[MCTRL_START_TYPE] == MenuMidiControl::MIDI_IN_CC  && ctrl_param[MCTRL_START_VALUE] == us_buf)
 		{
 			player.startPlay();
 		}
@@ -68,8 +72,7 @@ extern "C" void USART1_IRQHandler()
 		}
 		if (ctrl_param[ctrl3_t] == MenuMidiControl::MIDI_IN_CC && ctrl_param[ctrl3] == us_buf)
 		{
-			key_ind = key_stop;
-			CSTask->Give();
+			CSTask->stop_song_notify();
 		}
 
 		if(player.state() == Player::PLAYER_IDLE)
@@ -78,9 +81,7 @@ extern "C" void USART1_IRQHandler()
 			{
 				if (pc_param[i * 2] == 1 && pc_param[i * 2 + 1] == us_buf)
 				{
-					menuPlayer->num_prog = (i - 1) % 99;
-					key_ind = key_right_down;
-					CSTask->Give();
+					CSTask->load_song_notify(us_buf);
 					break;
 				}
 			}
@@ -88,7 +89,7 @@ extern "C" void USART1_IRQHandler()
 		midi_buf = 4;
 		break;
 	case 0x90: // Note
-		if (ctrl_param[ctrl1_t] == MenuMidiControl::MIDI_IN_NOTE && ctrl_param[ctrl1] == us_buf)
+		if (ctrl_param[MCTRL_START_TYPE] == MenuMidiControl::MIDI_IN_NOTE && ctrl_param[MCTRL_START_VALUE] == us_buf)
 		{
 			player.startPlay();
 		}
@@ -98,8 +99,7 @@ extern "C" void USART1_IRQHandler()
 		}
 		if (ctrl_param[ctrl3_t] == MenuMidiControl::MIDI_IN_NOTE && ctrl_param[ctrl3] == us_buf)
 		{
-			key_ind = key_stop;
-			CSTask->Give();
+			CSTask->stop_song_notify();
 		}
 
 		if(player.state() == Player::PLAYER_IDLE)
@@ -108,9 +108,7 @@ extern "C" void USART1_IRQHandler()
 			{
 				if (pc_param[i * 2] == 2 && pc_param[i * 2 + 1] == us_buf)
 				{
-					key_ind = key_right_down;
-					menuPlayer->num_prog = (i - 1) % 99;
-					CSTask->Give();
+					CSTask->load_song_notify(us_buf);
 					break;
 				}
 			}
@@ -118,7 +116,7 @@ extern "C" void USART1_IRQHandler()
 		midi_buf = 4;
 		break;
 	case 0xc0: // PC
-		if (ctrl_param[ctrl1_t] == MenuMidiControl::MIDI_IN_PC  && ctrl_param[ctrl1] == us_buf)
+		if (ctrl_param[MCTRL_START_TYPE] == MenuMidiControl::MIDI_IN_PC  && ctrl_param[MCTRL_START_VALUE] == us_buf)
 		{
 			player.startPlay();
 		}
@@ -128,8 +126,7 @@ extern "C" void USART1_IRQHandler()
 		}
 		if (ctrl_param[ctrl3_t] == MenuMidiControl::MIDI_IN_PC && ctrl_param[ctrl3] == us_buf)
 		{
-			key_ind = key_stop;
-			CSTask->Give();
+			CSTask->stop_song_notify();
 		}
 
 		if(player.state() == Player::PLAYER_IDLE)
@@ -138,11 +135,19 @@ extern "C" void USART1_IRQHandler()
 			{
 				if (!pc_param[i * 2] && pc_param[i * 2 + 1] == us_buf)
 				{
-					key_ind = key_right_down;
-					menuPlayer->num_prog = (i - 1) % 99;
-					CSTask->Give();
+					CSTask->load_song_notify(us_buf);
 					break;
 				}
+			}
+		}
+		midi_buf = 0;
+		break;
+	case 0xf3: // song select
+		if(currentMenu->menuType() == MENU_PLAYER && player.state() == Player::PLAYER_IDLE)
+		{
+			if(us_buf < 99)
+			{
+				CSTask->load_song_notify(us_buf);
 			}
 		}
 		midi_buf = 0;
