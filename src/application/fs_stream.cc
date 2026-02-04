@@ -346,6 +346,8 @@ void TFsStreamTask::prev()
 	// проход c вычисленем индекса текущего файла
 	f_readdir(&browser.dir, NULL);
 
+	FILINFO fno;
+
 	while(f_readdir(&browser.dir, &browser.fno) == FR_OK && browser.fno.fname[0])
 	{
 		index++;
@@ -359,8 +361,8 @@ void TFsStreamTask::prev()
 				for (size_t i = 0; i < index; i++)
 				{
 					f_readdir(&browser.dir, &browser.fno);
-					if(browser.fno.fname[0] == '.' && browser.fno.fname[1] != '.')
-						continue;
+//					if(browser.fno.fname[0] != '.')
+//						continue;
 				}
 			}
 			return;

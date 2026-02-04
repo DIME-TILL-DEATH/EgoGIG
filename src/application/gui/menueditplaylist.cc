@@ -34,8 +34,8 @@ void MenuEditPlaylist::refresh()
 	runningNamePos = 0;
 	DisplayTask->Clear_str(7, 0, 8);
 
-	emb_string currentPath;
-	FsStreamTask->get_browser_name(currentPath);
+//	emb_string currentPath;
+//	FsStreamTask->get_browser_name(currentPath);
 
 	if(m_state == EDITING)
 	{
@@ -47,6 +47,9 @@ void MenuEditPlaylist::refresh()
 		{
 			if(!FsStreamTask->editingSong.isValidWave(m_chosenTrackPath))
 				DisplayTask->StringOut(7, 0, (uint8_t*)"(err.)");
+			else if(MidiPlayer::checkMidiAvaliable(m_chosenTrackPath))
+				DisplayTask->StringOut(7, 0, (uint8_t*)"(+midi)");
+
 		}
 	}
 

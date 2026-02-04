@@ -50,6 +50,21 @@ void MidiPlayer::loadSong(const emb_string& songPath)
 	openMidiFile(temp_mid.c_str());
 }
 
+bool MidiPlayer::checkMidiAvaliable(const emb_string& wavPath)
+{
+	emb_string midPath = wavPath;
+
+	midPath = wavPath.substr(0, wavPath.find(".wav"));
+	midPath.append(".mid");
+
+	FIL midiFile;
+	FRESULT res = f_open(&midiFile, midPath.c_str(), FA_READ);
+	f_close(&midiFile);
+
+	if(res != FR_OK) return false;
+	else return true;
+}
+
 void MidiPlayer::openMidiFile(const char* fileName)
 {
 	midi_stream.clear();
