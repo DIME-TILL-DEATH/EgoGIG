@@ -99,13 +99,18 @@ void MenuLinkedParam::encoderPress()
 	{
 		DisplayTask->StringOut(0, 0, (uint8_t*)(m_params[m_currentParamNum]->name()));
 
-		if(m_currentParamNum == 4)
+		switch(m_params[m_currentParamNum]->type())
 		{
-			ParamSubmenu* subMenu = static_cast<ParamSubmenu*>(m_params[m_currentParamNum]);
-			subMenu->showSubmenu(this);
+			case ParamBase::GUI_PARAMETER_SUBMENU:
+			{
+				ParamSubmenu* subMenu = static_cast<ParamSubmenu*>(m_params[m_currentParamNum]);
+				subMenu->showSubmenu(this);
+				break;
+			}
+			case ParamBase::GUI_PARAMETER_LIST: m_selectionState = PARAM_SELECTED; break;
+			case ParamBase::GUI_PARAMETER_NUM: m_selectionState = SUBPARAM_SELECTED; break;
+			default: break;
 		}
-		else if(m_currentParamNum == 3) m_selectionState = SUBPARAM_SELECTED;
-		else m_selectionState = PARAM_SELECTED;
 		break;
 	}
 	case PARAM_SELECTED:

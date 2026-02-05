@@ -117,6 +117,7 @@ void TCSTask::Code()
 				{
 					menuPlayer->setSongNum(requestedSongNum);
 				}
+				break;
 			}
 
 			case qn_play_next_song:
@@ -132,12 +133,11 @@ void TCSTask::Code()
 
 				uint8_t currentSongNum = (menuPlayer->songNum() + 1) % 99;
 
-				while (1)
+				uint8_t result = 1;
+				while(result)
 				{
-					if (menuPlayer->loadSong(currentSongNum))
-						currentSongNum = (currentSongNum + 1) % 99;
-					else
-						break;
+					result = menuPlayer->loadSong(currentSongNum);
+					currentSongNum = (currentSongNum + 1) % 99;
 				}
 
 				menuPlayer->setSongNum(currentSongNum);
@@ -158,8 +158,8 @@ void TCSTask::Code()
 				break;
 			}
 
-			case qn_list_next_song: menuPlayer->keyLeftUp(); break;
-			case qn_list_prev_song: menuPlayer->keyLeftDown(); break;
+			case qn_list_next_song: menuPlayer->keyRightDown(); break;
+			case qn_list_prev_song: menuPlayer->keyRightUp(); break;
 			}
 		}
 	}
