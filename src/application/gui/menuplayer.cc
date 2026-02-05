@@ -267,7 +267,7 @@ void MenuPlayer::keyLeftUp()
 			}
 
 		}
-		keyStop();
+		initSong();
 	}
 }
 
@@ -283,10 +283,7 @@ void MenuPlayer::keyLeftDown()
 			if(loadSong(m_currentSongNum))
 			{
 				retryCount++;
-				if (m_currentSongNum)
-					m_currentSongNum--;
-				else
-					m_currentSongNum = 100;
+				m_currentSongNum = (m_currentSongNum - 1) % 99;
 			}
 			else
 			{
@@ -294,7 +291,7 @@ void MenuPlayer::keyLeftDown()
 				break;
 			}
 		}
-		keyStop();
+		initSong();
 	}
 }
 
@@ -314,11 +311,11 @@ void MenuPlayer::keyRightUp()
 			}
 			else
 			{
-				break;
 				Leds::digit(m_currentSongNum);
+				break;
 			}
 		}
-		keyStop();
+		initSong();
 	}
 }
 
@@ -342,7 +339,7 @@ void MenuPlayer::keyRightDown()
 				break;
 			}
 		}
-		keyStop();
+		initSong();
 	}
 }
 
