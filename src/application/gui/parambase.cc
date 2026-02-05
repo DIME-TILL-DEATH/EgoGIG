@@ -70,6 +70,10 @@ void ParamBase::increaseParam()
 		else
 			*m_valuePtr += m_stepSize;
 	}
+	else
+	{
+		*m_valuePtr = m_maxValue;
+	}
 }
 
 void ParamBase::decreaseParam()
@@ -86,6 +90,10 @@ void ParamBase::decreaseParam()
 			encoderSpeedDecrease();
 		else
 			*m_valuePtr -= m_stepSize;
+	}
+	else
+	{
+		*m_valuePtr = m_minValue;
 	}
 }
 

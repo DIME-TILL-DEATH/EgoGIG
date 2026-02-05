@@ -49,10 +49,8 @@ extern "C" void USART1_IRQHandler()
 			midi_buf = 0;
 		}
 
-		if(us_buf == 0xf3) // song select
-		{
+		if(us_buf == 0xf3)
 			midi_buf = 0xf3;
-		}
 
 		if (us_buf == (0xb0 | ctrl_param[MCHANNEL]))
 			midi_buf = 0xb0;
@@ -61,19 +59,18 @@ extern "C" void USART1_IRQHandler()
 		if (us_buf == (0xc0 | ctrl_param[MCHANNEL]))
 			midi_buf = 0xc0;
 		break;
+
 	case 0xb0: //CC
 		if (ctrl_param[MCTRL_START_TYPE] == MenuMidiControl::MIDI_IN_CC  && ctrl_param[MCTRL_START_VALUE] == us_buf)
-		{
 			player.startPlay();
-		}
-		if (ctrl_param[ctrl2_t] == MenuMidiControl::MIDI_IN_CC && ctrl_param[ctrl2] == us_buf)
-		{
+		if (ctrl_param[MCTRL_PAUSE_TYPE] == MenuMidiControl::MIDI_IN_CC && ctrl_param[MCTRL_PAUSE_VALUE] == us_buf)
 			player.pause();
-		}
-		if (ctrl_param[ctrl3_t] == MenuMidiControl::MIDI_IN_CC && ctrl_param[ctrl3] == us_buf)
-		{
+		if (ctrl_param[MCTRL_STOP_TYPE] == MenuMidiControl::MIDI_IN_CC && ctrl_param[MCTRL_STOP_VALUE] == us_buf)
 			CSTask->stop_song_notify();
-		}
+		if (ctrl_param[MCTRL_NEXT_SONG_TYPE] == MenuMidiControl::MIDI_IN_CC && ctrl_param[MCTRL_NEXT_SONG_VALUE] == us_buf)
+			CSTask->list_next_song_notify();
+		if (ctrl_param[MCTRL_PREV_SONG_TYPE] == MenuMidiControl::MIDI_IN_CC && ctrl_param[MCTRL_PREV_SONG_VALUE] == us_buf)
+			CSTask->list_prev_song_notify();
 
 		if(player.state() == Player::PLAYER_IDLE)
 		{
@@ -90,17 +87,15 @@ extern "C" void USART1_IRQHandler()
 		break;
 	case 0x90: // Note
 		if (ctrl_param[MCTRL_START_TYPE] == MenuMidiControl::MIDI_IN_NOTE && ctrl_param[MCTRL_START_VALUE] == us_buf)
-		{
 			player.startPlay();
-		}
-		if (ctrl_param[ctrl2_t] == MenuMidiControl::MIDI_IN_NOTE && ctrl_param[ctrl2] == us_buf)
-		{
+		if (ctrl_param[MCTRL_PAUSE_TYPE] == MenuMidiControl::MIDI_IN_NOTE && ctrl_param[MCTRL_PAUSE_VALUE] == us_buf)
 			player.pause();
-		}
-		if (ctrl_param[ctrl3_t] == MenuMidiControl::MIDI_IN_NOTE && ctrl_param[ctrl3] == us_buf)
-		{
+		if (ctrl_param[MCTRL_STOP_TYPE] == MenuMidiControl::MIDI_IN_NOTE && ctrl_param[MCTRL_STOP_VALUE] == us_buf)
 			CSTask->stop_song_notify();
-		}
+		if (ctrl_param[MCTRL_NEXT_SONG_TYPE] == MenuMidiControl::MIDI_IN_NOTE && ctrl_param[MCTRL_NEXT_SONG_VALUE] == us_buf)
+			CSTask->list_next_song_notify();
+		if (ctrl_param[MCTRL_PREV_SONG_TYPE] == MenuMidiControl::MIDI_IN_NOTE && ctrl_param[MCTRL_PREV_SONG_VALUE] == us_buf)
+			CSTask->list_prev_song_notify();
 
 		if(player.state() == Player::PLAYER_IDLE)
 		{
@@ -117,17 +112,16 @@ extern "C" void USART1_IRQHandler()
 		break;
 	case 0xc0: // PC
 		if (ctrl_param[MCTRL_START_TYPE] == MenuMidiControl::MIDI_IN_PC  && ctrl_param[MCTRL_START_VALUE] == us_buf)
-		{
 			player.startPlay();
-		}
-		if (ctrl_param[ctrl2_t] == MenuMidiControl::MIDI_IN_PC && ctrl_param[ctrl2] == us_buf)
-		{
+		if (ctrl_param[MCTRL_PAUSE_TYPE] == MenuMidiControl::MIDI_IN_PC && ctrl_param[MCTRL_PAUSE_VALUE] == us_buf)
 			player.pause();
-		}
-		if (ctrl_param[ctrl3_t] == MenuMidiControl::MIDI_IN_PC && ctrl_param[ctrl3] == us_buf)
-		{
+		if (ctrl_param[MCTRL_STOP_TYPE] == MenuMidiControl::MIDI_IN_PC && ctrl_param[MCTRL_STOP_VALUE] == us_buf)
 			CSTask->stop_song_notify();
-		}
+		if (ctrl_param[MCTRL_NEXT_SONG_TYPE] == MenuMidiControl::MIDI_IN_PC && ctrl_param[MCTRL_NEXT_SONG_VALUE] == us_buf)
+			CSTask->list_next_song_notify();
+		if (ctrl_param[MCTRL_PREV_SONG_TYPE] == MenuMidiControl::MIDI_IN_PC && ctrl_param[MCTRL_PREV_SONG_VALUE] == us_buf)
+			CSTask->list_prev_song_notify();
+
 
 		if(player.state() == Player::PLAYER_IDLE)
 		{

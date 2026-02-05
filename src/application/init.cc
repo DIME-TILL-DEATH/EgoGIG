@@ -380,7 +380,7 @@ extern "C" void DMA1_Stream4_IRQHandler()
 				player.stopPlay();
 
 				if(currentMenu)
-					CSTask->next_song_notify();
+					CSTask->play_next_song_notify();
 			}
 			else
 			{

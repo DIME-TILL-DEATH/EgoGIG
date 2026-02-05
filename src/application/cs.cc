@@ -109,7 +109,18 @@ void TCSTask::Code()
 				break;
 			}
 
-			case qn_next_song:
+			case qn_load_song:
+			{
+				uint8_t requestedSongNum = qn.songNum;
+				bool loadErr = menuPlayer->loadSong(requestedSongNum);
+				if(!loadErr)
+				{
+					menuPlayer->setSongNum(requestedSongNum);
+				}
+				break;
+			}
+
+			case qn_play_next_song:
 			{
 				menuPlayer->keyStop();
 
@@ -122,12 +133,11 @@ void TCSTask::Code()
 
 				uint8_t currentSongNum = (menuPlayer->songNum() + 1) % 99;
 
-				while (1)
+				uint8_t result = 1;
+				while(result)
 				{
-					if (menuPlayer->loadSong(currentSongNum))
-						currentSongNum = (currentSongNum + 1) % 99;
-					else
-						break;
+					result = menuPlayer->loadSong(currentSongNum);
+					currentSongNum = (currentSongNum + 1) % 99;
 				}
 
 				menuPlayer->setSongNum(currentSongNum);
@@ -148,15 +158,8 @@ void TCSTask::Code()
 				break;
 			}
 
-			case qn_load_song:
-			{
-				uint8_t requestedSongNum = qn.songNum;
-				bool loadErr = menuPlayer->loadSong(requestedSongNum);
-				if(!loadErr)
-				{
-					menuPlayer->setSongNum(requestedSongNum);
-				}
-			}
+			case qn_list_next_song: menuPlayer->keyRightDown(); break;
+			case qn_list_prev_song: menuPlayer->keyRightUp(); break;
 			}
 		}
 	}

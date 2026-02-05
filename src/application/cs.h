@@ -34,7 +34,9 @@ public:
 	{
 		qn_stop_song = 0,
 		qn_load_song,
-		qn_next_song
+		qn_play_next_song,
+		qn_list_next_song,
+		qn_list_prev_song
 	};
 
 	struct query_notify_t
@@ -47,15 +49,7 @@ public:
 		} __attribute__((packed));
 	};
 
-	void next_song_notify()
-	{
-		query_notify_t qn = {
-			.notify = qn_next_song
-		};
-		notify(qn);
-	}
-
-	void stop_song_notify()
+	inline void stop_song_notify()
 	{
 		query_notify_t qn = {
 			.notify = qn_stop_song
@@ -63,11 +57,35 @@ public:
 		notify(qn);
 	}
 
-	void load_song_notify(uint8_t reqSongNum)
+	inline void load_song_notify(uint8_t reqSongNum)
 	{
 		query_notify_t qn ={
 			.notify = qn_load_song,
 			.songNum = reqSongNum
+		};
+		notify(qn);
+	}
+
+	inline void play_next_song_notify()
+	{
+		query_notify_t qn = {
+			.notify = qn_play_next_song
+		};
+		notify(qn);
+	}
+
+	inline void list_next_song_notify()
+	{
+		query_notify_t qn = {
+			.notify = qn_list_next_song
+		};
+		notify(qn);
+	}
+
+	inline void	list_prev_song_notify()
+	{
+		query_notify_t qn = {
+			.notify = qn_list_prev_song
 		};
 		notify(qn);
 	}
