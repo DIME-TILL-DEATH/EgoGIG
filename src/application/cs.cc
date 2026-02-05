@@ -109,7 +109,17 @@ void TCSTask::Code()
 				break;
 			}
 
-			case qn_next_song:
+			case qn_load_song:
+			{
+				uint8_t requestedSongNum = qn.songNum;
+				bool loadErr = menuPlayer->loadSong(requestedSongNum);
+				if(!loadErr)
+				{
+					menuPlayer->setSongNum(requestedSongNum);
+				}
+			}
+
+			case qn_play_next_song:
 			{
 				menuPlayer->keyStop();
 
@@ -148,15 +158,8 @@ void TCSTask::Code()
 				break;
 			}
 
-			case qn_load_song:
-			{
-				uint8_t requestedSongNum = qn.songNum;
-				bool loadErr = menuPlayer->loadSong(requestedSongNum);
-				if(!loadErr)
-				{
-					menuPlayer->setSongNum(requestedSongNum);
-				}
-			}
+			case qn_list_next_song: menuPlayer->keyLeftUp(); break;
+			case qn_list_prev_song: menuPlayer->keyLeftDown(); break;
 			}
 		}
 	}

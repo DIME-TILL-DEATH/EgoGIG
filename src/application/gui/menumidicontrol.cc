@@ -12,7 +12,7 @@
 MenuMidiControl::MenuMidiControl(AbstractMenu* parent)
 	: MenuLinkedParam(parent, MENU_MIDI_CONTROL)
 {
-	uint8_t paramsCount = 5;
+	uint8_t paramsCount = 7;
 	ParamBase** params = new ParamBase*[paramsCount];
 	SubParamLinks* subParamLinks = new SubParamLinks[paramsCount];
 
@@ -24,31 +24,47 @@ MenuMidiControl::MenuMidiControl(AbstractMenu* parent)
 	subParamLinks[0].link[1] = new ParamBase(ParamBase::GUI_PARAMETER_NUM, "CC  ", &ctrl_param[MCTRL_START_VALUE]);
 	subParamLinks[0].link[2] = new ParamBase(ParamBase::GUI_PARAMETER_NOTE, "Note", &ctrl_param[MCTRL_START_VALUE]);
 
-	params[1] = new ParamStringList("Pause ", &ctrl_param[ctrl2_t], { "PC  ", "CC  ", "Note" }, 5);
+	params[1] = new ParamStringList("Pause ", &ctrl_param[MCTRL_PAUSE_TYPE], { "PC  ", "CC  ", "Note" }, 5);
 	subParamLinks[1].count = params[1]->maxValue() + 1;
 	subParamLinks[1].link = new ParamBase*[subParamLinks[1].count];
-	subParamLinks[1].link[0] = new ParamBase(ParamBase::GUI_PARAMETER_NUM, "PC  ", &ctrl_param[ctrl2]);
+	subParamLinks[1].link[0] = new ParamBase(ParamBase::GUI_PARAMETER_NUM, "PC  ", &ctrl_param[MCTRL_PAUSE_VALUE]);
 	subParamLinks[1].link[0]->setScaling(1, 1);
-	subParamLinks[1].link[1] = new ParamBase(ParamBase::GUI_PARAMETER_NUM, "CC  ", &ctrl_param[ctrl2]);
-	subParamLinks[1].link[2] = new ParamBase(ParamBase::GUI_PARAMETER_NOTE, "Note", &ctrl_param[ctrl2]);
+	subParamLinks[1].link[1] = new ParamBase(ParamBase::GUI_PARAMETER_NUM, "CC  ", &ctrl_param[MCTRL_PAUSE_VALUE]);
+	subParamLinks[1].link[2] = new ParamBase(ParamBase::GUI_PARAMETER_NOTE, "Note", &ctrl_param[MCTRL_PAUSE_VALUE]);
 
-	params[2] = new ParamStringList("Stop  ", &ctrl_param[ctrl3_t], { "PC  ", "CC  ", "Note" }, 5);
+	params[2] = new ParamStringList("Stop ", &ctrl_param[MCTRL_STOP_TYPE], { "PC  ", "CC  ", "Note" }, 5);
 	subParamLinks[2].count = params[2]->maxValue() + 1;
-	subParamLinks[2].link = new ParamBase*[m_subParamLinks[2].count];
-	subParamLinks[2].link[0] = new ParamBase(ParamBase::GUI_PARAMETER_NUM, "PC  ", &ctrl_param[ctrl3]);
+	subParamLinks[2].link = new ParamBase*[subParamLinks[2].count];
+	subParamLinks[2].link[0] = new ParamBase(ParamBase::GUI_PARAMETER_NUM, "PC  ", &ctrl_param[MCTRL_STOP_VALUE]);
 	subParamLinks[2].link[0]->setScaling(1, 1);
-	subParamLinks[2].link[1] = new ParamBase(ParamBase::GUI_PARAMETER_NUM, "CC  ", &ctrl_param[ctrl3]);
-	subParamLinks[2].link[2] = new ParamBase(ParamBase::GUI_PARAMETER_NOTE, "Note", &ctrl_param[ctrl3]);
+	subParamLinks[2].link[1] = new ParamBase(ParamBase::GUI_PARAMETER_NUM, "CC  ", &ctrl_param[MCTRL_STOP_VALUE]);
+	subParamLinks[2].link[2] = new ParamBase(ParamBase::GUI_PARAMETER_NOTE, "Note", &ctrl_param[MCTRL_STOP_VALUE]);
 
-	params[3] = new ParamBase(ParamBase::GUI_PARAMETER_NUM, "Channel", nullptr);
-	subParamLinks[3].count = 1;
+	params[3] = new ParamStringList("Next song ", &ctrl_param[MCTRL_NEXT_SONG_TYPE], { "PC  ", "CC  ", "Note" }, 10);
+	subParamLinks[3].count = params[3]->maxValue() + 1;
 	subParamLinks[3].link = new ParamBase*[subParamLinks[3].count];
-	subParamLinks[3].link[0] = new ParamBase(ParamBase::GUI_PARAMETER_NUM, "Num", &ctrl_param[MCHANNEL]);
+	subParamLinks[3].link[0] = new ParamBase(ParamBase::GUI_PARAMETER_NUM, "PC  ", &ctrl_param[MCTRL_NEXT_SONG_VALUE]);
 	subParamLinks[3].link[0]->setScaling(1, 1);
-	subParamLinks[3].link[0]->setBounds(0, 15);
+	subParamLinks[3].link[1] = new ParamBase(ParamBase::GUI_PARAMETER_NUM, "CC  ", &ctrl_param[MCTRL_NEXT_SONG_VALUE]);
+	subParamLinks[3].link[2] = new ParamBase(ParamBase::GUI_PARAMETER_NOTE, "Note", &ctrl_param[MCTRL_NEXT_SONG_VALUE]);
 
-	params[4] = new ParamSubmenu("MIDI PC Set", &MenuMidiControl::createMidiPcMenu, nullptr);
-	subParamLinks[4].count = 0;
+	params[4] = new ParamStringList("Prev song ", &ctrl_param[MCTRL_PREV_SONG_TYPE], { "PC  ", "CC  ", "Note" }, 10);
+	subParamLinks[4].count = params[4]->maxValue() + 1;
+	subParamLinks[4].link = new ParamBase*[subParamLinks[4].count];
+	subParamLinks[4].link[0] = new ParamBase(ParamBase::GUI_PARAMETER_NUM, "PC  ", &ctrl_param[MCTRL_PREV_SONG_VALUE]);
+	subParamLinks[4].link[0]->setScaling(1, 1);
+	subParamLinks[4].link[1] = new ParamBase(ParamBase::GUI_PARAMETER_NUM, "CC  ", &ctrl_param[MCTRL_PREV_SONG_VALUE]);
+	subParamLinks[4].link[2] = new ParamBase(ParamBase::GUI_PARAMETER_NOTE, "Note", &ctrl_param[MCTRL_PREV_SONG_VALUE]);
+
+	params[5] = new ParamBase(ParamBase::GUI_PARAMETER_NUM, "Channel", nullptr);
+	subParamLinks[5].count = 1;
+	subParamLinks[5].link = new ParamBase*[subParamLinks[5].count];
+	subParamLinks[5].link[0] = new ParamBase(ParamBase::GUI_PARAMETER_NUM, "Num", &ctrl_param[MCHANNEL]);
+	subParamLinks[5].link[0]->setScaling(1, 1);
+	subParamLinks[5].link[0]->setBounds(0, 15);
+
+	params[6] = new ParamSubmenu("MIDI PC Set", &MenuMidiControl::createMidiPcMenu, nullptr);
+	subParamLinks[6].count = 0;
 
 	for(int i = 0; i < paramsCount; i++)
 	{
@@ -102,8 +118,10 @@ void MenuMidiControl::read_ctrl(void)
 
 bool MenuMidiControl::check_busy(uint8_t type, uint8_t val, int8_t currentParamNum, int8_t currentSongNum)
 {
-	for (uint8_t i = 0; i < 3; i++)
+	for (uint8_t i = 0; i < MCTRL_PARAMETER_COUNT/2; i++)
 	{
+		if(i == 3) continue; //skip DUMMY and MCHANNEL
+
 		if (val == ctrl_param[i * 2 + 1] && currentParamNum != i)
 		{
 			if (type == ctrl_param[i * 2]) return true;
