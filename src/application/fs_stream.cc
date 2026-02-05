@@ -348,24 +348,33 @@ void TFsStreamTask::prev()
 
 	FILINFO fno;
 
-	while(f_readdir(&browser.dir, &browser.fno) == FR_OK && browser.fno.fname[0])
+	while(f_readdir(&browser.dir, &fno) == FR_OK && fno.fname[0])
 	{
 		index++;
-		if(browser.tmp == browser.fno.fname)
+		if(browser.tmp == fno.fname)
 		{
-			index--;
-			if(index)
+			while(1)
 			{
-				// второй проход по индексу -1 с получением имени передидущего файла
-				f_readdir(&browser.dir, NULL);
-				for (size_t i = 0; i < index; i++)
+				index--;
+				if(index > 0)
 				{
-					f_readdir(&browser.dir, &browser.fno);
-//					if(browser.fno.fname[0] != '.')
-//						continue;
+					// второй проход по индексу -1 с получением имени передидущего файла
+					f_readdir(&browser.dir, NULL);
+					for (size_t i = 0; i < index; i++)
+						f_readdir(&browser.dir, &fno);
+
+					if(fno.fname[0] == '.')
+					{
+						continue;
+					}
+					else
+					{
+						browser.fno = fno;
+						return;
+					}
 				}
+				else return;
 			}
-			return;
 		}
 	}
 }
