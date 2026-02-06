@@ -56,8 +56,8 @@ private:
 	size_t m_buffPoint{0};
 	uint64_t m_songPoint{0};
 
-	uint32_t m_loopPoint1{0};
-	uint32_t m_loopPoint2{0};
+	uint64_t m_loopPoint1{0};
+	uint64_t m_loopPoint2{0};
 
 	uint8_t pendingDecrement{0};
 

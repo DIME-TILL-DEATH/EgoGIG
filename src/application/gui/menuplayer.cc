@@ -223,9 +223,6 @@ void MenuPlayer::keyStart()
 	{
 		case Player::PLAYER_IDLE:
 		{
-			if(playPoint1Selected && m_loopModeActive && sys_param[loop_points])
-				player.jumpToLp1();
-
 			us_buf1 = 0xfa;
 			MIDITask->Give();
 			usart_wait_send_ready(USART1);
@@ -434,7 +431,6 @@ bool MenuPlayer::loadSong(uint8_t songNum)
 
 		initSong();
 		player.resetLoopPoints();
-		m_loopModeActive = true;
 
 		playPoint1Selected = playPoint2Selected = 0;
 

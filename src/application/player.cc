@@ -43,20 +43,18 @@ void Player::processLoop()
 {
 	if(sys_param[loop_points] && menuPlayer->loopModeActive())
 	{
-		if (m_loopPoint2 > m_loopPoint1)
-			if ((countUp * 4410) >= m_loopPoint2)
+		if(m_loopPoint2 > m_loopPoint1)
+			if((m_songPoint - m_loopPoint2) < 5)
 			{
-//				key_ind = key_return;
-//				CSTask->Give();
 				CSTask->notify(TCSTask::qn_jump_to_point1);
+				CSTask->Give();
 			}
 
-		if (m_loopPoint1 > m_loopPoint2)
-			if ((countUp * 4410) >= m_loopPoint1)
+		if(m_loopPoint1 > m_loopPoint2)
+			if((m_songPoint - m_loopPoint1) < 5)
 			{
-//				key_ind = key_forward;
-//				CSTask->Give();
 				CSTask->notify(TCSTask::qn_jump_to_point2);
+				CSTask->Give();
 			}
 	}
 }
@@ -133,7 +131,7 @@ void Player::pause()
 
 void Player::setLoopPoint1()
 {
-	m_loopPoint1 = FsStreamTask->pos();
+	m_loopPoint1 = m_songPoint; //FsStreamTask->pos();
 
 	if (!m_loopPoint2)
 		m_loopPoint2 = FsStreamTask->selectedSong.songSize() * 4410;
@@ -141,7 +139,8 @@ void Player::setLoopPoint1()
 
 void Player::setLoopPoint2()
 {
-	m_loopPoint2 = FsStreamTask->pos();
+	m_loopPoint2 = m_songPoint;
+//	m_loopPoint2 = FsStreamTask->pos();
 }
 
 void Player::jumpToLp1()
@@ -159,7 +158,7 @@ void Player::jumpToLp2()
 void Player::jumpToPosition(uint32_t pos)
 {
 	FsStreamTask->pos(pos);
-	player.countUp = pos / 4410.0f;
+	countUp = pos / 4410.0f;
 
 	m_buffPoint = 0;
 	m_songPoint = pos;
