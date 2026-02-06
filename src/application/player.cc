@@ -44,14 +44,14 @@ void Player::processLoop()
 	if(sys_param[loop_points] && menuPlayer->loopModeActive())
 	{
 		if(m_loopPoint2 > m_loopPoint1)
-			if((m_songPoint - m_loopPoint2) < 5)
+			if(m_songPoint == m_loopPoint2)
 			{
 				CSTask->notify(TCSTask::qn_jump_to_point1);
 				CSTask->Give();
 			}
 
 		if(m_loopPoint1 > m_loopPoint2)
-			if((m_songPoint - m_loopPoint1) < 5)
+			if(m_songPoint == m_loopPoint1)
 			{
 				CSTask->notify(TCSTask::qn_jump_to_point2);
 				CSTask->Give();
@@ -131,7 +131,10 @@ void Player::pause()
 
 void Player::setLoopPoint1()
 {
-	m_loopPoint1 = m_songPoint; //FsStreamTask->pos();
+	m_loopPoint1 = m_songPoint + 2;	// обеспечивать дальнецшее проигрывание внутри петли
+
+	if(m_loopPoint1 > FsStreamTask->selectedSong.songSize() * 4410)
+		m_loopPoint1 = FsStreamTask->selectedSong.songSize() * 4410;
 
 	if (!m_loopPoint2)
 		m_loopPoint2 = FsStreamTask->selectedSong.songSize() * 4410;
@@ -139,8 +142,10 @@ void Player::setLoopPoint1()
 
 void Player::setLoopPoint2()
 {
-	m_loopPoint2 = m_songPoint;
-//	m_loopPoint2 = FsStreamTask->pos();
+	m_loopPoint2 = m_songPoint + 2; // обеспечивать дальнецшее проигрывание внутри петли
+
+	if(m_loopPoint2 > FsStreamTask->selectedSong.songSize() * 4410)
+		m_loopPoint1 = FsStreamTask->selectedSong.songSize() * 4410;
 }
 
 void Player::jumpToLp1()
