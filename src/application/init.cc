@@ -375,12 +375,12 @@ extern "C" void DMA1_Stream4_IRQHandler()
 				}
 			}
 
-			if(player.countUp >= FsStreamTask->selectedSong.songSize())
+			if(player.countUp >= FsStreamTask->selectedSong.songSize() && !menuPlayer->loopModeActive())
 			{
 				player.stopPlay();
 
 				if(currentMenu)
-					CSTask->play_next_song_notify();
+					CSTask->notify(TCSTask::qn_play_next_song);
 			}
 			else
 			{

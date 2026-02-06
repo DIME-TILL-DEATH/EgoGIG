@@ -87,7 +87,7 @@ MenuMidiControl::MenuMidiControl(AbstractMenu* parent)
 void MenuMidiControl::refresh()
 {
 	printMenu();
-	if(m_currentParamNum < m_paramsCount-1)
+	if(m_subParamLinks[m_currentParamNum].count > 1)
 	{
 		if(check_busy(ctrl_param[m_currentParamNum * 2], ctrl_param[m_currentParamNum * 2 + 1], m_currentParamNum))
 			DisplayTask->StringOut(12, 1, (uint8_t*)"BUSY");
