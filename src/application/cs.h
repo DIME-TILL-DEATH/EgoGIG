@@ -36,7 +36,9 @@ public:
 		qn_load_song,
 		qn_play_next_song,
 		qn_list_next_song,
-		qn_list_prev_song
+		qn_list_prev_song,
+		qn_jump_to_point1,
+		qn_jump_to_point2
 	};
 
 	struct query_notify_t
@@ -49,46 +51,15 @@ public:
 		} __attribute__((packed));
 	};
 
-	inline void stop_song_notify()
-	{
-		query_notify_t qn = {
-			.notify = qn_stop_song
-		};
-		notify(qn);
-	}
-
-	inline void load_song_notify(uint8_t reqSongNum)
+	void notify(notify_t notifyType, uint8_t value = 0)
 	{
 		query_notify_t qn ={
-			.notify = qn_load_song,
-			.songNum = reqSongNum
+			.notify = notifyType,
+			.songNum = value
 		};
 		notify(qn);
 	}
 
-	inline void play_next_song_notify()
-	{
-		query_notify_t qn = {
-			.notify = qn_play_next_song
-		};
-		notify(qn);
-	}
-
-	inline void list_next_song_notify()
-	{
-		query_notify_t qn = {
-			.notify = qn_list_next_song
-		};
-		notify(qn);
-	}
-
-	inline void	list_prev_song_notify()
-	{
-		query_notify_t qn = {
-			.notify = qn_list_prev_song
-		};
-		notify(qn);
-	}
 
 private:
 	void Code();

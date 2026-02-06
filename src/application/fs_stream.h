@@ -118,7 +118,13 @@ public:
 
 	inline size_t pos()
 	{
-		return (f_tell(&selectedSong.wavFile[0]) - selectedSong.soundDataOffset[0]) / sizeof(wav_sample_t);
+		size_t pos = 0;
+		for(uint8_t i=0; i < Player::maxTrackCount; i++)
+		{
+			size_t trackPos = (f_tell(&selectedSong.wavFile[i]) - selectedSong.soundDataOffset[i]) / sizeof(wav_sample_t);
+			if(trackPos > pos) pos = trackPos;
+		}
+		return pos;
 	}
 
 	inline void pos(size_t val)

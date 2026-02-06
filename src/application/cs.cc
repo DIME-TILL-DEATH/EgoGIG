@@ -131,7 +131,7 @@ void TCSTask::Code()
 				player.initSong();
 				player.resetLoopPoints();
 
-				uint8_t currentSongNum = (menuPlayer->songNum() + 1) % 99;
+				uint8_t currentSongNum = (menuPlayer->songNum()) % 99;
 
 				uint8_t result = 1;
 				while(result)
@@ -160,6 +160,8 @@ void TCSTask::Code()
 
 			case qn_list_next_song: menuPlayer->keyRightDown(); break;
 			case qn_list_prev_song: menuPlayer->keyRightUp(); break;
+			case qn_jump_to_point1: player.jumpToLp1(); break;
+			case qn_jump_to_point2: player.jumpToLp2(); break;
 			}
 		}
 	}

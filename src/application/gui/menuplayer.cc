@@ -18,7 +18,7 @@
 MenuPlayer::MenuPlayer()
 {
 	m_menuType = MENU_PLAYER;
-	m_loopModeActive = true;
+	m_loopModeActive = false;
 	test_file();
 }
 
@@ -268,6 +268,7 @@ void MenuPlayer::keyLeftUp()
 
 		}
 		initSong();
+		m_loopModeActive = false;
 	}
 }
 
@@ -292,6 +293,7 @@ void MenuPlayer::keyLeftDown()
 			}
 		}
 		initSong();
+		m_loopModeActive = false;
 	}
 }
 
@@ -316,6 +318,7 @@ void MenuPlayer::keyRightUp()
 			}
 		}
 		initSong();
+		m_loopModeActive = false;
 	}
 }
 
@@ -340,6 +343,7 @@ void MenuPlayer::keyRightDown()
 			}
 		}
 		initSong();
+		m_loopModeActive = false;
 	}
 }
 
@@ -355,14 +359,13 @@ void MenuPlayer::keyReturnLong()
 {
 	if(no_file) return;
 
-	if(m_loopModeActive)
-	{
-		playPoint1Selected = 1;
-		player.setLoopPoint1();
+	m_loopModeActive = true;
 
-		Leds::digitPoint1On();
-		Leds::requestLed1Blinking();
-	}
+	playPoint1Selected = 1;
+	player.setLoopPoint1();
+
+	Leds::digitPoint1On();
+	Leds::requestLed1Blinking();
 }
 
 void MenuPlayer::keyForward()
@@ -377,14 +380,13 @@ void MenuPlayer::keyForwardLong()
 {
 	if(no_file) return;
 
-	if(m_loopModeActive)
-	{
-		playPoint2Selected = 1;
-		player.setLoopPoint2();
+	m_loopModeActive = true;
 
-		Leds::digitPoint2On();
-		Leds::requestLed2Blinking();
-	}
+	playPoint2Selected = 1;
+	player.setLoopPoint2();
+
+	Leds::digitPoint2On();
+	Leds::requestLed2Blinking();
 }
 
 void MenuPlayer::keyEsc()

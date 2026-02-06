@@ -46,15 +46,17 @@ void Player::processLoop()
 		if (m_loopPoint2 > m_loopPoint1)
 			if ((countUp * 4410) >= m_loopPoint2)
 			{
-				key_ind = key_return;
-				CSTask->Give();
+//				key_ind = key_return;
+//				CSTask->Give();
+				CSTask->notify(TCSTask::qn_jump_to_point1);
 			}
 
 		if (m_loopPoint1 > m_loopPoint2)
 			if ((countUp * 4410) >= m_loopPoint1)
 			{
-				key_ind = key_forward;
-				CSTask->Give();
+//				key_ind = key_forward;
+//				CSTask->Give();
+				CSTask->notify(TCSTask::qn_jump_to_point2);
 			}
 	}
 }
