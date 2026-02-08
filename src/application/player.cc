@@ -44,18 +44,22 @@ void Player::processLoop()
 	if(sys_param[loop_points] && menuPlayer->loopModeActive())
 	{
 		if(m_loopPoint2 > m_loopPoint1)
-			if(m_songPoint == m_loopPoint2)
+		{
+			if(m_songPoint == m_loopPoint2 || countUp >= FsStreamTask->selectedSong.songSize())
 			{
 				CSTask->notify(TCSTask::qn_jump_to_point1);
 				CSTask->Give();
 			}
+		}
 
 		if(m_loopPoint1 > m_loopPoint2)
-			if(m_songPoint == m_loopPoint1)
+		{
+			if(m_songPoint == m_loopPoint1 || countUp >= FsStreamTask->selectedSong.songSize())
 			{
 				CSTask->notify(TCSTask::qn_jump_to_point2);
 				CSTask->Give();
 			}
+		}
 	}
 }
 

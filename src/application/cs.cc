@@ -136,8 +136,8 @@ void TCSTask::Code()
 				uint8_t result = 1;
 				while(result)
 				{
-					result = menuPlayer->loadSong(currentSongNum);
 					currentSongNum = (currentSongNum + 1) % 99;
+					result = menuPlayer->loadSong(currentSongNum);
 				}
 
 				menuPlayer->setSongNum(currentSongNum);
