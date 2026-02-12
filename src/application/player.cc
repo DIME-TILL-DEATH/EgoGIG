@@ -68,7 +68,6 @@ void Player::initSong()
 	m_state = PLAYER_LOADING_SONG;
 
 	FsStreamTask->pos(0);
-	FsStreamTask->data_notify(&first_target);
 
 	countUp = 0;
 	m_songPoint = 0;
