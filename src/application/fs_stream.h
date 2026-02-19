@@ -179,6 +179,8 @@ private:
 
 	browser_t browser;
 
+
+
 	void getWavData();
 	void getMidiEvents();
 
@@ -194,21 +196,22 @@ private:
 
 	void selectAnyFindedPlaylist();
 
+	TQueue *queueDataRequests;
 	inline BaseType_t notify(const query_notify_t &val)
 	{
 		if (cortex_isr_num())
 		{
 			// send comand from ISR
-			BaseType_t xHigherPriorityTaskWoken;
-			NotifyFromISR(*((uint32_t*) &val), eSetValueWithOverwrite,
-					&xHigherPriorityTaskWoken);
-			portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
-			return pdPASS;
+			BaseType_t HigherPriorityTaskWoken;
+			TQueue::TQueueSendResult result;
+			result = queueDataRequests->SendToBackFromISR(&val, &HigherPriorityTaskWoken);
+			if(HigherPriorityTaskWoken)
+				TScheduler::Yeld();
+			return result;
 		}
 		else
 		{
-			// thread mode
-			return Notify(*((uint32_t*) &val), eSetValueWithOverwrite);
+			return queueDataRequests->SendToBack(&val, 0);
 		}
 	}
 

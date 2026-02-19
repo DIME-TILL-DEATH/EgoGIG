@@ -111,11 +111,16 @@ void TFsStreamTask::Code()
 	}
 	f_close(&fsys);
 
+	queueDataRequests = new TQueue(16, sizeof(query_notify_t));
+	if(!queueDataRequests) Suspend();
+	if(!queueDataRequests->IsCreated()) Suspend();
+
 	while (1)
 	{
 		// ожидания уведомления о запросе данных
 		query_notify_t qn;
-		NotifyWait(0, 0, (uint32_t*) &qn, portMAX_DELAY);
+
+		queueDataRequests->Receive(&qn, portMAX_DELAY);
 		switch (qn.notify)
 		{
 		case qn_wav_data:
@@ -137,6 +142,7 @@ void TFsStreamTask::Code()
 		{
 		}
 		}
+
 
 		TScheduler::Yeld();
 	}

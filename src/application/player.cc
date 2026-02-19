@@ -99,15 +99,16 @@ void Player::songInitiated()
 
 void Player::startPlay()
 {
-	m_state = PLAYER_PLAYING;
 	m_songPoint = 0;
 
 	midiPlayer.jumpToPos(0);
 	FsStreamTask->midi_notify(0, MidiPlayer::bufferTimeInterval);
-//	midiPlayer.readEvents(0, MidiPlayer::bufferTimeInterval);
+	TScheduler::Yeld();
 
 	Leds::greenOn();
 	Leds::redOff();
+
+	m_state = PLAYER_PLAYING;
 }
 
 void Player::stopPlay()

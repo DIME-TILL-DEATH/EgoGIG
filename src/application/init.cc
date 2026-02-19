@@ -375,6 +375,7 @@ extern "C" void DMA1_Stream4_IRQHandler()
 				}
 			}
 
+			midiPlayer.process(player.songPoint());
 			if(player.countUp >= FsStreamTask->selectedSong.songSize() && !menuPlayer->loopModeActive())
 			{
 				player.stopPlay();
@@ -388,7 +389,7 @@ extern "C" void DMA1_Stream4_IRQHandler()
 				player.processLoop();
 			}
 
-			midiPlayer.process(player.songPoint());
+
 			break;
 		}
 

@@ -319,8 +319,7 @@ void MidiPlayer::jumpToPos(size_t val)
 		track_it->lastEventTime = 0;
 	}
 
-//	uint64_t startTime = val - val % bufferTimeInterval + bufferTimeInterval;
-//	FsStreamTask->midi_notify(startTime, startTime + bufferTimeInterval);
+	FsStreamTask->midi_notify(val, val + bufferTimeInterval);
 }
 
 void MidiPlayer::process(const uint64_t& songPos)
@@ -333,8 +332,7 @@ void MidiPlayer::process(const uint64_t& songPos)
 
 	if(m_songPos % bufferTimeInterval == 0)
 	{
-		while(FsStreamTask->midi_notify(m_songPos + bufferTimeInterval, m_songPos + bufferTimeInterval * 2) != pdPASS);
-//		readEvents(m_songPos + bufferTimeInterval, m_songPos + bufferTimeInterval * 2);
+		FsStreamTask->midi_notify(m_songPos + bufferTimeInterval, m_songPos + bufferTimeInterval * 2);
 	}
 }
 
