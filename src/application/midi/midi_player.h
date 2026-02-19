@@ -25,7 +25,6 @@ public:
 	void process(const uint64_t& songPos);
 	void processEvents();
 
-	void startPlay();
 
 	void loadSong(const emb_string& songPath);
 	static bool checkMidiAvaliable(const emb_string& songPath);

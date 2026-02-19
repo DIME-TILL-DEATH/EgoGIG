@@ -102,7 +102,7 @@ void Player::startPlay()
 	m_state = PLAYER_PLAYING;
 	m_songPoint = 0;
 
-	midiPlayer.startPlay();
+//	midiPlayer.startPlay();
 
 	Leds::greenOn();
 	Leds::redOff();

@@ -76,6 +76,7 @@ void MidiPlayer::openMidiFile(const char* fileName)
 		m_midiFileValid = true;
 		parseFile();
 		midi_stream.sortAndMerge();
+		readEvents(0, bufferTimeInterval);
 	}
 }
 
@@ -230,6 +231,13 @@ void MidiPlayer::readEvents(const uint64_t& startTime, const uint64_t& stopTime)
 					break;
 				}
 
+				case MIDI_PARSER_ERROR:
+				{
+					midi_stream.clear();
+					processingFlag = 0;
+					return;
+				}
+
 				case MIDI_PARSER_TRACK_VTIME:
 				{
 					time += parser.result.vtime * m_systemTimeCoef;
@@ -299,11 +307,6 @@ void MidiPlayer::readEvents(const uint64_t& startTime, const uint64_t& stopTime)
 	}
 }
 
-void MidiPlayer::startPlay()
-{
-	jumpToPos(0);
-}
-
 void MidiPlayer::jumpToPos(size_t val)
 {
 	midi_stream.clear();
@@ -334,6 +337,8 @@ void MidiPlayer::process(const uint64_t& songPos)
 
 void MidiPlayer::processEvents()
 {
+	if(midi_stream.items.size() == 0) return;
+
 	std::list<MidiStream::EventItem>::iterator currentEvent = midi_stream.items.begin();
 	if(currentEvent->played) return;
 
