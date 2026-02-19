@@ -76,7 +76,6 @@ void MidiPlayer::openMidiFile(const char* fileName)
 		m_midiFileValid = true;
 		parseFile();
 		midi_stream.sortAndMerge();
-		readEvents(0, bufferTimeInterval);
 	}
 }
 
@@ -241,7 +240,7 @@ void MidiPlayer::readEvents(const uint64_t& startTime, const uint64_t& stopTime)
 				case MIDI_PARSER_TRACK_VTIME:
 				{
 					time += parser.result.vtime * m_systemTimeCoef;
-					if(time >= stopTime)
+					if(time > stopTime)
 					{
 						stream.sortAndMerge();
 						midi_stream.items.splice(midi_stream.items.end(), stream.items);
@@ -257,10 +256,13 @@ void MidiPlayer::readEvents(const uint64_t& startTime, const uint64_t& stopTime)
 
 				case MIDI_PARSER_TRACK_EVENT:
 				{
-					if(time >= startTime && time < stopTime)
+					if(time < stopTime)
 					{
 						track_it->currentPosition = f_tell(&m_midiFile) - parser.size;
-						stream.add(time , parser.result.midi.length, parser.result.midi.data);
+						if(time >= startTime)
+						{
+							stream.add(time , parser.result.midi.length, parser.result.midi.data);
+						}
 					}
 					break;
 				}
@@ -317,8 +319,8 @@ void MidiPlayer::jumpToPos(size_t val)
 		track_it->lastEventTime = 0;
 	}
 
-	uint64_t startTime = val - val % bufferTimeInterval + bufferTimeInterval;
-	FsStreamTask->midi_notify(startTime, startTime + bufferTimeInterval);
+//	uint64_t startTime = val - val % bufferTimeInterval + bufferTimeInterval;
+//	FsStreamTask->midi_notify(startTime, startTime + bufferTimeInterval);
 }
 
 void MidiPlayer::process(const uint64_t& songPos)
@@ -331,7 +333,8 @@ void MidiPlayer::process(const uint64_t& songPos)
 
 	if(m_songPos % bufferTimeInterval == 0)
 	{
-		FsStreamTask->midi_notify(m_songPos + bufferTimeInterval, m_songPos + bufferTimeInterval * 2);
+		while(FsStreamTask->midi_notify(m_songPos + bufferTimeInterval, m_songPos + bufferTimeInterval * 2) != pdPASS);
+//		readEvents(m_songPos + bufferTimeInterval, m_songPos + bufferTimeInterval * 2);
 	}
 }
 
@@ -340,7 +343,7 @@ void MidiPlayer::processEvents()
 	if(midi_stream.items.size() == 0) return;
 
 	std::list<MidiStream::EventItem>::iterator currentEvent = midi_stream.items.begin();
-	if(currentEvent->played) return;
+	if(currentEvent->playing) return;
 
 	if(currentEvent->time_tics < m_songPos)
 	{
@@ -348,7 +351,7 @@ void MidiPlayer::processEvents()
 		{
 			DMA_HIFCR (DMA2) = 0xffffffff;
 
-			currentEvent->played = 1;
+			currentEvent->playing = 1;
 			dma_set_number_of_data(DMA2, DMA_STREAM7, currentEvent->size);
 			dma_set_memory_address(DMA2, DMA_STREAM7, (uint32_t) currentEvent->data);
 			dma_enable_stream(DMA2, DMA_STREAM7);

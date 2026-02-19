@@ -18,7 +18,7 @@ void MidiStream::add(const uint64_t &timeTics, size_t size, uint8_t *data)
 	eventItem.time_tics = timeTics;
 	eventItem.size = size;
 	eventItem.data = new uint8_t[size];
-	eventItem.played = 0;
+	eventItem.playing = 0;
 
 	if (!eventItem.data)
 		return;

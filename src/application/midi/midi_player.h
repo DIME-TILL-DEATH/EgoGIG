@@ -34,6 +34,8 @@ public:
 	bool midiFileValid() { return m_midiFileValid; }
 	MidiStream midi_stream;
 
+	static constexpr uint16_t bufferTimeInterval = Player::wav_buff_size * 4;
+
 private:
 	static FIL m_midiFile;
 
@@ -45,8 +47,6 @@ private:
 	float m_systemTimeCoef;
 
 	uint8_t m_parserBuffer[1024];
-
-	static constexpr uint16_t bufferTimeInterval = Player::wav_buff_size * 4;
 
 	void openMidiFile(const char* fileName);
 	void parseFile();

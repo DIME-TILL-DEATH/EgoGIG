@@ -69,14 +69,14 @@ public:
 		notify(qn);
 	}
 
-	inline void midi_notify(const uint64_t& start, const uint64_t& stop)
+	inline BaseType_t midi_notify(const uint64_t& start, const uint64_t& stop)
 	{
 		midiStartInterval = start;
 		midiStopInterval = stop;
 
 		query_notify_t qn =
 		{ .notify = qn_midi_events };
-		notify(qn);
+		return notify(qn);
 	}
 
 	inline void next_notify()
@@ -194,7 +194,7 @@ private:
 
 	void selectAnyFindedPlaylist();
 
-	inline void notify(const query_notify_t &val)
+	inline BaseType_t notify(const query_notify_t &val)
 	{
 		if (cortex_isr_num())
 		{
@@ -203,11 +203,12 @@ private:
 			NotifyFromISR(*((uint32_t*) &val), eSetValueWithOverwrite,
 					&xHigherPriorityTaskWoken);
 			portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+			return pdPASS;
 		}
 		else
 		{
 			// thread mode
-			Notify(*((uint32_t*) &val), eSetValueWithOverwrite);
+			return Notify(*((uint32_t*) &val), eSetValueWithOverwrite);
 		}
 	}
 

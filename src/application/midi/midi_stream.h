@@ -13,7 +13,7 @@ public:
 	{
 		uint64_t time_tics;
 		size_t size;
-		uint8_t played;
+		uint8_t playing;
 		uint8_t *data;
 	};
 
