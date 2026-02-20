@@ -19,6 +19,8 @@ public:
 	void encoderClockwise() override;
 	void encoderCounterClockwise() override;
 
+	void keyEsc() override;
+
 	void keyStop() override;
 	void keyStart() override;
 

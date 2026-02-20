@@ -230,10 +230,17 @@ void MidiPlayer::readEvents(const uint64_t& startTime, const uint64_t& stopTime)
 					break;
 				}
 
+				case MIDI_PARSER_ERROR:
+				{
+					midi_stream.clear();
+					processingFlag = 0;
+					return;
+				}
+
 				case MIDI_PARSER_TRACK_VTIME:
 				{
 					time += parser.result.vtime * m_systemTimeCoef;
-					if(time >= stopTime)
+					if(time > stopTime)
 					{
 						stream.sortAndMerge();
 						midi_stream.items.splice(midi_stream.items.end(), stream.items);
@@ -249,10 +256,13 @@ void MidiPlayer::readEvents(const uint64_t& startTime, const uint64_t& stopTime)
 
 				case MIDI_PARSER_TRACK_EVENT:
 				{
-					if(time >= startTime && time < stopTime)
+					if(time < stopTime)
 					{
 						track_it->currentPosition = f_tell(&m_midiFile) - parser.size;
-						stream.add(time , parser.result.midi.length, parser.result.midi.data);
+						if(time >= startTime)
+						{
+							stream.add(time , parser.result.midi.length, parser.result.midi.data);
+						}
 					}
 					break;
 				}
@@ -299,11 +309,6 @@ void MidiPlayer::readEvents(const uint64_t& startTime, const uint64_t& stopTime)
 	}
 }
 
-void MidiPlayer::startPlay()
-{
-	jumpToPos(0);
-}
-
 void MidiPlayer::jumpToPos(size_t val)
 {
 	midi_stream.clear();
@@ -314,8 +319,7 @@ void MidiPlayer::jumpToPos(size_t val)
 		track_it->lastEventTime = 0;
 	}
 
-	uint64_t startTime = val - val % bufferTimeInterval + bufferTimeInterval;
-	FsStreamTask->midi_notify(startTime, startTime + bufferTimeInterval);
+	FsStreamTask->midi_notify(val, val + bufferTimeInterval);
 }
 
 void MidiPlayer::process(const uint64_t& songPos)
@@ -334,8 +338,10 @@ void MidiPlayer::process(const uint64_t& songPos)
 
 void MidiPlayer::processEvents()
 {
+	if(midi_stream.items.size() == 0) return;
+
 	std::list<MidiStream::EventItem>::iterator currentEvent = midi_stream.items.begin();
-	if(currentEvent->played) return;
+	if(currentEvent->playing) return;
 
 	if(currentEvent->time_tics < m_songPos)
 	{
@@ -343,7 +349,7 @@ void MidiPlayer::processEvents()
 		{
 			DMA_HIFCR (DMA2) = 0xffffffff;
 
-			currentEvent->played = 1;
+			currentEvent->playing = 1;
 			dma_set_number_of_data(DMA2, DMA_STREAM7, currentEvent->size);
 			dma_set_memory_address(DMA2, DMA_STREAM7, (uint32_t) currentEvent->data);
 			dma_enable_stream(DMA2, DMA_STREAM7);

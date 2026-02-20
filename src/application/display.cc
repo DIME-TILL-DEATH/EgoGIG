@@ -10,14 +10,9 @@ void TDisplayTask::Code()
 	disp_init();
 
 	queue = new TQueue(40, sizeof(TDisplayCmd));
-	if (!queue)
-	{
-		Suspend();
-	}
-	if (!queue->IsCreated())
-	{
-		Suspend();
-	}
+	if(!queue) Suspend();
+	if(!queue->IsCreated()) Suspend();
+
 	while (1)
 	{
 		queue->Receive(&cmd, portMAX_DELAY);

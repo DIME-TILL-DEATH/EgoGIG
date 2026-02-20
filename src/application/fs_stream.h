@@ -69,14 +69,14 @@ public:
 		notify(qn);
 	}
 
-	inline void midi_notify(const uint64_t& start, const uint64_t& stop)
+	inline BaseType_t midi_notify(const uint64_t& start, const uint64_t& stop)
 	{
 		midiStartInterval = start;
 		midiStopInterval = stop;
 
 		query_notify_t qn =
 		{ .notify = qn_midi_events };
-		notify(qn);
+		return notify(qn);
 	}
 
 	inline void next_notify()
@@ -179,6 +179,8 @@ private:
 
 	browser_t browser;
 
+
+
 	void getWavData();
 	void getMidiEvents();
 
@@ -194,20 +196,22 @@ private:
 
 	void selectAnyFindedPlaylist();
 
-	inline void notify(const query_notify_t &val)
+	TQueue *queueDataRequests;
+	inline BaseType_t notify(const query_notify_t &val)
 	{
 		if (cortex_isr_num())
 		{
 			// send comand from ISR
-			BaseType_t xHigherPriorityTaskWoken;
-			NotifyFromISR(*((uint32_t*) &val), eSetValueWithOverwrite,
-					&xHigherPriorityTaskWoken);
-			portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+			BaseType_t HigherPriorityTaskWoken;
+			TQueue::TQueueSendResult result;
+			result = queueDataRequests->SendToBackFromISR(&val, &HigherPriorityTaskWoken);
+			if(HigherPriorityTaskWoken)
+				TScheduler::Yeld();
+			return result;
 		}
 		else
 		{
-			// thread mode
-			Notify(*((uint32_t*) &val), eSetValueWithOverwrite);
+			return queueDataRequests->SendToBack(&val, 0);
 		}
 	}
 

@@ -19,10 +19,10 @@ void Player::incrementSoundPos()
 	if(!pendingDecrement)
 	{
 		if(m_buffPoint == 0)
-				FsStreamTask->data_notify(&second_target);
+			FsStreamTask->data_notify(&second_target);
 
-			if(m_buffPoint == wav_buff_size / 2)
-				FsStreamTask->data_notify(&first_target);
+		if(m_buffPoint == wav_buff_size / 2)
+			FsStreamTask->data_notify(&first_target);
 
 		m_songPoint++;
 		m_buffPoint++;
@@ -68,7 +68,6 @@ void Player::initSong()
 	m_state = PLAYER_LOADING_SONG;
 
 	FsStreamTask->pos(0);
-	FsStreamTask->data_notify(&first_target);
 
 	countUp = 0;
 	m_songPoint = 0;
@@ -100,13 +99,16 @@ void Player::songInitiated()
 
 void Player::startPlay()
 {
-	m_state = PLAYER_PLAYING;
 	m_songPoint = 0;
 
-	midiPlayer.startPlay();
+	midiPlayer.jumpToPos(0);
+	FsStreamTask->midi_notify(0, MidiPlayer::bufferTimeInterval);
+	TScheduler::Yeld();
 
 	Leds::greenOn();
 	Leds::redOff();
+
+	m_state = PLAYER_PLAYING;
 }
 
 void Player::stopPlay()

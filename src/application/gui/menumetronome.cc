@@ -1,5 +1,7 @@
 #include "menumetronome.h"
+#include "menumetronomesettings.h"
 
+#include "metronome.h"
 #include "init.h"
 #include "display.h"
 #include "enc.h"
@@ -8,6 +10,7 @@
 
 #include "parambase.h"
 #include "player.h"
+
 
 MenuMetronome::MenuMetronome(AbstractMenu* parent)
 {
@@ -25,8 +28,17 @@ void MenuMetronome::show(TShowMode showMode)
 {
 	DisplayTask->Clear();
 	DisplayTask->StringOut(0, 0, (uint8_t*) "    Metronome");
-	DisplayTask->StringOut(0, 1, (uint8_t*) "    Tempo 120");
-	tempo = 120;
+	DisplayTask->StringOut(0, 1, (uint8_t*) "    Tempo    ");
+	ind_temp();
+
+	metronom_int = 44100.0f / (tempo / 60.0f) + 0.5f;
+
+	Metronome::setMetronomeType(static_cast<Metronome::MetronomeType>(sys_param[metronome_type]));
+}
+
+void MenuMetronome::keyEsc()
+{
+	showChild(new MenuMetronomeSettings(this));
 }
 
 void MenuMetronome::refresh()
@@ -69,9 +81,10 @@ void MenuMetronome::encoderCounterClockwise()
 
 void MenuMetronome::keyStop()
 {
+	player.stopMetronome();
+
 	Leds::redOn();
 	Leds::greenOff();
-	player.stopMetronome();
 }
 
 void MenuMetronome::keyStart()

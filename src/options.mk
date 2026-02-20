@@ -4,7 +4,7 @@ SDK_DIR=$(SRC_DIR)/../../SDK_embedded
 
 PLL_CONFIG=0
 
-FIRMWARE_VER=1.04.07
+FIRMWARE_VER=1.04.08
 
 # set relocation offset for application code in flash aria
 # for support bootloader SunSet
