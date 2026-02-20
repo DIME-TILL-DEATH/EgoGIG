@@ -23,6 +23,7 @@ LIB_FLAGS=	-I./ \
             -I$(SRC_DIR)/application/dsp\
             -I$(SRC_DIR)/application/gui\
             -I$(SRC_DIR)/application/midi\
+            -I$(SRC_DIR)/application/metronome\
 			$(APP_DEFS) \
 			$(HARDWARE_DEFS) \
 			$(FREERTOS_DEFS) \

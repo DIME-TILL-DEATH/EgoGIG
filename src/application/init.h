@@ -14,7 +14,8 @@ enum
 	direction_counter,
 	direction_scrol_playlist,
 	loop_points,
-	metronome_out
+	metronome_out,
+	metronome_type
 };
 
 enum MetronomeOut

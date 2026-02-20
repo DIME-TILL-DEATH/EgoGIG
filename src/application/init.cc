@@ -2,7 +2,7 @@
 #include "init.h"
 #include "display.h"
 #include "cs.h"
-#include "metronom.h"
+#include "metronome.h"
 #include "libopencm3/stm32/gpio.h"
 #include "libopencm3/stm32/dma.h"
 #include "libopencm3/stm32/spi.h"
@@ -16,6 +16,7 @@
 #include "enc.h"
 
 #include "fs_stream.h"
+#include "leds.h"
 
 #include "abstractmenu.h"
 
@@ -407,23 +408,30 @@ extern "C" void DMA1_Stream4_IRQHandler()
 			{
 				switch(sys_param[metronome_out])
 				{
-				case METRONOME_TO_OUT1: dac_sample[0].left = metronomeData[metronom_counter]; break;
-				case METRONOME_TO_OUT2:	dac_sample[0].right = metronomeData[metronom_counter]; break;
-				case METRONOME_TO_OUT3:	dac_sample[1].left = metronomeData[metronom_counter]; break;
-				case METRONOME_TO_OUT4:	dac_sample[1].right = metronomeData[metronom_counter]; break;
+				case METRONOME_TO_OUT1: dac_sample[0].left = Metronome::data[metronom_counter]; break;
+				case METRONOME_TO_OUT2:	dac_sample[0].right = Metronome::data[metronom_counter]; break;
+				case METRONOME_TO_OUT3:	dac_sample[1].left = Metronome::data[metronom_counter]; break;
+				case METRONOME_TO_OUT4:	dac_sample[1].right = Metronome::data[metronom_counter]; break;
 				}
+
 				metronom_counter++;
-				if (metronom_counter == 3935)
+				if (metronom_counter == Metronome::dataSize())
 				{
 					metronom_fl = 0;
 					metronom_counter = 0;
+					Leds::greenOff();
 				}
 			}
 
 			if(temp_counter++ == 0)
+			{
 				metronom_fl = 1;
+				Leds::greenOn();
+			}
 			else if(temp_counter == metronom_int)
+			{
 				temp_counter = 0;
+			}
 		}
 
 		default: break;

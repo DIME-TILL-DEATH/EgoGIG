@@ -1,7 +1,26 @@
-#include "metronom.h"
+#include "metronome.h"
 
-const uint16_t metronomeData[3935] =
-{ 0xfc5b, 0xeb66, 0xda4b, 0xd6de, 0xe3fa, 0x0055, 0x257d, 0x4542, 0x59fd,
+static Metronome::MetronomeType metronomeType;
+
+const uint16_t* Metronome::data;
+
+extern "C" uint8_t _binary_metronome_ableton_data_start[];
+extern "C" uint8_t _binary_metronome_ableton_data_end[];
+
+extern "C" uint8_t _binary_metronome_cubase_data_start[];
+extern "C" uint8_t _binary_metronome_cubase_data_end[];
+
+extern "C" uint8_t _binary_metronome_mpc_data_start[];
+extern "C" uint8_t _binary_metronome_mpc_data_end[];
+
+extern "C" uint8_t _binary_metronome_protools_data_start[];
+extern "C" uint8_t _binary_metronome_protools_data_end[];
+
+extern "C" uint8_t _binary_metronome_wood_data_start[];
+extern "C" uint8_t  _binary_metronome_wood_data_end[];
+
+const uint16_t defaultMetronome[3935] =
+{ 		0xfc5b, 0xeb66, 0xda4b, 0xd6de, 0xe3fa, 0x0055, 0x257d, 0x4542, 0x59fd,
 		0x6628, 0x6454, 0x4c3d, 0x1c48, 0xdf85, 0xb4c3, 0xb2b7, 0xc624, 0xce33,
 		0xc59e, 0xb891, 0xaffc, 0xafb9, 0xb707, 0xc5a6, 0xded7, 0x0068, 0x2161,
 		0x3a78, 0x46e9, 0x45bc, 0x3eae, 0x3929, 0x303b, 0x1e12, 0x0adc, 0x0214,
@@ -438,4 +457,52 @@ const uint16_t metronomeData[3935] =
 		0x0028, 0x002b, 0x011a, 0x021c, 0x02a1, 0x029e, 0x0234, 0x01a5, 0x0110,
 		0x0076, 0xffcf, 0xff47, 0xfee7, 0xfe81, 0xfe18, 0xfe00, 0xfe78, 0xff5d,
 		0x002b, 0x0053, 0xffb9, 0xfeeb, 0xfe9b, 0xfefb, 0xff8b, 0xffa1, 0xfed9,
-		0xfd45, 0xfb5a };
+		0xfd45, 0xfb5a
+};
+
+void Metronome::setMetronomeType(MetronomeType type)
+{
+	metronomeType = type;
+	switch(metronomeType)
+	{
+	case ABLETONE:
+		Metronome::data = (uint16_t*)_binary_metronome_ableton_data_start;
+		break;
+	case CUBASE:
+		Metronome::data = (uint16_t*)_binary_metronome_cubase_data_start;
+		break;
+	case MPC:
+		Metronome::data = (uint16_t*)_binary_metronome_mpc_data_start;
+		break;
+	case PRO_TOOLS:
+		Metronome::data = (uint16_t*)_binary_metronome_protools_data_start;
+		break;
+	case WOOD:
+		Metronome::data = (uint16_t*)_binary_metronome_wood_data_start;
+		break;
+	default:
+		Metronome::data = defaultMetronome;
+		break;
+	}
+}
+
+size_t Metronome::dataSize()
+{
+
+	switch(metronomeType)
+	{
+	case ABLETONE:
+		return (_binary_metronome_ableton_data_end - _binary_metronome_ableton_data_start)/sizeof(uint16_t);
+	case CUBASE:
+		return (_binary_metronome_cubase_data_end - _binary_metronome_cubase_data_start)/sizeof(uint16_t);
+	case MPC:
+		return (_binary_metronome_mpc_data_end - _binary_metronome_mpc_data_start)/sizeof(uint16_t);
+	case PRO_TOOLS:
+		return (_binary_metronome_protools_data_end - _binary_metronome_protools_data_start)/sizeof(uint16_t);
+	case WOOD:
+		return (_binary_metronome_wood_data_end-_binary_metronome_wood_data_start)/sizeof(uint16_t);
+	default:
+		return 3935;
+	}
+}
+

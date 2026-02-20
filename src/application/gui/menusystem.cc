@@ -9,7 +9,7 @@
 MenuSystem::MenuSystem(AbstractMenu* parent)
 	:MenuParamList(parent, MENU_SYSTEM)
 {
-	const uint8_t paramNum = 5;
+	const uint8_t paramNum = 6;
 	ParamBase* params[paramNum];
 
 	params[0] = new ParamStringList("Auto next", &sys_param[auto_next_track], {"Off", "On "}, 5);
@@ -24,10 +24,13 @@ MenuSystem::MenuSystem(AbstractMenu* parent)
 	params[3] = new ParamStringList("LB points", &sys_param[loop_points], {"Off", "On "}, 5);
 	params[3]->setDisplayPosition(11);
 
-	params[4] = new ParamStringList("METRONOME", &sys_param[metronome_out], {"OUT4", "OUT3", "OUT2", "OUT1",}, 5);
+	params[4] = new ParamStringList("Metronome", &sys_param[metronome_out], {"OUT4", "OUT3", "OUT2", "OUT1",}, 5);
 	params[4]->setDisplayPosition(11);
 	params[4]->setBounds(0, 3);
 	params[4]->setInverse(true);
+
+	params[5] = new ParamStringList("Met.sound", &sys_param[metronome_type], {"Def.", "ABL.", "CUB.", "MPC ", " PT ", "Wood"}, 5);
+	params[5]->setDisplayPosition(11);
 
 	setParams(params, paramNum);
 }
